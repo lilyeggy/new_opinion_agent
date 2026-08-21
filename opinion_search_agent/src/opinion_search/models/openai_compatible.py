@@ -1,0 +1,289 @@
+from __future__ import annotations
+
+import asyncio
+import ipaddress
+from typing import Annotated, Protocol
+from urllib.parse import urlsplit, urlunsplit
+
+import httpx
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
+
+from opinion_search.context.models import CompiledContext
+from opinion_search.domain.opinion.decisions import AgentDecision
+from opinion_search.models.contracts import (
+    ModelClientError,
+    ModelError,
+    ModelErrorKind,
+)
+
+
+class ModelHttpResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status_code: Annotated[int, Field(ge=100, le=599)]
+    json_body: JsonValue | None = None
+    text: str = ""
+
+
+class ModelHttpTransport(Protocol):
+    async def post(
+        self,
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, JsonValue],
+    ) -> ModelHttpResponse: ...
+
+
+class HttpxModelTransport:
+    async def post(
+        self,
+        *,
+        url: str,
+        headers: dict[str, str],
+        json_body: dict[str, JsonValue],
+    ) -> ModelHttpResponse:
+        try:
+            async with httpx.AsyncClient(timeout=None) as client:
+                response = await client.post(
+                    url,
+                    headers=headers,
+                    json=json_body,
+                )
+        except httpx.HTTPError as exc:
+            raise ModelClientError(
+                ModelError(
+                    kind=ModelErrorKind.SERVER_ERROR,
+                    message="The model provider could not be reached.",
+                )
+            ) from exc
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = None
+        return ModelHttpResponse(
+            status_code=response.status_code,
+            json_body=payload,
+            text=response.text,
+        )
+
+
+class OpenAICompatibleModelClient:
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        transport: ModelHttpTransport | None = None,
+        base_url: str = "https://opencode.ai/zen/go/v1",
+        model: str = "deepseek-v4-flash",
+        timeout_seconds: float = 60,
+        allow_insecure_loopback: bool = False,
+    ) -> None:
+        normalized_key = api_key.strip()
+        normalized_model = model.strip()
+        if not normalized_key:
+            raise ValueError("model api_key must not be empty")
+        if not normalized_model:
+            raise ValueError("model name must not be empty")
+        if timeout_seconds <= 0:
+            raise ValueError("model timeout_seconds must be positive")
+        normalized_base_url = _validated_model_base_url(
+            base_url,
+            allow_insecure_loopback=allow_insecure_loopback,
+        )
+        self._api_key = normalized_key
+        self._transport = transport or HttpxModelTransport()
+        self._endpoint = normalized_base_url + "/chat/completions"
+        self._model = normalized_model
+        self._timeout_seconds = timeout_seconds
+        self._decision_adapter = TypeAdapter(AgentDecision)
+
+    async def decide(self, context: CompiledContext) -> AgentDecision:
+        request: dict[str, JsonValue] = {
+            "model": self._model,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": context.rendered,
+                }
+            ],
+            "response_format": {"type": "json_object"},
+            "temperature": 0,
+        }
+        try:
+            async with asyncio.timeout(self._timeout_seconds):
+                response = await self._transport.post(
+                    url=self._endpoint,
+                    headers={
+                        "Authorization": f"Bearer {self._api_key}",
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                    },
+                    json_body=request,
+                )
+        except TimeoutError as exc:
+            raise ModelClientError(
+                ModelError(
+                    kind=ModelErrorKind.TIMEOUT,
+                    message="The model request timed out.",
+                )
+            ) from exc
+
+        self._raise_for_status(response.status_code)
+        content = self._extract_content(response.json_body)
+        try:
+            return self._decision_adapter.validate_json(content)
+        except ValueError as exc:
+            raise ModelClientError(
+                ModelError(
+                    kind=ModelErrorKind.MALFORMED_RESPONSE,
+                    message=("The model response did not match the decision schema."),
+                )
+            ) from exc
+
+    @staticmethod
+    def _extract_content(payload: JsonValue | None) -> str:
+        if not isinstance(payload, dict):
+            raise _model_error(
+                ModelErrorKind.MALFORMED_RESPONSE,
+                "The model provider returned an invalid JSON payload.",
+            )
+        choices = payload.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise _model_error(
+                ModelErrorKind.MALFORMED_RESPONSE,
+                "The model provider returned no response choice.",
+            )
+        choice = choices[0]
+        if not isinstance(choice, dict):
+            raise _model_error(
+                ModelErrorKind.MALFORMED_RESPONSE,
+                "The model provider returned an invalid choice.",
+            )
+        message = choice.get("message")
+        if not isinstance(message, dict):
+            raise _model_error(
+                ModelErrorKind.MALFORMED_RESPONSE,
+                "The model provider returned no assistant message.",
+            )
+        refusal = message.get("refusal")
+        if isinstance(refusal, str) and refusal.strip():
+            raise _model_error(
+                ModelErrorKind.REFUSAL,
+                "The model refused to produce a decision.",
+            )
+        content = message.get("content")
+        if content is None or (isinstance(content, str) and not content.strip()):
+            diagnostics = _safe_empty_response_diagnostics(
+                payload,
+                choice,
+                message,
+                content,
+            )
+            raise _model_error(
+                ModelErrorKind.EMPTY_RESPONSE,
+                f"The model returned an empty decision. {diagnostics}",
+            )
+        if not isinstance(content, str):
+            raise _model_error(
+                ModelErrorKind.MALFORMED_RESPONSE,
+                "The model decision content was not text.",
+            )
+        return content
+
+    @staticmethod
+    def _raise_for_status(status: int) -> None:
+        if 200 <= status < 300:
+            return
+        if status in {401, 403}:
+            kind = ModelErrorKind.AUTHENTICATION
+            message = "The model provider rejected authentication."
+        elif status == 429:
+            kind = ModelErrorKind.RATE_LIMITED
+            message = "The model provider rate limited the request."
+        elif 400 <= status < 500:
+            kind = ModelErrorKind.INVALID_REQUEST
+            message = (
+                f"The model provider rejected the request with HTTP status {status}."
+            )
+        else:
+            kind = ModelErrorKind.SERVER_ERROR
+            message = f"The model provider returned HTTP status {status}."
+        raise _model_error(kind, message)
+
+
+def _model_error(kind: ModelErrorKind, message: str) -> ModelClientError:
+    return ModelClientError(ModelError(kind=kind, message=message))
+
+
+def _safe_empty_response_diagnostics(
+    payload: dict,
+    choice: dict,
+    message: dict,
+    content: object,
+) -> str:
+    finish_reason = choice.get("finish_reason")
+    usage = payload.get("usage")
+    prompt_tokens = None
+    completion_tokens = None
+    if isinstance(usage, dict):
+        if isinstance(usage.get("prompt_tokens"), int):
+            prompt_tokens = usage["prompt_tokens"]
+        if isinstance(usage.get("completion_tokens"), int):
+            completion_tokens = usage["completion_tokens"]
+    reasoning_chars = 0
+    for key in ("reasoning_content", "reasoning", "analysis"):
+        value = message.get(key)
+        if isinstance(value, str):
+            reasoning_chars += len(value)
+    content_state = "null" if content is None else "blank"
+    return (
+        "Safe provider metadata: "
+        f"finish_reason={finish_reason!r}, "
+        f"content_state={content_state}, "
+        f"reasoning_chars={reasoning_chars}, "
+        f"prompt_tokens={prompt_tokens}, "
+        f"completion_tokens={completion_tokens}."
+    )
+
+
+def _validated_model_base_url(
+    base_url: str,
+    *,
+    allow_insecure_loopback: bool,
+) -> str:
+    candidate = base_url.strip().rstrip("/")
+    try:
+        parsed = urlsplit(candidate)
+        parsed.port
+    except ValueError as exc:
+        raise ValueError("model base_url is invalid") from exc
+    if (
+        parsed.hostname is None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("model base_url must be an absolute provider URL")
+    if parsed.scheme == "https":
+        return urlunsplit(parsed)
+    if (
+        parsed.scheme == "http"
+        and allow_insecure_loopback
+        and _is_loopback_host(parsed.hostname)
+    ):
+        return urlunsplit(parsed)
+    raise ValueError(
+        "model base_url must use HTTPS; loopback HTTP requires an explicit "
+        "development opt-in"
+    )
+
+
+def _is_loopback_host(hostname: str) -> bool:
+    if hostname.casefold() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        return False

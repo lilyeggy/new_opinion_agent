@@ -1,0 +1,12 @@
+{
+  "question": "What happened and how was the event framed?",
+  "open_gap_ids": ["gap-primary", "gap-independent"],
+  "repeated_queries": ["official account", "official account", "independent account"],
+  "repeated_candidate_urls": [
+    "https://example.com/primary",
+    "https://example.com/primary",
+    "https://news.example/independent"
+  ],
+  "completion_rejection": "Finish rejected because investigation gaps remain open.",
+  "external_payload_repeat_count": 100
+}

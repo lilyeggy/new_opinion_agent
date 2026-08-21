@@ -1,0 +1,107 @@
+## 使用方式
+
+- 本文件分为默认规则与按需模式两层。
+- 默认规则始终生效。
+- 按需模式仅在用户明确要求，或任务明显需要且已获用户确认时启用；未启用前，不默认进入重流程。
+- 涉及项目/系统设计、文档体系设计或高风险改动时，应在开始时让用户选择是否启用相关按需模式。
+
+## 默认规则
+
+### 工作原则
+
+- 非微小改动先说明方法。
+- 需求有歧义、风险高或影响大时，先澄清并获批，再开始写代码。
+- 坚持 Spec Coding，避免 Vibe Coding；Plan 只写方案、范围、风险和验收标准，不写实现代码。
+- 优先小步迭代；实现与审查分离。
+- 完成后可执行 /simplify；必要时使用 /loop。
+
+### 编码约束
+
+- 代码中只使用英文。
+- 注释说明意图、约束和边界，不记录开发过程式说明。
+- 优先用概念、模块、职责和符号名定位代码；不要只依赖易漂移的行号，必要时可补充文件路径。
+- Spec 不依赖行号定位代码。
+- 不为未被请求的未来需求提前抽象、泛化或暴露配置。
+
+### 质量与验证
+
+- 项目早期只保留最小必要质量标准：可运行、可验证、可回滚。
+- 关键路径、高风险改动和外部接口必须可验证。
+- 修复 bug 时，先复现，再修复，再验证。
+- 任何"已完成""已修复""已通过"的结论，都必须附验证方式、命令或结果摘要。
+- 若当前无法验证，必须明确说明原因、风险和未覆盖范围。
+
+### 拆分与沉淀
+
+- 将任务拆成低耦合、可独立验证的子任务；必要时使用 /batch。
+- 重复出现且边界稳定的流程，应沉淀为 Skill、脚本或检查清单。
+- 公共规则优先沉淀为文档、测试或自动化，而不是只停留在对话里。
+- OpinionSearch 每个重要实现节点都必须同步更新 `docs/opinion-search-agent-implementation-memory.md`。记录至少包括：实现范围、核心流程、关键契约与不变量、重要设计取舍、失败和恢复语义、测试与验证证据、已知限制、对下一节点的影响。不得只在对话中宣布完成。
+- 实施记忆只记录已经进入仓库并经过验证的事实；规划中的内容保留在 canonical design 和执行计划中，不得写成已经实现。
+
+### 协作与纠错
+
+- 被纠正时，先验证问题是否适用于当前代码库，再调整做法。
+- 外部建议先核对是否适用，再决定是否采纳。
+- 对重复性问题，沉淀为明确规则、测试或自动检查。
+
+### 学习优先协作
+
+- 用户以吃透系统并能在面试中独立讲解为目标，默认由用户主导实现。
+- 用户亲手实现前两层的核心语义：Runtime protocol/lifecycle、Agent Loop、State/Reducer、step transaction/resume、Tool Registry/Executor、Context Compiler、Working Memory、Completion Control 和关键舆情规则。
+- 协作者可以直接承担已获授权的机械工作：provider/MCP adapter、fake、fixture、重复性测试、checkpoint 文件原子操作、CLI glue 和回归验证；不要再把这些批量分配给用户。
+- 开始一个核心实现任务前，先讲清问题定义、相关概念、设计取舍、模块边界、实现步骤和验证方式；不要直接包办用户负责的核心判断。
+- 核心判断与机械实现混合时，先由用户冻结语义，再由协作者补齐外围实现和测试；用户明确委托、请求示例代码或受阻时，可以代写其指定范围。
+- 每次实现或审查结束时，说明面试中应能解释的关键决策、失败模式和验证证据。
+
+### OpinionSearch 项目边界
+
+- `docs/public-opinion-search-agent-design.md` 是唯一 canonical 项目设计；`docs/opinion-search-agent-5-day-plan.md` 是当前执行计划。
+- `docs/opinion-search-agent-implementation-memory.md` 是实现事实、关键决策和验证证据的持续追加记录；它不能覆盖 canonical design。
+- 新项目只在 `opinion_search_agent/` 中独立实现。
+- 默认不要阅读、修改、复制或导入 `archive/` 中的代码；只有用户明确要求比较历史实现时才可只读检查。
+- 项目只深做第 ① 层 Agent Harness/Runtime 和第 ② 层 Tool/MCP/Context/Run-scoped Memory；OpinionSearch 是验证 workload。
+- 明确不建设 Environment/Sandbox、Control Plane、Trace/Data/Observability、Evaluation/Feedback 或 Model Serving/Training Infra，也不为它们预留平台接口。
+- Checkpoint、StepRecord、开发日志和 deterministic tests 只服务单次 Runtime 正确性，不包装成其他 Infra 层。
+- 使用 Python 自定义显式单 Agent async loop，不使用 LangGraph 隐藏 State 演进。
+- 当前 OpinionSearch 动作空间为 `search`、`read`、`reflect`、`finish`；它们是 domain decision，不等同于 Runtime ToolCall。
+- State 是权威状态，Working Memory 是派生视图，Compiled Context 是单次模型输入。
+
+
+### 禁止事项
+
+- 永远不要使用 /init，除非项目明确要求。
+- CLAUDE.md 必须按项目实际需求编写，不套用空泛模板。
+- 不要在代码注释、commit message 或 PR body 中使用描述开发进度的词，如 FIXED、Step、Week、Section、Phase、AC-x。
+- 不要在代码注释、commit message 或 PR body 中出现 AI 工具名称，如 Codex、Claude、Grok、Gemini 等。
+- 不要把外部实现细节、外部文档或外部技能树直接提升为当前项目的硬约束。
+
+## 按需模式
+
+### 架构与演进模式
+
+- 适用：用户要求项目或系统设计满足分层、稳定接口、可演进，或明确要求按架构流程推进。
+- 优先做分层设计；不同层次保持职责分离，只通过明确、稳定的接口交互。
+- 不要让上层依赖下层实现细节，也不要建立非必要的跨层耦合；若必须依赖，应收敛为单向、最小依赖。
+- 每个层次内优先做 primitive 设计；primitive 应是独立、可替换、可组合、可验证的最小功能单元。
+- 若项目采用多 Agent 协作，应按层次设计专用 agent 与 skill，使其职责、输入、输出和边界清晰。
+- 架构演进必须逐步验证；每一步新增特性或重构，都要确认不破坏已有接口、行为和关键路径。
+
+### Agent-Native 文档模式
+
+- 适用：用户要求文档同时服务人类和 Agent，或明确要求 Agent-Native 文档体系。
+- 使用两层结构，避免重复：
+  - canonical skill docs (.claude/docs/)：保存详细、长期维护的正式正文，供人类和 Agent 共读。
+  - agent-facing index（.claude/skills/）：只负责把 Agent 路由到正确正文，不复述内容，也不要求与每份正文一一对应。
+- 文档应同时对人类和 Agent 可读：写清能力、前提、边界、依赖、接口和典型用法，避免只对单一读者成立的隐式上下文。
+- 仅 skill 文档必须包含 frontmatter：type、tags、requires（仅写硬依赖）。
+- Agent 读取文档时，先通过索引定位主题，再进入正文；仅递归读取 requires 指向的硬依赖文档，其他相邻或参考文档按需读取。
+- 本地文档是当前仓库契约；外部资料、外部 skills 或示例实现只作参考，不覆盖本地约定。
+- 量化结论必须带测试条件和适用范围。
+
+### 严格验证模式
+
+- 适用：改动高风险、回归代价高，或用户要求每一步都经过验证。
+- 将工作拆成可独立验证的小步；每一步完成后先验证，再继续下一步。
+- 新增特性、重构或修复都要确认不破坏已有功能、接口和关键路径。
+- 若当前无法完成必要验证，应暂停继续扩展，并明确说明阻塞、风险和未覆盖范围。

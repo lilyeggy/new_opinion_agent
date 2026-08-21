@@ -1,0 +1,19 @@
+{
+  "committed_steps": 10,
+  "source_count": 3,
+  "evidence_count": 3,
+  "resolved_gap_ids": [
+    "gap-factual-baseline",
+    "gap-stakeholder-positions",
+    "gap-dominant-narratives",
+    "gap-counter-narratives"
+  ],
+  "required_brief_fragments": [
+    "Evidence-backed claims",
+    "Stakeholder positions",
+    "Public narratives",
+    "Opinion coverage",
+    "Remaining gaps",
+    "whole-network sentiment"
+  ]
+}

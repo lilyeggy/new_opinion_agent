@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opinion-search-agent"
+version = "0.1.0"
+description = "An evidence-driven public-opinion web search agent."
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.28,<1",
+    "jsonschema>=4.23,<5",
+    "mcp>=2,<3",
+    "pydantic>=2.7,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "live: calls real external providers and is disabled by default",
+]
