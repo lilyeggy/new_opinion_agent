@@ -170,6 +170,7 @@ def test_jina_reader_normalizes_json_mode_response() -> None:
                         "title": "Primary source",
                         "url": "HTTPS://Example.COM:443/article#fragment",
                         "content": "# Primary source\n\nFull content.",
+                        "publishedTime": "2026-08-25T09:30:00+08:00",
                     }
                 },
                 text="",
@@ -193,6 +194,8 @@ def test_jina_reader_normalizes_json_mode_response() -> None:
     assert result.url == "https://example.com/article"
     assert result.title == "Primary source"
     assert result.content.startswith("# Primary source")
+    assert result.published_at.isoformat() == "2026-08-25T09:30:00+08:00"
+    assert result.publication_time_status.value == "reported"
     request = transport.requests[0]
     assert request.method == "GET"
     assert request.url == "https://r.jina.ai/https://example.com/article"

@@ -10,6 +10,7 @@ from opinion_search.domain.opinion.state import (
     GapAssessment,
     GapStatus,
     InvestigationGap,
+    FinalSynthesis,
     Narrative,
     OpinionSearchDelta,
     OpinionSearchState,
@@ -133,10 +134,17 @@ def reduce_opinion_state(
         old_state.reflections,
         accepted_delta.append_reflections,
     )
+    final_synthesis = _reduce_final_synthesis(
+        old_state.final_synthesis,
+        accepted_delta.set_final_synthesis,
+        evidence_ids=evidence_ids,
+        gap_ids=set(gaps_by_id),
+    )
 
     values = {
         "request": old_state.request,
         "gaps": gaps,
+        "task_frame": old_state.task_frame,
         "current_focus": (accepted_delta.set_current_focus or old_state.current_focus),
         "candidates": candidates,
         "sources": sources,
@@ -144,6 +152,7 @@ def reduce_opinion_state(
         "claims": claims,
         "stakeholder_positions": positions,
         "narratives": narratives,
+        "final_synthesis": final_synthesis,
         "reflections": reflections,
     }
     if all(getattr(old_state, key) == value for key, value in values.items()):
@@ -152,6 +161,24 @@ def reduce_opinion_state(
         **values,
         revision=old_state.revision + 1,
     )
+
+
+def _reduce_final_synthesis(
+    existing: FinalSynthesis | None,
+    proposed: FinalSynthesis | None,
+    *,
+    evidence_ids: set[str],
+    gap_ids: set[str],
+) -> FinalSynthesis | None:
+    if proposed is None:
+        return existing
+    if not set(proposed.evidence_ids).issubset(evidence_ids):
+        raise ReducerInvariantError("final synthesis references unknown evidence")
+    if not set(proposed.limitation_gap_ids).issubset(gap_ids):
+        raise ReducerInvariantError("final synthesis references unknown limitation gap")
+    if existing is None or existing == proposed:
+        return proposed
+    raise ReducerInvariantError("final synthesis cannot be overwritten")
 
 
 def _merge_candidates(

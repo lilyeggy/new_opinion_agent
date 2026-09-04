@@ -6,6 +6,7 @@ from opinion_search.domain.opinion.state import (
     ClaimKind,
     ClaimStatus,
     Evidence,
+    FinalSynthesis,
     GapStatus,
     InvestigationGap,
     OpinionSearchState,
@@ -68,6 +69,11 @@ def test_brief_keeps_claim_provenance_remaining_gaps_and_scope_limit() -> None:
                 status=ClaimStatus.SUPPORTED,
             ),
         ),
+        final_synthesis=FinalSynthesis(
+            summary="The event was announced, but independent confirmation is unavailable.",
+            evidence_ids=("evidence-1",),
+            limitation_gap_ids=("gap-independent",),
+        ),
     )
 
     outcome = build_search_outcome(
@@ -77,10 +83,21 @@ def test_brief_keeps_claim_provenance_remaining_gaps_and_scope_limit() -> None:
     )
 
     assert "[S1]" in outcome.markdown
+    assert "## Core conclusion" in outcome.markdown
+    assert outcome.markdown.index("## Core conclusion") < outcome.markdown.index(
+        "## Evidence-backed claims"
+    )
+    assert "The event was announced" in outcome.markdown
     assert "https://example.org/announcement" in outcome.markdown
     assert "gap-independent" in outcome.markdown
     assert "whole-network sentiment" in outcome.markdown
     assert outcome.remaining_gap_ids == ("gap-independent",)
+    assert outcome.report.question == "What happened?"
+    assert outcome.report.conclusion is not None
+    assert outcome.report.conclusion.source_refs == ("S1",)
+    assert outcome.report.claims[0].supporting_source_refs == ("S1",)
+    assert outcome.report.remaining_gaps[0].gap_id == "gap-independent"
+    assert outcome.report.sources[0].source_ref == "S1"
 
 
 def test_brief_escapes_model_and_page_markdown_payloads() -> None:

@@ -18,16 +18,19 @@ from opinion_search.domain.opinion.state import (
     CandidateSource,
     Claim,
     Evidence,
+    FinalSynthesis,
     GapAssessment,
+    GapStatus,
     Narrative,
     OpinionSearchDelta,
     OpinionSearchState,
     Source,
+    SourcePublicationStatus,
     StakeholderPosition,
     claim_status_for,
     stable_domain_id,
 )
-from opinion_search.runtime.completion import CompletionVerdict
+from opinion_search.runtime.completion import CompletionDisposition, CompletionVerdict
 from opinion_search.tools.capabilities.web import ReadResult, SearchResults
 from opinion_search.tools.contracts import ToolError, ToolOutcome, ToolResult
 from opinion_search.tools.url import InvalidPublicUrl, normalize_public_url
@@ -108,7 +111,19 @@ class OpinionSearchObservationProcessor:
 
         if not isinstance(observation, FinishObservation):
             raise ProcessorInvariantError("finish requires a finish observation")
-        return OpinionSearchDelta()
+        if observation.completion_verdict.disposition is CompletionDisposition.REJECT_AND_CONTINUE:
+            return OpinionSearchDelta()
+        return OpinionSearchDelta(
+            set_final_synthesis=FinalSynthesis(
+                summary=decision.answer_candidate,
+                evidence_ids=_final_synthesis_evidence_ids(state),
+                limitation_gap_ids=tuple(
+                    gap.gap_id
+                    for gap in state.gaps
+                    if gap.status is not GapStatus.RESOLVED
+                ),
+            )
+        )
 
     @staticmethod
     def _search_delta(
@@ -189,6 +204,12 @@ class OpinionSearchObservationProcessor:
             title=result.title,
             source_kind=decision.source_kind,
             artifact_ref=(outcome.artifact_refs[0] if outcome.artifact_refs else None),
+            published_at=result.published_at,
+            publication_status=(
+                SourcePublicationStatus.REPORTED
+                if result.published_at is not None
+                else SourcePublicationStatus.UNAVAILABLE
+            ),
         )
         evidence = tuple(
             Evidence(
@@ -323,15 +344,24 @@ def _select_evidence_excerpts(
     *,
     focus: str,
     block_limit: int = 1_200,
-    max_blocks: int = 8,
+    max_blocks: int = 3,
 ) -> tuple[_EvidenceExcerpt, ...]:
     raw_blocks = re.split(r"\n\s*\n", content)
     blocks: list[_EvidenceExcerpt] = []
+    seen_text: set[str] = set()
     for block_index, raw_block in enumerate(raw_blocks, start=1):
         normalized = " ".join(raw_block.split())
+        if not normalized or _is_low_quality_content_block(normalized):
+            continue
         char_start = 0
         while normalized:
             text = normalized[:block_limit]
+            identity = text.casefold()
+            if identity in seen_text:
+                normalized = normalized[block_limit:]
+                char_start += len(text)
+                continue
+            seen_text.add(identity)
             blocks.append(
                 _EvidenceExcerpt(
                     text=text,
@@ -343,23 +373,78 @@ def _select_evidence_excerpts(
             normalized = normalized[block_limit:]
             char_start += len(text)
     if not blocks:
-        raise ProcessorInvariantError("reader content produced no evidence block")
+        return ()
 
-    focus_terms = {
-        token.casefold()
-        for token in re.findall(
-            r"[A-Za-z0-9_]{2,}|[\u4e00-\u9fff]{2,}",
-            focus,
-        )
-    }
+    focus_terms = _focus_terms(focus)
+    scores = tuple(_evidence_relevance_score(block.text, focus_terms) for block in blocks)
     ranked = sorted(
         range(len(blocks)),
         key=lambda index: (
-            -sum(term in blocks[index].text.casefold() for term in focus_terms),
+            -scores[index],
             index,
         ),
-    )[:max_blocks]
-    return tuple(blocks[index] for index in sorted(ranked))
+    )
+    selected = [index for index in ranked if scores[index] > 0][:max_blocks]
+    if not selected:
+        if len({block.block_index for block in blocks}) == 1:
+            return tuple(blocks[:max_blocks])
+        return ()
+    return tuple(blocks[index] for index in sorted(selected))
+
+
+_BOILERPLATE_PREFIXES = (
+    "广告",
+    "推广",
+    "赞助",
+    "相关推荐",
+    "热门推荐",
+    "登录",
+    "注册",
+    "下载客户端",
+    "打开app",
+    "sponsored",
+    "advertisement",
+    "sign in",
+    "log in",
+    "subscribe",
+    "share this",
+    "cookie settings",
+    "privacy policy",
+)
+
+
+def _is_low_quality_content_block(text: str) -> bool:
+    lowered = text.casefold().lstrip("#>*-• ")
+    if lowered.startswith(_BOILERPLATE_PREFIXES):
+        return True
+    without_markup = re.sub(r"!?(?:\[[^\]]*\])?\([^)]*\)", " ", text)
+    semantic_characters = re.findall(r"[A-Za-z0-9\u4e00-\u9fff]", without_markup)
+    if len(semantic_characters) < 24:
+        return True
+    link_count = len(re.findall(r"\[[^\]]+\]\([^)]+\)", text))
+    return link_count >= 4 and len(semantic_characters) < 120
+
+
+def _focus_terms(focus: str) -> frozenset[str]:
+    terms = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z0-9_]{3,}", focus)
+        if token.casefold() not in {"the", "and", "for", "what", "which", "find"}
+    }
+    for sequence in re.findall(r"[\u4e00-\u9fff]{2,}", focus):
+        for width in (2, 3, 4):
+            terms.update(
+                sequence[index : index + width]
+                for index in range(len(sequence) - width + 1)
+            )
+    return frozenset(terms)
+
+
+def _evidence_relevance_score(text: str, focus_terms: frozenset[str]) -> int:
+    lowered = text.casefold()
+    overlap = sum(term in lowered for term in focus_terms)
+    information_bonus = int(bool(re.search(r"\d", text)))
+    return overlap * 4 + information_bonus
 
 
 @dataclass(frozen=True)
@@ -388,3 +473,15 @@ def _url_matches_domain_scope(
 
 def _host_matches(host: str, domain: str) -> bool:
     return host == domain or host.endswith(f".{domain}")
+
+
+def _final_synthesis_evidence_ids(state: OpinionSearchState) -> tuple[str, ...]:
+    """Select the evidence that established the committed resolved gaps."""
+    return tuple(
+        dict.fromkeys(
+            evidence_id
+            for gap in state.gaps
+            if gap.status is GapStatus.RESOLVED
+            for evidence_id in gap.evidence_ids
+        )
+    )

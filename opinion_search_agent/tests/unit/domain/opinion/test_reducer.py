@@ -11,6 +11,7 @@ from opinion_search.domain.opinion.state import (
     ClaimKind,
     ClaimStatus,
     Evidence,
+    FinalSynthesis,
     GapAssessment,
     GapStatus,
     InvestigationGap,
@@ -114,6 +115,39 @@ def test_reducer_is_immutable_deterministic_and_semantically_idempotent() -> Non
     assert first == second
     assert replay is first
     assert replay.revision == 1
+
+
+def test_reducer_commits_final_synthesis_once_and_rejects_overwrite() -> None:
+    source, evidence = _source_evidence()
+    state = reduce_opinion_state(
+        _state(),
+        OpinionSearchDelta(add_sources=(source,), add_evidence=(evidence,)),
+    )
+    synthesis = FinalSynthesis(
+        summary="The official account confirms the date.",
+        evidence_ids=(evidence.evidence_id,),
+    )
+
+    committed = reduce_opinion_state(
+        state,
+        OpinionSearchDelta(set_final_synthesis=synthesis),
+    )
+
+    assert committed.final_synthesis == synthesis
+    assert reduce_opinion_state(
+        committed,
+        OpinionSearchDelta(set_final_synthesis=synthesis),
+    ) is committed
+    with pytest.raises(ReducerInvariantError, match="cannot be overwritten"):
+        reduce_opinion_state(
+            committed,
+            OpinionSearchDelta(
+                set_final_synthesis=FinalSynthesis(
+                    summary="A different conclusion.",
+                    evidence_ids=(evidence.evidence_id,),
+                )
+            ),
+        )
 
 
 def test_reducer_merges_claim_evidence_without_replacing_stable_identity() -> None:

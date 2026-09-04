@@ -252,6 +252,7 @@ class OpinionSearchDecisionValidator:
                     "known_evidence_ids="
                     f"{sorted(known_evidence_ids)}"
                 )
+            self._validate_temporal_gap_evidence(state, decision)
             existing_claims = {claim.claim_id: claim for claim in state.claims}
             proposed_claim_kinds: dict[str, ClaimKind] = {}
             for proposal in decision.claim_proposals:
@@ -315,6 +316,38 @@ class OpinionSearchDecisionValidator:
         if set(decision.unresolved_gap_ids) != set(state.open_gap_ids):
             raise DecisionValidationError(
                 "finish decision unresolved gaps do not match committed state"
+            )
+
+    @staticmethod
+    def _validate_temporal_gap_evidence(
+        state: OpinionSearchState,
+        decision: ReflectDecision,
+    ) -> None:
+        frame = state.task_frame
+        if frame is None or not frame.temporal_scope.is_bounded:
+            return
+        scope = frame.temporal_scope
+        evidence_by_id = {item.evidence_id: item for item in state.evidence}
+        source_by_id = {item.source_id: item for item in state.sources}
+        invalid_ids: set[str] = set()
+        for assessment in decision.gap_assessments:
+            if assessment.outcome is not GapStatus.RESOLVED:
+                continue
+            for evidence_id in assessment.evidence_ids:
+                evidence = evidence_by_id.get(evidence_id)
+                if evidence is None:
+                    continue
+                source = source_by_id[evidence.source_id]
+                published_at = source.published_at
+                if published_at is None or not (
+                    scope.start_date <= published_at.date() <= scope.end_date
+                ):
+                    invalid_ids.add(evidence_id)
+        if invalid_ids:
+            raise DecisionValidationError(
+                "time-bounded gap resolution references evidence with an "
+                "unknown or out-of-window publication time: "
+                f"{sorted(invalid_ids)}"
             )
 
     @staticmethod

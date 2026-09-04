@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 .env
 .opinion_search/
+.opinion_search_web/

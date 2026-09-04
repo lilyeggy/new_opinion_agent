@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from hashlib import sha256
+from datetime import date
 from pathlib import Path
 from typing import TypeAlias
 
@@ -17,6 +18,7 @@ from opinion_search.domain.opinion.action_resolver import (
 from opinion_search.domain.opinion.actions import OpinionAction
 from opinion_search.domain.opinion.brief import SearchOutcome, build_search_outcome
 from opinion_search.domain.opinion.completion import OpinionSearchCompletionPolicy
+from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.domain.opinion.decisions import (
     AgentDecision,
     ClaimProposal,
@@ -124,6 +126,7 @@ class OpinionSearchService:
             domain_state=OpinionSearchState(
                 request=request,
                 gaps=default_investigation_gaps(request),
+                task_frame=build_task_frame(request, anchor_date=date.today()),
                 current_focus=request.focus,
             ),
         )
@@ -333,6 +336,8 @@ def build_offline_fallback_service(
 def build_live_service(
     checkpoint_path: Path,
     config: LiveConfig,
+    *,
+    hook: LoopHook | None = None,
 ) -> OpinionSearchService:
     transport = HttpxTransport()
     registry = ToolRegistry()
@@ -389,6 +394,7 @@ def build_live_service(
                 str(config.tool_timeout_seconds),
                 str(config.allow_insecure_model_endpoint),
             ),
+            hook=hook,
             result_cache=result_cache,
         )
     )

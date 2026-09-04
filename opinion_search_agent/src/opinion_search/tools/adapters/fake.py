@@ -1,4 +1,5 @@
 from collections.abc import Mapping, Set
+from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from opinion_search.tools.capabilities.web import (
@@ -29,6 +30,7 @@ class FakePage(BaseModel):
     title: str = Field(min_length=1)
     content: str = Field(min_length=1)
     artifact_ref: str = Field(min_length=1)
+    published_at: datetime | None = None
 
 
 def fake_search_definition() -> ToolDefinition:
@@ -97,6 +99,10 @@ class FakeReaderAdapter:
             url=url,
             title=page.title,
             content=page.content,
+            published_at=page.published_at,
+            publication_time_status=(
+                "reported" if page.published_at is not None else "unavailable"
+            ),
         )
         return ToolAdapterResponse(
             payload=payload.model_dump(mode="json", exclude_none=True),

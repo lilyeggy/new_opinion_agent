@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpinionSearch · Dev Console</title>
+<style>
+  :root {
+    --bg: #0e131a; --panel: #151c26; --panel2: #1a2330; --border: #273244;
+    --text: #d7e1ee; --muted: #8494ab; --accent: #4c9aff; --green: #3ecf8e;
+    --amber: #f0b429; --red: #f2705f; --mono: ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "PingFang SC", sans-serif; font-size: 14px;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 22px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: rgba(14,19,26,.95); z-index: 5;
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 700; }
+  header .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); }
+  header .dot.ok { background: var(--green); }
+  header .path { color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+  header a.back { margin-left: auto; color: var(--muted); font-size: 13px; text-decoration: none; }
+  header a.back:hover { color: var(--text); }
+  .layout { display: grid; grid-template-columns: 340px 1fr; min-height: calc(100vh - 54px); }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+
+  /* runs list */
+  #runs-pane { border-right: 1px solid var(--border); padding: 14px; overflow-y: auto; max-height: calc(100vh - 54px); }
+  .pane-head { display: flex; align-items: center; margin-bottom: 10px; }
+  .pane-head b { font-size: 13px; color: var(--muted); letter-spacing: .5px; }
+  .pane-head button {
+    margin-left: auto; background: var(--panel2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 12px;
+  }
+  .run-item {
+    border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px;
+    margin-bottom: 8px; cursor: pointer; background: var(--panel);
+  }
+  .run-item:hover { border-color: var(--accent); }
+  .run-item.selected { border-color: var(--accent); background: var(--panel2); }
+  .run-item .id { font-family: var(--mono); font-size: 11.5px; color: var(--accent); word-break: break-all; }
+  .run-item .q { font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run-item .meta { display: flex; gap: 8px; margin-top: 4px; font-size: 11.5px; color: var(--muted); align-items: center; }
+  .st { padding: 0 8px; border-radius: 999px; font-weight: 600; }
+  .st.running { background: #3a2f14; color: var(--amber); }
+  .st.completed { background: #10321f; color: var(--green); }
+  .st.failed, .st.cancelled { background: #3a1420; color: var(--red); }
+  .st.partial { background: #33270e; color: var(--amber); }
+  .st.created { background: #222c3c; color: var(--muted); }
+
+  /* detail */
+  #detail { padding: 16px 20px; overflow-y: auto; max-height: calc(100vh - 54px); }
+  .empty { color: var(--muted); text-align: center; padding: 80px 0; }
+  .detail-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .detail-head .id { font-family: var(--mono); font-size: 12.5px; color: var(--accent); word-break: break-all; }
+  .detail-head button {
+    background: var(--panel2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 12.5px; margin-left: 6px;
+  }
+  .detail-head button.live-on { border-color: var(--green); color: var(--green); }
+  .detail-head button.danger { color: var(--red); }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 3px 12px; margin: 14px 0; font-size: 13px; }
+  .kv dt { color: var(--muted); } .kv dd { margin: 0; font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+  h3.sec { font-size: 13px; color: var(--muted); letter-spacing: .5px; margin: 22px 0 8px;
+    border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  pre.block {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; overflow: auto; max-height: 420px; font-family: var(--mono);
+    font-size: 11.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+  }
+  .ev { border-left: 3px solid #33415a; background: var(--panel); border-radius: 6px;
+    padding: 6px 10px; margin-bottom: 6px; font-family: var(--mono); font-size: 11.5px; }
+  .ev.decision { border-left-color: var(--amber); }
+  .ev.action { border-left-color: var(--accent); }
+  .ev.observation { border-left-color: var(--green); }
+  .ev.terminal { border-left-color: var(--red); }
+  .ev b { color: var(--text); }
+  .ev pre { margin: 2px 0 0; color: var(--muted); white-space: pre-wrap; word-break: break-word; }
+</style>
+</head>
+<body>
+<header>
+  <h1>OpinionSearch Dev Console</h1>
+  <span class="dot" id="health-dot"></span>
+  <span class="path" id="health-text">connecting…</span>
+  <a class="back" href="/">← 用户页面</a>
+</header>
+<div class="layout">
+  <div id="runs-pane">
+    <div class="pane-head"><b>RUNS</b><button id="refresh">刷新</button></div>
+    <div id="runs-list"><div class="empty">loading…</div></div>
+  </div>
+  <div id="detail"><div class="empty">选择左侧的 run 查看详情。</div></div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[c]));
+
+let selectedId = null;
+let eventSource = null;
+
+async function refreshHealth() {
+  try {
+    const r = await fetch("/healthz");
+    const d = await r.json();
+    $("health-dot").className = "dot ok";
+    $("health-text").textContent = `ok · ${d.runs} runs`;
+  } catch (e) {
+    $("health-dot").className = "dot";
+    $("health-text").textContent = "server unreachable";
+  }
+}
+
+async function refreshRuns() {
+  let runs = [];
+  try {
+    const r = await fetch("/api/runs");
+    runs = (await r.json()).runs || [];
+  } catch (e) { return; }
+  const list = $("runs-list");
+  if (!runs.length) { list.innerHTML = '<div class="empty">还没有 run。回到用户页面发起一次调查。</div>'; return; }
+  list.innerHTML = "";
+  for (const run of [...runs].reverse()) {
+    const el = document.createElement("div");
+    el.className = "run-item" + (run.run_id === selectedId ? " selected" : "");
+    el.dataset.id = run.run_id;
+    el.innerHTML =
+      `<div class="id">${esc(run.run_id)}</div>` +
+      `<div class="q">${esc(run.question)}</div>` +
+      `<div class="meta"><span class="st ${esc(run.status)}">${esc(run.status)}</span>` +
+      `<span>${esc(run.mode)}</span><span>${new Date(run.created_at * 1000).toLocaleTimeString()}</span>` +
+      (run.error ? `<span style="color:var(--red)">error</span>` : "") + `</div>`;
+    el.addEventListener("click", () => selectRun(run.run_id));
+    list.appendChild(el);
+  }
+}
+
+async function selectRun(runId) {
+  selectedId = runId;
+  stopStream();
+  document.querySelectorAll(".run-item").forEach((el) =>
+    el.classList.toggle("selected", el.dataset.id === runId));
+  const detail = $("detail");
+
+  let snap;
+  try {
+    const r = await fetch(`/api/runs/${runId}`);
+    snap = await r.json();
+  } catch (e) { detail.innerHTML = `<div class="empty">加载失败：${esc(e.message)}</div>`; return; }
+
+  detail.innerHTML = `
+    <div class="detail-head">
+      <span class="id">${esc(snap.run_id)}</span>
+      <button id="btn-stream">▶ 跟随事件流</button>
+      <button id="btn-cancel" class="danger">cancel</button>
+      <a id="btn-report" href="/api/runs/${encodeURIComponent(snap.run_id)}/report" target="_blank"
+         style="margin-left:6px;color:var(--muted);font-size:12.5px">report.md ↗</a>
+    </div>
+    <dl class="kv">
+      <dt>mode</dt><dd>${esc(snap.mode)}</dd>
+      <dt>status</dt><dd>${esc(snap.status)}</dd>
+      <dt>stop_reason</dt><dd>${esc(snap.stop_reason ?? "—")}</dd>
+      <dt>created_at</dt><dd>${new Date(snap.created_at * 1000).toLocaleString()}</dd>
+      <dt>error</dt><dd>${esc(snap.error ?? "—")}</dd>
+    </dl>
+    <h3 class="sec">EVENT TIMELINE（CheckpointBoundary 流）</h3>
+    <div id="timeline"><div class="empty" style="padding:20px">点击「跟随事件流」重放完整边界序列。</div></div>
+    <h3 class="sec">SNAPSHOT</h3>
+    <pre class="block" id="snap"></pre>`;
+
+  $("snap").textContent = JSON.stringify(snap, null, 2);
+  $("btn-stream").addEventListener("click", () => toggleStream(snap.run_id));
+  $("btn-cancel").addEventListener("click", async () => {
+    await fetch(`/api/runs/${snap.run_id}/cancel`, { method: "POST" });
+    refreshRuns();
+  });
+}
+
+function toggleStream(runId) {
+  if (eventSource) { stopStream(); return; }
+  $("timeline").innerHTML = "";
+  eventSource = new EventSource(`/api/runs/${runId}/events`);
+  eventSource.onmessage = (msg) => {
+    let ev;
+    try { ev = JSON.parse(msg.data); } catch (e) { return; }
+    appendEvent(ev);
+  };
+  eventSource.onerror = () => stopStream();
+  $("btn-stream").textContent = "■ 停止跟随";
+  $("btn-stream").classList.add("live-on");
+}
+
+function stopStream() {
+  if (!eventSource) return;
+  eventSource.close();
+  eventSource = null;
+  const btn = $("btn-stream");
+  if (btn) { btn.textContent = "▶ 跟随事件流"; btn.classList.remove("live-on"); }
+}
+
+const KIND_BY_BOUNDARY = {
+  decision_accepted: "decision",
+  action_running: "action",
+  observation_ready: "observation",
+};
+
+function appendEvent(ev) {
+  const kind = ev.type === "terminal" ? "terminal" : KIND_BY_BOUNDARY[ev.boundary] || "";
+  const el = document.createElement("div");
+  el.className = "ev " + kind;
+  el.innerHTML = `<b>${esc(ev.boundary || ev.type)}</b>` +
+    `<span style="color:var(--muted)"> step=${ev.step_index ?? "-"} phase=${ev.phase ?? "-"}</span>` +
+    `<pre>${esc(JSON.stringify(ev, null, 1)).slice(0, 1200)}</pre>`;
+  const timeline = $("timeline");
+  const placeholder = timeline.querySelector(".empty");
+  if (placeholder) placeholder.remove();
+  timeline.appendChild(el);
+  timeline.scrollTop = timeline.scrollHeight;
+}
+
+$("refresh").addEventListener("click", () => { refreshRuns(); refreshHealth(); });
+refreshHealth();
+refreshRuns();
+setInterval(() => { refreshRuns(); refreshHealth(); }, 3000);
+</script>
+</body>
+</html>

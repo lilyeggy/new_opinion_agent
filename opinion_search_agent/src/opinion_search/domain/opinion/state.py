@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 from hashlib import sha256
 from typing import Annotated, Self
@@ -7,6 +8,7 @@ from typing import Annotated, Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from opinion_search.app.contracts import SearchRequest
+from opinion_search.domain.opinion.framing import TaskFrame, build_task_frame
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]
@@ -30,6 +32,11 @@ class SourceKind(StrEnum):
     REPORTING = "reporting"
     ANALYSIS = "analysis"
     OTHER = "other"
+
+
+class SourcePublicationStatus(StrEnum):
+    REPORTED = "reported"
+    UNAVAILABLE = "unavailable"
 
 
 class ClaimKind(StrEnum):
@@ -107,11 +114,20 @@ class Source(_DomainModel):
     title: NonEmptyText
     source_kind: SourceKind = SourceKind.OTHER
     artifact_ref: NonEmptyText | None = None
+    published_at: datetime | None = None
+    publication_status: SourcePublicationStatus = SourcePublicationStatus.UNAVAILABLE
 
     @model_validator(mode="after")
     def validate_identity(self) -> Self:
         if self.source_id != self.url:
             raise ValueError("source_id must equal the requested canonical URL")
+        expected = (
+            SourcePublicationStatus.REPORTED
+            if self.published_at is not None
+            else SourcePublicationStatus.UNAVAILABLE
+        )
+        if self.publication_status is not expected:
+            raise ValueError("source publication status must match published_at")
         return self
 
 
@@ -183,6 +199,20 @@ class Narrative(_DomainModel):
         return self
 
 
+class FinalSynthesis(_DomainModel):
+    """A terminal, evidence-linked answer committed only after finish is accepted."""
+
+    summary: NonEmptyText
+    evidence_ids: tuple[NonEmptyText, ...] = ()
+    limitation_gap_ids: tuple[NonEmptyText, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_references(self) -> Self:
+        _require_unique(self.evidence_ids, "final synthesis evidence IDs")
+        _require_unique(self.limitation_gap_ids, "final synthesis limitation gap IDs")
+        return self
+
+
 class GapAssessment(_DomainModel):
     gap_id: NonEmptyText
     outcome: GapStatus
@@ -200,6 +230,7 @@ class GapAssessment(_DomainModel):
 class OpinionSearchState(_DomainModel):
     request: SearchRequest
     gaps: tuple[InvestigationGap, ...]
+    task_frame: TaskFrame | None = None
     current_focus: NonEmptyText | None = None
     candidates: tuple[CandidateSource, ...] = ()
     sources: tuple[Source, ...] = ()
@@ -207,11 +238,19 @@ class OpinionSearchState(_DomainModel):
     claims: tuple[Claim, ...] = ()
     stakeholder_positions: tuple[StakeholderPosition, ...] = ()
     narratives: tuple[Narrative, ...] = ()
+    final_synthesis: FinalSynthesis | None = None
     reflections: tuple[NonEmptyText, ...] = ()
     revision: Revision = 0
 
     @model_validator(mode="after")
     def validate_invariants(self) -> Self:
+        if self.task_frame is not None:
+            expected_frame = build_task_frame(
+                self.request,
+                anchor_date=self.task_frame.temporal_scope.anchor_date,
+            )
+            if self.task_frame != expected_frame:
+                raise ValueError("task frame does not match request constraints")
         _require_unique_by(self.gaps, "gap_id", "gap IDs")
         _require_unique_by(self.candidates, "source_id", "candidate IDs")
         _require_unique_by(self.sources, "source_id", "source IDs")
@@ -255,6 +294,11 @@ class OpinionSearchState(_DomainModel):
         for narrative in self.narratives:
             if not set(narrative.evidence_ids).issubset(evidence_ids):
                 raise ValueError("narrative references unknown evidence")
+        if self.final_synthesis is not None:
+            if not set(self.final_synthesis.evidence_ids).issubset(evidence_ids):
+                raise ValueError("final synthesis references unknown evidence")
+            if not set(self.final_synthesis.limitation_gap_ids).issubset(gap_ids):
+                raise ValueError("final synthesis references an unknown limitation gap")
         return self
 
     @property
@@ -292,6 +336,7 @@ class OpinionSearchDelta(_DomainModel):
     gap_assessments: tuple[GapAssessment, ...] = ()
     append_reflections: tuple[NonEmptyText, ...] = ()
     set_current_focus: NonEmptyText | None = None
+    set_final_synthesis: FinalSynthesis | None = None
 
 
 def claim_status_for(

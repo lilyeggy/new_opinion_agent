@@ -42,6 +42,54 @@ Every terminal run writes a Run Bundle next to the checkpoint: `run.json`
 (cross-process success cache), and — when the reader produces artifacts —
 `artifacts/`.
 
+## Web demo console
+
+The demo website runs the same service from the browser: it accepts a
+question, executes a real investigation in the background, streams every
+step-transaction checkpoint over Server-Sent Events, supports cancellation,
+and renders the terminal brief. The server is stdlib-only (no new
+dependency): `http.server` for routing, `queue` for fan-out, and the existing
+`LoopHook` boundary for progress push.
+
+```bash
+python -m opinion_search.web --port 8900
+```
+
+Open `http://127.0.0.1:8900`. Pick a mode:
+
+- **offline** — keyless, deterministic fake providers, finishes in seconds;
+  ideal for rehearsing a demo or an interview walkthrough.
+- **live** — real Brave search, Jina reader, and model via `.env`
+  (`OPINION_MODEL_API_KEY`, `BRAVE_SEARCH_API_KEY`, optional `JINA_API_KEY`
+  and `OPINION_MODEL_BASEURL`); one dotenv file is merged into `--env-file`,
+  defaulting to `.env`. Live runs consume API quota.
+
+HTTP surface:
+
+- `POST /api/runs` `{mode, question, topic, focus, time_range, language}`
+  validates a `SearchRequest` and returns `run_id`;
+- `GET /api/runs/{run_id}/events` streams progress events, each one a
+  `CheckpointBoundary` with the current step decision/action/observation;
+  late subscribers receive the full replayed history;
+- `POST /api/runs/{run_id}/cancel` wakes the run's event loop through the
+  existing `EventCancellationSignal`, so the Runtime terminates at a safe
+  boundary with status `cancelled`;
+- `GET /api/runs/{run_id}` returns a snapshot and the terminal brief;
+- `GET /api/runs/{run_id}/report` serves the terminal `report.md` as
+  `text/markdown` (404 until the run reaches a terminal state);
+- every run writes its standard Run Bundle under
+  `<runs-dir>/<run_id>/` (default `.opinion_search_web/`).
+
+A dedicated developer console lives at **`/dev`**: it lists all runs in this
+process with live status polling, replays the full CheckpointBoundary event
+timeline per run, shows the snapshot JSON, exposes cancel, and links to the
+terminal `report.md`. The user-facing page stays product-shaped; raw runtime
+detail is confined to the developer console.
+
+Nothing in the Runtime or Domain layer is modified by the web front end;
+progress and cancellation use the same seams as the CLI. No secret is ever
+returned by the API.
+
 ## Context and memory safety
 
 Every compiled context section records an explicit content origin; model, tool,

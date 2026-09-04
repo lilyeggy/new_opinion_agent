@@ -55,6 +55,12 @@ class OpinionSearchCompletionPolicy(
                 disposition=CompletionDisposition.ACCEPT_PARTIAL,
                 reason="No source-backed evidence supports a complete outcome.",
             )
+        temporal_scope_failure = _temporal_scope_failure(state)
+        if temporal_scope_failure is not None:
+            return CompletionVerdict(
+                disposition=CompletionDisposition.ACCEPT_PARTIAL,
+                reason=temporal_scope_failure,
+            )
         if any(gap.status is GapStatus.BLOCKED for gap in state.gaps):
             return CompletionVerdict(
                 disposition=CompletionDisposition.ACCEPT_PARTIAL,
@@ -172,3 +178,30 @@ class OpinionSearchCompletionPolicy(
                 "source-backed provenance."
             ),
         )
+
+
+def _temporal_scope_failure(state: OpinionSearchState) -> str | None:
+    frame = state.task_frame
+    if frame is None or not frame.temporal_scope.is_bounded:
+        return None
+    scope = frame.temporal_scope
+    evidence_by_id = {item.evidence_id: item for item in state.evidence}
+    source_by_id = {item.source_id: item for item in state.sources}
+    invalid_ids: list[str] = []
+    for gap in state.gaps:
+        if gap.status is not GapStatus.RESOLVED:
+            continue
+        for evidence_id in gap.evidence_ids:
+            evidence = evidence_by_id[evidence_id]
+            published_at = source_by_id[evidence.source_id].published_at
+            if published_at is None or not (
+                scope.start_date <= published_at.date() <= scope.end_date
+            ):
+                invalid_ids.append(evidence_id)
+    if not invalid_ids:
+        return None
+    return (
+        "The investigation cannot be complete because resolved dimensions "
+        "depend on evidence with an unknown or out-of-window publication "
+        f"time: {sorted(set(invalid_ids))}."
+    )

@@ -219,7 +219,9 @@ def test_loop_executes_search_and_read_through_tool_runtime(tmp_path) -> None:
     assert result.domain_state.candidate_source_ids == (CANDIDATE_URL,)
     assert result.domain_state.read_source_ids == (CANDIDATE_URL,)
     assert result.domain_state.resolved_gap_ids == ("gap-primary",)
-    assert result.domain_state.revision == 3
+    assert result.domain_state.revision == 4
+    assert result.domain_state.final_synthesis is not None
+    assert result.domain_state.final_synthesis.summary == "Complete."
     assert len(checkpoint.committed_steps) == 5
     assert len(search_adapter.invocations) == 1
     assert len(reader_adapter.invocations) == 1

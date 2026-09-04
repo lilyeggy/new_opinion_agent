@@ -1,12 +1,19 @@
-from typing import Annotated
+from datetime import datetime
+from enum import StrEnum
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from opinion_search.tools.contracts import ToolDefinition
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]
 PublicUrl = Annotated[str, Field(pattern=r"^https?://")]
+
+
+class PublicationTimeStatus(StrEnum):
+    REPORTED = "reported"
+    UNAVAILABLE = "unavailable"
 
 
 class SearchArguments(BaseModel):
@@ -60,6 +67,19 @@ class ReadResult(BaseModel):
     final_url: PublicUrl | None = None
     title: NonEmptyText
     content: NonEmptyText
+    published_at: datetime | None = None
+    publication_time_status: PublicationTimeStatus = PublicationTimeStatus.UNAVAILABLE
+
+    @model_validator(mode="after")
+    def validate_publication_time(self) -> Self:
+        expected = (
+            PublicationTimeStatus.REPORTED
+            if self.published_at is not None
+            else PublicationTimeStatus.UNAVAILABLE
+        )
+        if self.publication_time_status is not expected:
+            raise ValueError("publication time status must match published_at")
+        return self
 
 
 def search_tool_definition() -> ToolDefinition:

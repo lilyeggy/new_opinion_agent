@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from opinion_search.tools.capabilities.web import (
+    PublicationTimeStatus,
     ReadResult,
     ReaderArguments,
 )
@@ -122,11 +125,18 @@ class JinaReaderAdapter:
             content,
             self._max_inline_content_bytes,
         )
+        published_at = _reported_publication_time(raw_data)
         result = ReadResult(
             url=requested_url,
             final_url=final_url,
             title=title,
             content=inline_content,
+            published_at=published_at,
+            publication_time_status=(
+                PublicationTimeStatus.REPORTED
+                if published_at is not None
+                else PublicationTimeStatus.UNAVAILABLE
+            ),
         )
         return ToolAdapterResponse(
             payload=result.model_dump(mode="json", exclude_none=True),
@@ -145,3 +155,14 @@ def _truncate_utf8(content: str, max_bytes: int) -> str:
             "Reader content could not fit the inline content limit.",
         )
     return truncated
+
+
+def _reported_publication_time(raw_data: dict[object, object]) -> datetime | None:
+    for field_name in ("publishedTime", "published_time", "timestamp"):
+        value = raw_data.get(field_name)
+        if isinstance(value, str) and value.strip():
+            try:
+                return datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+            except ValueError:
+                continue
+    return None

@@ -39,6 +39,7 @@ def project_working_memory(state: OpinionSearchState) -> WorkingMemory:
             language=request.language,
             include_domains=request.include_domains,
             exclude_domains=request.exclude_domains,
+            task_frame=state.task_frame,
         ),
         current_focus=state.current_focus or request.focus,
         current_gap_id=_highest_priority_open_gap_id(state),
@@ -78,6 +79,8 @@ def project_working_memory(state: OpinionSearchState) -> WorkingMemory:
                 title=item.title,
                 url=item.final_url or item.url,
                 source_kind=item.source_kind,
+                published_at=item.published_at,
+                publication_status=item.publication_status,
             )
             for item in state.sources
         ),

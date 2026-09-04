@@ -115,6 +115,7 @@ def test_fake_reader_returns_content_and_artifact_reference() -> None:
         "url": "https://example.com/primary",
         "title": "Primary source",
         "content": "The full official event description.",
+        "publication_time_status": "unavailable",
     }
     assert outcome.artifact_refs == ("artifact-primary",)
 

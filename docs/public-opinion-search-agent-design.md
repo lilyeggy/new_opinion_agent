@@ -324,6 +324,8 @@ Checkpoint 属于单次 Runtime：
 
 OpinionSearch policy 检查 Evidence、关键 Gap、单方来源和矛盾；Runtime 只执行统一结果。
 
+被接受的 `finish` 还必须将模型的 answer candidate 转换为领域 `FinalSynthesis`，作为本次 terminal 结论的一部分提交到 `OpinionSearchState`；`reject_and_continue` 不得写入它。`FinalSynthesis` 至少包含 summary、其引用的 committed Evidence IDs，以及未解决/受限 Gap IDs。这样最终报告不是从 trace 临时拼接的文本，而是可 checkpoint、可 resume、可审计的领域结果。
+
 ### 6.10 Runtime Failure Model
 
 必须区分：
@@ -347,7 +349,7 @@ OpinionSearch policy 检查 Evidence、关键 Gap、单方来源和矛盾；Runt
 - **ActionResolver 失败可 repair**：`DECISION_ACCEPTED` 阶段 ActionResolver 失败以同一 tolerating 修复回 `DECIDING`（attempt+1、重建 StepRecord、保序记录 failures），不直接终止；耗尽时按是否有 committed step 决定 `partial`/`failed`。Observation/Reducer 错误保持 fail-closed。
 - **跨进程 ToolResult 缓存**：`JsonActionResultCache` 以 action_id 为键、内容寻址原子存储成功结果，`ACTION_RUNNING` 崩溃后新进程 resume 复用缓存结果而不重调 provider（at-most-once 复用，不声称通用 exactly-once）。
 - **异步取消**：`CancellationSignal` 驱动，`_await_operation` 竞态助手包裹 model/tool await；取消胜出时取消本地协程并以 `cancelled` 终态落盘，不提交半 Delta，保留已 committed state。
-- **Terminal Run Bundle**：每次终态 run 产出 `run.json + report.md（原子写）+ artifacts/ + action_results/`。
+- **Terminal Run Bundle**：每次终态 run 产出 `run.json + outcome.json + report.md（各自原子写）+ artifacts/ + action_results/`。
 
 此小节引用已验证事实，不改变 checkpoint schema 或公共生命周期枚举。
 
@@ -564,12 +566,19 @@ Decision 不是 ToolCall。Action resolver 将通过校验的 `search/read` Deci
 - `Claim`：被调查的原子主张及 supporting/contradicting evidence；
 - `StakeholderPosition`：主体确实表达的公开立场；
 - `Narrative`：被公开来源传播的 dominant、emerging 或 counter framing；
+- `FinalSynthesis`：仅在 finish 被接受后提交的最终总结、证据引用和局限；
 - `OpinionSearchState`：领域权威状态；
-- `SearchOutcome`：最小 Markdown brief 所需结构。
+- `SearchOutcome`：由 committed State 生成的终态输出，同时携带稳定的 `SearchReportView` 与其 Markdown 投影；必须先展示 `FinalSynthesis`，再展示审计明细。
 
 `budget_profile` 不属于 SearchRequest；硬 step/deadline 是 Runtime safety config。只有一种 brief 时不添加 `output_mode`。
 
 Domain filters 是执行约束而不是提示：search provider 返回的 URL 必须先正规化 scheme/host/path/query，拒绝原始空白、控制字符、本地地址和 credential，再执行 include/exclude（exclude 优先）检查，之后才允许创建 CandidateSource。最终 Markdown link destination 还要独立编码，不能把“合法 HTTP URL”等同于“可直接拼进 Markdown”。
+
+### 8.2.1 TaskFrame 与时间范围
+
+`TaskFrame` 是从用户 Request 编译出的、随 `OpinionSearchState` checkpoint 的可信任务范围。第一版保存 subject、语言/domain constraints 和 `TemporalScope`。TemporalScope 包含单次 run 创建时冻结的 anchor date、可选 start/end window、原始表达与 provenance（explicit request、question inference 或 unspecified）。
+
+仅解析无歧义的相对中文表达（例如 `过去一周`、`最近7天`、`过去一个月`）与 ISO date range；无法确定的自然语言日期必须标记 unspecified，不能由模型猜测。Request 明确给出的 `time_range` 优先于从 question 推断的范围。resume 只能读取 checkpoint 中的 frame，不能按恢复当天重新计算窗口。
 
 ### 8.3 Acquisition 与语义覆盖分离
 
@@ -586,6 +595,16 @@ Context 必须向模型同时提供：
 
 信任边界按“内容由谁产生”而不是“是否已经 commit”划分。Runtime 生成的 Gap status、Evidence ID、Source ID、attempt count 及其引用关系可以进入 trusted structural sections；模型生成的 search query、current focus、reflection、assessment rationale、历史 Decision prose，以及网页派生的 Claim、Position、Narrative 文本始终是 untrusted。Commit/checkpoint/resume 只赋予持久性，不会把模型文本升级成系统事实或指令。
 
+Reader 对供应商可用的页面发布时间做保守正规化：明确可解析时保存为 `reported`，否则保存为 `unavailable`，不得由模型根据正文猜测日期。时间有界任务可以保留未知或窗口外 Source/Evidence 作为审计材料，但 Reflect 不得用它们把 Gap 标记为 resolved；Completion 必须再次检查已提交状态，并把不满足时间范围的 terminal 结果降级为 partial。时间校验属于 OpinionSearch domain rule，不能写入通用 AgentLoop。
+
+Reader artifact 保存完整正规化正文，Evidence extraction 只建立非破坏性的选择视图。进入 State 前必须过滤明显推广、登录/注册、导航链接密集、图片/标记为主和信息量过低的 block，对完全重复正文去重，再按当前 Read focus 做确定性相关性排序；单 Source 默认最多提交三条 Evidence。过滤不能改写 artifact，Evidence locator 仍指向原 block index 和字符偏移。
+
+### 8.3.1 结构化报告视图
+
+报告不是 Markdown 字符串本身。Domain 必须从同一份 committed State 一次性投影出只读 `SearchReportView`，其中显式保存 question/time scope、final conclusion、claims、stakeholder positions、narratives、gap coverage、evidence appendix、remaining gaps、sources 和 scope limitation。Evidence ID 先经 `ProvenanceIndex` 解析为稳定的 `S1...Sn` source reference；Web 和其他消费者不得从 Markdown 标题、列表或链接反向恢复这些关系。
+
+`SearchOutcome.markdown` 是 `SearchReportView` 的确定性展示投影，供 CLI、下载和人工阅读；`outcome.json` 保存完整 typed outcome，供 HTTP snapshot、SSE terminal 与服务重启恢复。历史 run 若只有 `report.md`，Web 可以使用受限的 legacy fallback，但所有新 run 必须直接消费 typed report。该视图是输出/read model，不回写 Agent State，也不成为第二事实源。
+
 ### 8.4 领域完成条件
 
 正常完成至少要求：
@@ -599,6 +618,7 @@ Context 必须向模型同时提供：
 - contradiction 已呈现而非静默覆盖；
 - 结论区分事实、归因陈述、立场和解释；
 - remaining gaps 和公开 Web 样本限制被保留。
+- 若 TaskFrame 含有界时间窗口，所有用于 resolved Gap 的 Evidence 均来自发布时间已知且位于窗口内的 Source。
 
 `source_kind` 是模型提出的分析标签，只用于展示和后续分析，不能证明来源是 PRIMARY、REPORTING 或 ANALYSIS，也不能单独满足 Completion gate。Milestone 0 的来源多样性只验证 distinct URL-level Source record 及其 semantic Evidence linkage；它不声称完成 publisher/entity 去重、转载链识别或来源所有权验证。
 

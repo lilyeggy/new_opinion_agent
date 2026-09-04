@@ -1,3 +1,4 @@
+from datetime import date, datetime, timezone
 from typing import TypeAlias
 
 import pytest
@@ -14,6 +15,7 @@ from opinion_search.domain.opinion.decisions import (
     SearchDecision,
 )
 from opinion_search.app.contracts import SearchRequest
+from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.domain.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     CandidateSource,
@@ -312,6 +314,59 @@ def test_reflect_requires_opinion_semantics_to_resolve_a_dimension() -> None:
     )
 
     OpinionSearchDecisionValidator().validate(state, supported)
+
+
+def test_reflect_cannot_resolve_time_bounded_gap_with_stale_evidence() -> None:
+    url = "https://example.com/stale-report"
+    request = SearchRequest(question="过去一周公众如何评价这次变化？")
+    state = OpinionSearchState(
+        request=request,
+        task_frame=build_task_frame(request, anchor_date=date(2026, 8, 26)),
+        gaps=(InvestigationGap(gap_id="gap-reaction", question="Map reactions."),),
+        candidates=(
+            CandidateSource(
+                source_id=url,
+                url=url,
+                title="Stale report",
+                snippet="An older public account.",
+                discovered_for_gap_ids=("gap-reaction",),
+            ),
+        ),
+        sources=(
+            Source(
+                source_id=url,
+                url=url,
+                title="Stale report",
+                published_at=datetime(2026, 6, 30, tzinfo=timezone.utc),
+                publication_status="reported",
+            ),
+        ),
+        evidence=(
+            Evidence(
+                evidence_id="evidence-stale",
+                source_id=url,
+                acquired_for_gap_id="gap-reaction",
+                excerpt="Users discussed the change in June.",
+                locator="Paragraph 2.",
+            ),
+        ),
+    )
+    decision = ReflectDecision(
+        action="reflect",
+        assessment="The reactions are documented.",
+        next_focus="Finish.",
+        gap_assessments=(
+            GapAssessmentProposal(
+                gap_id="gap-reaction",
+                outcome=GapStatus.RESOLVED,
+                evidence_ids=("evidence-stale",),
+                rationale="The report contains reactions.",
+            ),
+        ),
+    )
+
+    with pytest.raises(DecisionValidationError, match="out-of-window"):
+        OpinionSearchDecisionValidator().validate(state, decision)
 
 
 def test_unknown_gap_evidence_feedback_lists_only_safe_known_ids() -> None:

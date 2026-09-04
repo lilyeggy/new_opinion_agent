@@ -1,6 +1,9 @@
+from datetime import date, datetime, timezone
+
 from opinion_search.app.contracts import SearchRequest
 from opinion_search.domain.opinion.completion import OpinionSearchCompletionPolicy
 from opinion_search.domain.opinion.decisions import FinishDecision
+from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.domain.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     DOMINANT_NARRATIVES_GAP_ID,
@@ -18,6 +21,7 @@ from opinion_search.domain.opinion.state import (
     OpinionSearchState,
     Source,
     SourceKind,
+    SourcePublicationStatus,
     StakeholderPosition,
 )
 from opinion_search.runtime.completion import CompletionDisposition
@@ -178,6 +182,57 @@ def test_completion_accepts_opinion_specific_coverage() -> None:
     verdict = OpinionSearchCompletionPolicy().evaluate(state, _proposal(state))
 
     assert verdict.disposition is CompletionDisposition.ACCEPT_COMPLETE
+
+
+def test_time_bounded_completion_rejects_stale_or_undated_sources() -> None:
+    request = SearchRequest(question="过去一周公众如何评价这次变化？")
+    frame = build_task_frame(request, anchor_date=date(2026, 8, 26))
+    original = _state()
+
+    def with_publication_time(value: datetime | None) -> OpinionSearchState:
+        return OpinionSearchState.model_validate(
+            original.model_copy(
+                update={
+                    "request": request,
+                    "task_frame": frame,
+                    "sources": tuple(
+                        source.model_copy(
+                            update={
+                                "published_at": value,
+                                "publication_status": (
+                                    SourcePublicationStatus.REPORTED
+                                    if value is not None
+                                    else SourcePublicationStatus.UNAVAILABLE
+                                ),
+                            }
+                        )
+                        for source in original.sources
+                    ),
+                }
+            ).model_dump()
+        )
+
+    stale = with_publication_time(
+        datetime(2026, 6, 30, tzinfo=timezone.utc)
+    )
+    undated = with_publication_time(None)
+    current = with_publication_time(
+        datetime(2026, 8, 25, tzinfo=timezone.utc)
+    )
+
+    stale_verdict = OpinionSearchCompletionPolicy().evaluate(stale, _proposal(stale))
+    undated_verdict = OpinionSearchCompletionPolicy().evaluate(
+        undated, _proposal(undated)
+    )
+    current_verdict = OpinionSearchCompletionPolicy().evaluate(
+        current, _proposal(current)
+    )
+
+    assert stale_verdict.disposition is CompletionDisposition.ACCEPT_PARTIAL
+    assert "out-of-window" in stale_verdict.reason
+    assert undated_verdict.disposition is CompletionDisposition.ACCEPT_PARTIAL
+    assert "unknown" in undated_verdict.reason
+    assert current_verdict.disposition is CompletionDisposition.ACCEPT_COMPLETE
 
 
 def test_completion_rejects_open_dimension_and_mismatched_proposal() -> None:

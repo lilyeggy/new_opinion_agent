@@ -265,7 +265,7 @@ def test_action_running_resume_reuses_cached_result_across_process(
     assert result.status is RunStatus.COMPLETED
 
     # reduction committed the cached observation once
-    assert result.domain_state.revision == 3
+    assert result.domain_state.revision == 4
     cache_entry_path = cache_dir / f"{hashlib.sha256(ACTION_ID.encode('utf-8')).hexdigest()}.json"
     raw_entry = cache_entry_path.read_bytes()
     assert raw_entry  # cache entry unchanged

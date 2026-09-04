@@ -3,8 +3,60 @@
 > 文档性质：持续追加的工程事实记录  
 > Canonical Design：[`public-opinion-search-agent-design.md`](./public-opinion-search-agent-design.md)  
 > 执行计划：[`opinion-search-agent-5-day-plan.md`](./opinion-search-agent-5-day-plan.md)  
-> 当前记录截至：2026-08-20  
-> 当前已完成节点：Day 1、Day 2、Day 3、Day 4（Context Compiler 与 run-scoped Working Memory）
+> 当前记录截至：2026-08-23（后接 Web 演示控制台与结论持久化节点）
+> 当前已完成节点：Day 1、Day 2、Day 3、Day 4（Context Compiler 与 run-scoped Working Memory）、Web 演示控制台（浏览器启动/观察/取消调查）
+
+## 0. 最新节点：最终结论的可恢复提交（2026-08-23）
+
+### 解决的问题
+
+真实调查中，模型已经在 `FinishDecision.answer_candidate` 里给出总结，但旧实现把 accepted finish 转成空 `OpinionSearchDelta`。因此 summary 没有进入 `OpinionSearchState` 或 checkpoint，`SearchOutcome` 只能把 Claim、Narrative 和全部 Evidence 摊平输出；用户看到的是审计账本，而非调查结论。
+
+### 已实现的语义
+
+- 新增 frozen `FinalSynthesis(summary, evidence_ids, limitation_gap_ids)`；它属于领域 State，不是 trace 或临时 UI 文本。
+- `OpinionSearchObservationProcessor` 只在 finish verdict 为 `accept_complete`、`accept_partial` 或 `safety_stop` 时，从 answer candidate 和已 resolved Gap 的 Evidence 构造 `set_final_synthesis` delta；`reject_and_continue` 保持空 delta。
+- Reducer 对 synthesis 验证 Evidence/Gap 引用、保持 immutable/idempotent replay，并拒绝一个已提交结论被不同内容覆盖。
+- `build_search_outcome` 在报告顶部渲染 `Core conclusion`，带来源引用和 limitation Gap；原始网页摘录改名为 `Evidence appendix`，明确其审计定位。
+- Web 的 Markdown section 映射新增“核心结论”和“证据审计附录”。
+
+### 关键取舍
+
+本节点没有让模型直接生成一套新的自由格式报告，也没有把 synthesis 当作未经验证的最终真相。它仍是模型文本，但只有 Completion Policy 接受后才提交；其引用只能来自已经 committed 的 resolved-gap Evidence。当前 evidence 粒度是“结论所依据的已解决 Gap 证据集合”，不是逐句 claim-to-evidence 对齐；后者需要后续质量层的 structured finding contract。
+
+### 验证证据
+
+- 22 个相关 unit/integration tests 通过：accepted finish 提交、rejected finish 不提交、Reducer replay/overwrite 规则、报告首屏顺序、工具闭环。
+- 离线 CLI 冒烟成功：报告包含 `Core conclusion`、结论来源 `[S1]...[S3]` 与 `Evidence appendix`。
+- 全量测试在受限 sandbox 中运行到 Web server fixture 时因本机端口 bind 被拒绝；这是环境权限限制，而非断言失败。Web e2e 应在可绑定 `127.0.0.1` 的本机终端复跑。
+
+### 下一节点
+
+仍需实现 TaskFrame/time scope、来源发布日期与证据质量门、文档正文去噪和 typed web outcome；它们会修复“过去一周却引用六月材料”和网页导航/广告被当作 Evidence 的问题，不能靠本节点掩盖。
+
+### 补充：TaskFrame 与冻结时间窗口（2026-08-23）
+
+- 新增 `domain/opinion/framing.py`：`TaskFrame` 和 `TemporalScope` 是 typed、frozen 的领域对象；相对时间不会留在模型 prompt 中等待解释。
+- `OpinionSearchService.investigate` 在 run 创建时调用 `build_task_frame(..., anchor_date=date.today())`，把 frame 写入初始 `OpinionSearchState`；Reducer、WorkingMemory、Context 及 resume 都保留同一个 frame。
+- 支持的确定性解析：`过去一周`/`最近一周`/`最近7天`/`过去7天`，以及 30 天窗口和 `YYYY-MM-DD 至 YYYY-MM-DD`；未支持表达明确变成 `unspecified`，不做猜测。
+- `SearchRequest.time_range` 是用户显式约束，优先于 question 中的相对语句。离线冒烟中，“过去一周”在 2026-08-23 的 run 被持久化、并在报告显示为 `2026-08-17 to 2026-08-23 (inferred_from_question)`。
+- 49 个 framing/context/memory/reducer/brief/tool-loop 相关测试通过。
+
+这只是范围的“声明与冻结”，尚未把来源发布日期接入 acquisition/completion；因此它不能单独阻止旧网页完成调查。下一节点必须把该 frame 变成 Source/Evidence 可验证的时间门。
+
+### 补充：来源发布时间与时间范围强制校验（2026-08-26）
+
+Reader capability 新增 `published_at` 与派生的 reported/unavailable 状态；Jina adapter 仅接受可解析的供应商时间字段，Fake Reader 支持确定性日期 fixture。Observation processor 将发布时间写入 Source，Working Memory 和最终 Sources 列表继续暴露它，完整正文 artifact 不受影响。
+
+当 TaskFrame 具有有界窗口时，Decision Validator 在 Reflect 提交前检查 resolved assessment 引用的每个 Evidence：其 Source 日期未知或不在窗口内时拒绝该 Decision。Completion Policy 对 committed State 再做同一语义的终态兜底，使旧状态或其他组合路径最多得到 partial，不能错误标记 completed。该规则只存在于 OpinionSearch domain/capability 边界，AgentLoop、transaction 和 checkpoint primitive 未增加舆情专属逻辑。
+
+验证覆盖 Jina 时间正规化、Reader→Source 传播、过期 Evidence 的 Reflect 拒绝、unknown/stale/current 三种 Completion 结果、Memory/Context、报告、恢复、工具和 Web。分组全量结果为 571 passed、2 skipped；跳过项是需要显式开启真实 provider 的 live smoke tests。Web E2E 在允许绑定本机随机端口的环境中单独运行，11 passed。
+
+### 补充：Reader 正文去噪与 Evidence 有界选择（2026-08-26）
+
+`OpinionSearchObservationProcessor` 在 Evidence 构造前新增确定性 block 质量门：推广/赞助、登录注册、导航链接密集、信息量过低的内容不进入 State；重复 block 按正规化正文去重，中英文 focus 词用于相关性排序，每个 Source 最多保留三条。若页面只有一个通过质量门的正文 block，则允许无词面重合的保守回退，避免同义改写导致整页无 Evidence；多 block 页面没有任何相关命中时不制造 Evidence。
+
+这次改变的是 Reader artifact 的派生选择视图，不修改、不覆盖全文 artifact；已有 locator 继续保存原 block index 和字符区间。新增测试以推广、四个导航链接、四段相关正文组成页面，证明推广和导航均被排除、Evidence 有界为三条且 artifact reference 不变；工具闭环、恢复和长 Context 注入场景回归通过。
 
 ## 1. 这份文档解决什么问题
 
@@ -54,7 +106,7 @@
 
 ## 3. 当前系统快照
 
-截至 2026-08-20，项目已经具备一个完全离线、确定性、可 checkpoint 和 resume 的单 Agent Harness，以及已经接入 Harness 的 provider-neutral Tool Runtime、真实 Web provider adapters、MCP adapter boundary、确定性 Working Memory 和有界 Context Compiler。
+截至当前记录，项目已经具备一个完全离线、确定性、可 checkpoint 和 resume 的单 Agent Harness，以及已经接入 Harness 的 provider-neutral Tool Runtime、真实 Web provider adapters、MCP adapter boundary、确定性 Working Memory、有界 Context Compiler，和一个可在浏览器中启动/观察/取消调查的零新依赖 Web 演示控制台（`python -m opinion_search.web`）。
 
 当前纵向链路为：
 
@@ -1915,3 +1967,111 @@ compileall -q src tests                                    passed
 ### 循环内容收口
 
 后续边界复核发现，自引用 `dict`/`list` 会在最终 JsonValue 校验前令递归投影抛出原始 `RecursionError`。投影器现在维护仅覆盖当前递归路径的对象 identity 集合：同一路径再次遇到相同容器即判定为循环；共享但无环的子对象仍可在不同分支正常投影。显式循环错误和极深无环输入触发的 `RecursionError` 均在 `_dump_content()` 边界归一为同一个固定 `ToolAdapterError`，不暴露内部异常或远端对象。新增自引用 dict、自引用 list 和共享无环对象 contract tests，验证稳定错误种类、安全消息和路径集合语义。验证结果：MCP contract tests `30 passed`，全量测试 `553 passed, 2 skipped`，Ruff 与 compileall 通过。
+
+## 19. Web 演示控制台（浏览器启动/观察/取消调查）
+
+为“自己用一用、向面试官现场演示”新增零新依赖的本地 Web 演示层。Runtime、Domain、行动空间、checkpoint schema 均未改动；唯一的产品代码改动是 `build_live_service` 增加可选 `hook` 透传参数（向后兼容）。
+
+### 实现范围
+
+- `opinion_search/src/opinion_search/web/`：`server.py`（stdlib `http.server` + SSE）、`index.html`（单文件前端，内联 CSS/JS）、`__main__.py`（`python -m opinion_search.web`）。
+- `tests/e2e/test_web_server.py`：8 个真实起服务的端到端测试。
+- `app/service.py`：`build_live_service(checkpoint_path, config, *, hook=None)` 透传给 `_build_loop`。
+- `README.md` 新增 “Web demo console”；`.gitignore` 增加 `.opinion_search_web/`。
+
+### 核心流程
+
+```text
+浏览器提交表单 -> POST /api/runs {mode, question, ...}
+  -> SearchRequest 校验 -> RunRecord（内存注册表）
+  -> 后台 daemon 线程 + 独立 event loop：build_(offline|live)_service(hook=_ProgressHook)
+  -> AgentLoop 每个 CheckpointBoundary 触发 hook.after_checkpoint
+  -> _emit() 将紧凑事件广播到全部 SSE 订阅队列 + 写 2000 条上限的历史
+  -> GET /api/runs/{id}/events 以 `data: <json>\n\n` 流式推送；
+     晚订阅者重放完整历史，终态事件全局唯一
+  -> terminal（run 的 checkpoint 与 report.md 均已落盘后才发出）
+  -> 前端渲染 step 时间线 + 最终 Brief（内置迷你 Markdown 渲染）
+取消：POST /api/runs/{id}/cancel -> loop.call_soon_threadsafe(signal.cancel)
+  -> Runtime 在安全边界 terminate_run(status=CANCELLED)
+```
+
+### 关键契约与不变量
+
+- 事件序列化：`boundary`/`status`/`step_index`/`phase`/`step_id`/`attempt`/`decision`/`action`/`observation`/`committed_steps`/`stop_reason`（pydantic `model_dump(mode="json")` + 递归截断长字符串到 600 字符）。
+- 终态事件（`type=terminal`）是“run 全部完成”的唯一证据：包含 `status`/`stop_reason`/`markdown`/`source_urls`/`remaining_gap_ids`，且在 checkpoint 与 report 写入**之后**才发出（曾因先发事件后写 report 造成测试竞态，已调整顺序）。
+- 正常完成路径不经过 `terminate_run`（loop 在 `EVALUATE_CONTINUATION` 走 `apply_continuation(target_status=COMPLETED)`），因此边界序列以 `continuation_applied` 收尾；`run_terminated` 只在失败/取消/超步数出现。前端与测试都不得假设 `run_terminated` 必现。
+- 取消信号跨线程发送必须用 `loop.call_soon_threadsafe(signal.cancel)`（`asyncio.Event.set()` 非线程安全），loop 未运行时直接 `signal.cancel()` 打标记。
+- 每个 run 使用独立 daemon 线程 + 独立 event loop；`EventCancellationSignal` 在该线程内创建，避免 loop 绑定错误。
+- checkpoint 复用标准 `JsonCheckpointStore`：`<runs-dir>/<run_id>/run.json` + `action_results/` + `report.md`（RunBundleWriter 原子写）。
+- live 模式从 `--env-file`（默认 `.env`）合并 `KEY=VALUE` 行到 `os.environ`（`setdefault`，已有环境变量优先）；缺失 `OPINION_MODEL_API_KEY`/`BRAVE_SEARCH_API_KEY` 时返回 400 与缺失项名称，任何响应都不含密钥值。
+- HTTP/1.1 + SSE：心跳 `: keep-alive` 15s；客户端断开静默清理订阅；单文件 `index.html` 由 `GET /` 直接返回。
+
+### 重要设计取舍
+
+- **stdlib only，不引入 FastAPI/uvicorn**：项目保持最小依赖；`http.server` + `queue` + SSE 足够支撑演示规模，面试时可解释全部实现。
+- **复用 `LoopHook` 而非侵入 loop**：进度推送是 Runtime 已有 seam 的一次组合，不是新协议；web 层不触碰 checkpoint/事务语义。
+- 事件广播 + 有界历史：解决“run 秒级结束、浏览器 SSE 尚未连接”的竞态——晚订阅者从历史重放完整时间线。
+- 每 run 一线程 + 独立 loop：规避 `asyncio.Event` 与 `call_soon_threadsafe` 的 loop 绑定问题；`ThreadingHTTPServer.daemon_threads=True` 保证进程退出时子线程不悬挂。
+- 事件中 decision/action/observation 带完整 JSON（长字段截断），前端按 boundary 分组展示，不预设展示 schema，后续加字段不破坏页面。
+
+### 失败与恢复语义
+
+- run 线程内任何异常统一转换为 `terminal {status:"failed", error}`（含 `CheckpointError`、provider 错误、模型错误），流正常关闭；快照/列表中可见 `error` 字段。
+- SSE 连接中断（浏览器刷新/关闭）只移除该订阅，历史保留，重连可完整重放。
+- `RunBundleError` 被吞（report 是便利产物，不影响 run 终态）；checkpoint 失败则进入 failed 终态。
+- cancel 与快速完成的竞态是合法的：终态可能是 `cancelled` 或 `completed` 之一（测试断言两者皆可）。
+
+### 测试与验证证据
+
+```text
+pytest -q tests/e2e/test_web_server.py    8 passed
+pytest -q -W error                        561 passed, 2 skipped（live-gated）
+python -m compileall -q src tests         通过
+```
+
+- 覆盖：index/healthz；offline run 全边界流（十步 committed + continuation_applied）；终态事件全局唯一（晚订阅重放）；终态后 snapshot 与 run 列表；请求校验（非法 mode/缺 question/空串/非 JSON/未知 run 404）；cancel；live 缺密钥 400（无网络）；checkpoint + report 落盘断言。
+- 手工冒烟：`python -m opinion_search.web --port 8907` 起服务，curl 提交 offline run，SSE 重放完整边界序列 + terminal，`<runs-dir>/<run_id>/` 下生成 `run.json`/`report.md`/`action_results/`，报告内容与 CLI 输出一致。
+
+### 已知限制
+
+- 运行列表只存内存（重启服务即清空），但每个 run 的 checkpoint/report 已落盘，可覆盖；未做历史页/恢复 UI。
+- 无鉴权、绑定 127.0.0.1：设计上只服务本机演示，不暴露公网。
+- 取消是“安全边界终止”，不保证已提交 step 回滚（与 Runtime 语义一致）；UI 直接展示 Runtime 终态。
+- live 模式依赖真实 provider 与密钥；.env 解析只支持无引号/无续行的简单 `KEY=VALUE`。
+- 迷你 Markdown 渲染器只覆盖 Brief 用到的语法（标题/加粗/列表/代码），不做完整 Markdown。
+
+### 对下一节点的影响
+
+- 新增的任何 LoopHook 事件或 terminal 负载字段都会自动出现在 SSE 流中（前端按 type 分支处理，未知字段不报错）。
+- 若未来做 run 历史页，可从 `<runs-dir>/<run_id>/report.md` + `run.json` 离线重建快照，无需改动本层。
+- `build_live_service` 的 `hook` 参数已固化为可选关键字；调用处（CLI 无 hook）行为不变。
+
+### 19.1 补充：独立开发者控制台（/dev）
+
+用户页改为产品形态后，原始 Runtime 细节收敛到独立页面 `GET /dev`（`web/dev.html`，单文件、零依赖）：
+
+- 运行列表：轮询 `/api/runs` + `/healthz`（3s），显示 run_id/mode/status/question/error；
+- 单 run 详情：snapshot JSON、cancel 按钮、`report.md` 直链；
+- 事件时间线：「跟随事件流」按需连接 SSE，服务端历史重放保证看到完整 CheckpointBoundary 序列；decision/action/observation 边界着色。
+
+新增端点：`GET /api/runs/{run_id}/report` → 终态后以 `text/markdown` 返回 report.md 原文；未到终态返回 404（report 由 RunBundleWriter 在终态写入）。静态页改为通用 `_send_page(page)`。验证：web e2e 10 passed（含 /dev 页面与 report 端点断言），全量 563 passed, 2 skipped，dev.html 内联 JS 通过 `node --check`。
+
+### 19.2 补充：用户页历史调查与重启恢复
+
+用户首页新增「最近的调查」区块（最近 8 条：状态徽章 + 问题 + 时间），点击回看完整报告或重新接入进行中 run 的 SSE。服务端配套：
+
+- `create_run` 时写 `meta.json`（run_id/mode/question/created_at）到 run 目录；
+- `get_run` 内存 miss 时从磁盘 bundle 恢复为只读 `RestoredRunRecord`（解析 report.md 头部 Question/Run status/Stop reason 与 Sources 区 URL），subscribe 重放 terminal 事件，cancel 为 no-op；
+- `GET /api/runs` 合并内存与磁盘记录并按 created_at 排序。
+
+关键点：恢复不触碰 checkpoint 格式（仍由 JsonCheckpointStore 负责）；无 meta.json 的历史目录回退用 report.md 头部，mode 记 unknown。验证：web e2e 11 passed（含双服务器实例重启恢复测试：第二实例仅凭磁盘列出 run、snapshot 含 markdown 与来源、SSE 以 terminal 收尾），全量 564 passed, 2 skipped，index.html 内联 JS 通过 node --check。
+
+### 19.3 补充：Typed SearchOutcome 与无损报告恢复
+
+用户页此前把 `report.md` 当作接口协议：JavaScript 依赖英文二级标题、列表格式和来源链接正则反向拼出报告卡片，服务重启时 Python 也从 Markdown 猜测 status、question 与 source URLs。这导致展示格式与数据契约耦合，任何标题调整都可能静默破坏 UI 或恢复结果。
+
+Domain 现新增冻结、禁止额外字段的 `SearchReportView` 及其子模型，显式覆盖 time scope、final conclusion、claims、stakeholder positions、narratives、gap coverage、evidence appendix、remaining gaps 和 sources。`build_search_outcome()` 先从 committed `OpinionSearchState` 与 `ProvenanceIndex` 生成这一 typed read model，再由同一对象确定性渲染 Markdown；来源关系统一映射为 `S1...Sn`，没有两套独立业务推导。该 report 仅是 State 的只读投影，不参与 Reducer，也不成为第二事实源。
+
+`RunBundleWriter` 在 `report.md` 之外各自原子写入 `outcome.json`。terminal SSE 与 snapshot 直接包含 `report` JSON；服务重启优先校验并恢复 `outcome.json`，不再解析 Markdown。仅对升级前没有 sidecar 的历史 bundle 保留 `report=None` 的 legacy Markdown fallback。用户页优先渲染 typed report，证据审计附录默认折叠，旧 parser 只服务历史兼容。
+
+验证证据：领域/Run Bundle 定向测试 8 passed；除本地端口 Web 组外的 unit/contract/integration/e2e 共 546 passed、2 个 live-gated skipped；真实本地 HTTP/SSE/重启恢复 Web E2E 11 passed；`git diff --check`、`compileall` 与 index.html 内联 JavaScript 语法检查通过。

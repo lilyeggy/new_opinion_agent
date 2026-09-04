@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import tempfile
 from pathlib import Path
@@ -9,11 +10,11 @@ from opinion_search.domain.opinion.brief import SearchOutcome
 
 
 class RunBundleError(RuntimeError):
-    """Raised when the terminal Markdown report cannot be written."""
+    """Raised when a terminal run artifact cannot be written."""
 
 
 class RunBundleWriter:
-    """Atomically write the terminal Markdown report for a run.
+    """Atomically write the terminal Markdown and typed outcome artifacts.
 
     The report is a deterministic projection of the latest terminal Domain
     State, so overwriting an existing report is allowed. Reader artifacts stay
@@ -28,6 +29,10 @@ class RunBundleWriter:
     def report_path(self) -> Path:
         return (self._checkpoint_path.parent / "report.md").resolve()
 
+    @property
+    def outcome_path(self) -> Path:
+        return (self._checkpoint_path.parent / "outcome.json").resolve()
+
     async def write_report(self, outcome: SearchOutcome) -> Path:
         return await asyncio.to_thread(self._write_sync, outcome)
 
@@ -36,27 +41,39 @@ class RunBundleWriter:
         content = outcome.markdown
         if not content.endswith("\n"):
             content += "\n"
-
-        temporary_path: Path | None = None
+        outcome_content = json.dumps(
+            outcome.model_dump(mode="json"),
+            ensure_ascii=False,
+            indent=2,
+        ) + "\n"
         try:
             report_path.parent.mkdir(parents=True, exist_ok=True)
-            with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
-                dir=report_path.parent,
-                prefix=f".{report_path.name}.",
-                suffix=".tmp",
-                delete=False,
-            ) as temporary_file:
-                temporary_path = Path(temporary_file.name)
-                temporary_file.write(content)
-                temporary_file.flush()
-                os.fsync(temporary_file.fileno())
-            os.replace(temporary_path, report_path)
+            _atomic_write(report_path, content)
+            _atomic_write(self._checkpoint_path.parent / "outcome.json", outcome_content)
         except (OSError, TypeError, ValueError) as exc:
-            if temporary_path is not None:
-                temporary_path.unlink(missing_ok=True)
             raise RunBundleError(
-                f"failed to write report {report_path}"
+                f"failed to write terminal bundle beside {report_path}"
             ) from exc
         return report_path.resolve()
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            temporary_file.write(content)
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        os.replace(temporary_path, path)
+    except Exception:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+        raise

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -10,7 +11,9 @@ from opinion_search.domain.opinion.state import (
     GapStatus,
     NarrativeKind,
     SourceKind,
+    SourcePublicationStatus,
 )
+from opinion_search.domain.opinion.framing import TaskFrame
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]
@@ -32,6 +35,7 @@ class WorkingGoal(_MemoryModel):
     language: NonEmptyText
     include_domains: tuple[NonEmptyText, ...] = ()
     exclude_domains: tuple[NonEmptyText, ...] = ()
+    task_frame: TaskFrame | None = None
 
 
 class WorkingGap(_MemoryModel):
@@ -85,6 +89,8 @@ class WorkingSource(_MemoryModel):
     title: NonEmptyText
     url: NonEmptyText
     source_kind: SourceKind
+    published_at: datetime | None
+    publication_status: SourcePublicationStatus
 
 
 class WorkingNarrative(_MemoryModel):

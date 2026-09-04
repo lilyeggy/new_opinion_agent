@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>舆情洞察 · OpinionSearch</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --border: #e4e9f2;
+    --text: #1c2430;
+    --muted: #66707e;
+    --accent: #3557e0;
+    --accent2: #7a4df0;
+    --green: #12855f;
+    --green-bg: #e5f5ee;
+    --amber: #9a6b08;
+    --amber-bg: #fdf3dd;
+    --red: #c0392b;
+    --red-bg: #fdeceb;
+    --violet-bg: #f1ecfd;
+    --shadow: 0 1px 2px rgba(16,24,40,.05), 0 4px 16px rgba(16,24,40,.06);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 0 20px 90px; }
+
+  /* ---------- landing ---------- */
+  #landing { padding-top: 11vh; text-align: center; }
+  .brand {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 30px; font-weight: 800; letter-spacing: .5px;
+  }
+  .brand .logo {
+    width: 38px; height: 38px; border-radius: 10px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 19px; font-weight: 800;
+  }
+  .tagline { color: var(--muted); font-size: 15.5px; margin: 12px 0 30px; }
+  .searchbox {
+    display: flex; gap: 10px; align-items: stretch;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 10px; box-shadow: var(--shadow);
+    max-width: 720px; margin: 0 auto;
+  }
+  .searchbox:focus-within { border-color: var(--accent); }
+  .searchbox textarea {
+    flex: 1; border: none; outline: none; resize: none;
+    font-size: 16px; font-family: inherit; padding: 10px 12px;
+    min-height: 52px; background: transparent; color: var(--text);
+  }
+  .searchbox button {
+    border: none; border-radius: 11px; cursor: pointer;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 15.5px; font-weight: 600; padding: 0 26px;
+  }
+  .searchbox button:disabled { opacity: .5; cursor: not-allowed; }
+  .examples { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .examples span { color: var(--muted); font-size: 13px; width: 100%; }
+  .examples button {
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  .examples button:hover { border-color: var(--accent); color: var(--accent); }
+  details.advanced {
+    max-width: 720px; margin: 14px auto 0; text-align: left;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 18px;
+  }
+  details.advanced summary {
+    cursor: pointer; color: var(--muted); font-size: 13.5px; outline: none;
+  }
+  .adv-row { display: flex; gap: 14px; margin-top: 12px; }
+  .adv-row label { flex: 1; font-size: 13px; color: var(--muted); display: block; }
+  .adv-row input, .adv-row select {
+    width: 100%; margin-top: 4px; padding: 7px 10px; font-size: 13.5px;
+    border: 1px solid var(--border); border-radius: 8px; font-family: inherit;
+    background: #fff; color: var(--text);
+  }
+  .mode-pills { display: inline-flex; background: #eaedf4; border-radius: 999px; padding: 3px; margin-bottom: 22px; }
+  .mode-pills label {
+    padding: 6px 18px; border-radius: 999px; font-size: 13px;
+    cursor: pointer; color: var(--muted);
+  }
+  .mode-pills input { display: none; }
+  .mode-pills input:checked + span { color: var(--accent); font-weight: 600; }
+  .mode-pills label:has(input:checked) { background: #fff; box-shadow: var(--shadow); }
+
+  /* ---------- running ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 10; background: rgba(245,247,251,.94);
+    backdrop-filter: blur(6px); border-bottom: 1px solid var(--border);
+    padding: 12px 0; display: flex; align-items: center; gap: 14px;
+  }
+  .topbar .mini-brand { font-weight: 700; display: flex; gap: 8px; align-items: center; }
+  .topbar .mini-brand .logo { width: 24px; height: 24px; font-size: 12px; border-radius: 7px; }
+  .topbar .q { color: var(--muted); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .topbar button {
+    background: #fff; border: 1px solid var(--border); color: var(--red);
+    border-radius: 8px; padding: 5px 14px; font-size: 13px; cursor: pointer;
+  }
+  .progress-card {
+    margin-top: 34px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px 26px; box-shadow: var(--shadow);
+  }
+  .progress-card h3 { margin: 0 0 4px; font-size: 16px; }
+  .progress-card .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .activity {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 7px 0; font-size: 14px; border-bottom: 1px dashed var(--border);
+  }
+  .activity:last-child { border-bottom: none; }
+  .activity .mark { flex: none; width: 20px; text-align: center; color: var(--muted); }
+  .activity.done { color: var(--muted); }
+  .activity.done .mark { color: var(--green); }
+  .activity.current { font-weight: 600; }
+  .activity .detail { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 6px; }
+  .spinner {
+    display: inline-block; width: 13px; height: 13px; vertical-align: -2px;
+    border: 2px solid #d7dde9; border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- result ---------- */
+  #result { margin-top: 0; }
+  .result-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .result-topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(245,247,251,.94); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 2px; margin: 0 -20px; padding-left: 20px; padding-right: 20px;
+  }
+  .result-topbar .mini-brand {
+    font-weight: 700; display: flex; gap: 8px; align-items: center;
+    cursor: pointer; flex: none;
+  }
+  .result-topbar .logo {
+    width: 24px; height: 24px; border-radius: 7px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 12px; font-weight: 800;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .result-topbar button.home {
+    background: #fff; border: 1px solid var(--border); color: var(--accent);
+    border-radius: 8px; padding: 5px 14px; font-size: 13px; cursor: pointer;
+    margin-left: auto; flex: none;
+  }
+  .status-badge {
+    font-size: 13px; font-weight: 600; border-radius: 999px; padding: 4px 14px;
+  }
+  .status-badge.completed { background: var(--green-bg); color: var(--green); }
+  .status-badge.partial { background: var(--amber-bg); color: var(--amber); }
+  .status-badge.failed, .status-badge.cancelled { background: var(--red-bg); color: var(--red); }
+  .result-meta { color: var(--muted); font-size: 13px; }
+  .result-actions { margin-left: auto; display: flex; gap: 8px; }
+  .result-actions button {
+    background: #fff; border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 14px; font-size: 13px; cursor: pointer; color: var(--text);
+  }
+  .result-actions button.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border: none; font-weight: 600;
+  }
+  h2.section {
+    font-size: 16px; margin: 34px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+  h2.section::before {
+    content: ""; width: 4px; height: 16px; border-radius: 2px;
+    background: linear-gradient(var(--accent), var(--accent2));
+  }
+  .cards { display: flex; flex-direction: column; gap: 10px; }
+  .card .subline { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow);
+    font-size: 14.5px;
+  }
+  .card .chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px; border-radius: 999px; padding: 1px 10px; cursor: pointer;
+    background: #eef2fd; color: var(--accent); border: none; font-family: inherit;
+  }
+  .chip:hover { text-decoration: underline; }
+  .tag {
+    display: inline-block; font-size: 11.5px; font-weight: 600;
+    border-radius: 6px; padding: 1px 8px; margin-right: 8px; vertical-align: 1px;
+  }
+  .tag.fact { background: var(--green-bg); color: var(--green); }
+  .tag.attributed_statement, .tag.report, .tag.primary { background: #e8f0fe; color: #2456c4; }
+  .tag.analysis, .tag.other { background: #eef0f4; color: var(--muted); }
+  .tag.supported { background: var(--green-bg); color: var(--green); }
+  .tag.contested, .tag.disputed { background: var(--amber-bg); color: var(--amber); }
+  .tag.dominant { background: var(--violet-bg); color: #6b3fd4; }
+  .tag.counter { background: var(--amber-bg); color: var(--amber); }
+  .source-card { display: flex; gap: 12px; align-items: baseline; }
+  .source-card .num {
+    flex: none; width: 30px; height: 30px; border-radius: 8px;
+    background: #eef2fd; color: var(--accent); font-weight: 700; font-size: 13px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform .2s;
+  }
+  .source-card.flash .num { transform: scale(1.25); background: var(--accent); color: #fff; }
+  .source-card a { color: var(--accent); text-decoration: none; font-weight: 600; word-break: break-all; }
+  .source-card a:hover { text-decoration: underline; }
+  .source-card .kind { color: var(--muted); font-size: 12.5px; margin-left: 6px; }
+  .note {
+    margin-top: 36px; color: var(--muted); font-size: 12.5px;
+    border-top: 1px solid var(--border); padding-top: 14px;
+  }
+  .empty-section { color: var(--muted); font-size: 14px; }
+  #history { max-width: 720px; margin: 44px auto 0; text-align: left; }
+  .hist-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 11px 16px; margin-bottom: 8px; cursor: pointer; font-size: 14px;
+  }
+  .hist-item:hover { border-color: var(--accent); }
+  .hist-item .q { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-item .st {
+    flex: none; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 2px 10px;
+  }
+  .hist-item .st.completed { background: var(--green-bg); color: var(--green); }
+  .hist-item .st.running { background: var(--amber-bg); color: var(--amber); }
+  .hist-item .st.failed, .hist-item .st.cancelled, .hist-item .st.partial { background: var(--red-bg); color: var(--red); }
+  .hist-item .time { flex: none; color: var(--muted); font-size: 12px; }
+
+  /* ---------- developer drawer ---------- */
+  #devview {
+    position: fixed; right: 0; top: 0; bottom: 0; width: min(480px, 92vw);
+    background: #10151d; color: #cfe0f5; z-index: 50;
+    box-shadow: -8px 0 30px rgba(0,0,0,.25);
+    transform: translateX(100%); transition: transform .25s ease;
+    display: flex; flex-direction: column;
+  }
+  #devview.open { transform: translateX(0); }
+  #devview .devhead {
+    padding: 14px 18px; border-bottom: 1px solid #232c3a;
+    display: flex; align-items: center; font-size: 14px; font-weight: 600;
+  }
+  #devview .devhead button {
+    margin-left: auto; background: none; border: none; color: #8fa2bd;
+    font-size: 17px; cursor: pointer;
+  }
+  #devlog { flex: 1; overflow: auto; padding: 12px 14px; font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; }
+  #devlog .ev { margin-bottom: 6px; padding: 6px 8px; background: #161d28; border-radius: 6px; border-left: 3px solid #33415a; }
+  #devlog .ev.decision { border-left-color: #f0b429; }
+  #devlog .ev.action { border-left-color: #4c9aff; }
+  #devlog .ev.observation { border-left-color: #3ecf8e; }
+  #devlog .ev.terminal { border-left-color: #f26d6d; }
+  #devlog pre { margin: 4px 0 0; white-space: pre-wrap; color: #8fa2bd; }
+</style>
+</head>
+<body>
+<main>
+  <!-- ============ landing ============ -->
+  <section id="landing">
+    <div class="brand"><span class="logo">舆</span>舆情洞察 <span style="font-size:14px;color:var(--muted);font-weight:500">OpinionSearch</span></div>
+    <div class="tagline">输入一个公众话题，自动检索公开网络信息，梳理<b>事实基线、各方立场、舆论叙事与分歧点</b>，产出带来源的证据简报。</div>
+
+    <form id="form">
+      <div class="mode-pills">
+        <label><input type="radio" name="mode" value="offline" checked><span>示例演示（离线）</span></label>
+        <label><input type="radio" name="mode" value="live"><span>真实网络检索</span></label>
+      </div>
+      <div class="searchbox">
+        <textarea id="question" placeholder="例如：公众对某品牌新发布产品的舆论反应如何？" required></textarea>
+        <button type="submit" id="start-btn">开始调查</button>
+      </div>
+      <div class="examples">
+        <span>试试这些话题：</span>
+        <button type="button" data-q="某科技公司发布新一代手机后，公众的评价如何？">新品发布的舆论反应</button>
+        <button type="button" data-q="关于近期人工智能监管政策，各方持什么立场？">AI 监管政策争议</button>
+      </div>
+      <details class="advanced">
+        <summary>高级选项（可选）</summary>
+        <div class="adv-row">
+          <label>主题 topic<input type="text" id="topic"></label>
+          <label>关注点 focus<input type="text" id="focus"></label>
+        </div>
+        <div class="adv-row">
+          <label>时间范围<input type="text" id="time_range" placeholder="例如：过去 30 天"></label>
+          <label>报告语言
+            <select id="language"><option value="zh">中文</option><option value="en">English</option></select>
+          </label>
+        </div>
+      </details>
+    </form>
+
+    <div id="history" hidden>
+      <h2 class="section" style="text-align:left">最近的调查</h2>
+      <div id="history-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ running ============ -->
+  <section id="running" hidden>
+    <div class="topbar">
+      <span class="mini-brand"><span class="logo">舆</span>舆情洞察</span>
+      <span class="q" id="run-question"></span>
+      <button id="cancel-btn">取消调查</button>
+    </div>
+    <div class="progress-card">
+      <h3>正在进行多步检索与分析<span class="spinner" style="margin-left:8px"></span></h3>
+      <div class="sub">Agent 会交替执行「搜索 → 阅读 → 归纳」，每一步都基于已核实的信息推进。</div>
+      <div id="activities"></div>
+    </div>
+  </section>
+
+  <!-- ============ result ============ -->
+  <section id="result" hidden></section>
+</main>
+
+<!-- ============ developer drawer ============ -->
+<aside id="devview">
+  <div class="devhead">开发者视图 · Runtime step transactions<button id="devclose">✕</button></div>
+  <div id="devlog"></div>
+</aside>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[c]));
+// The brief escapes Markdown punctuation with backslashes; undo it for HTML rendering.
+const unesc = (s) => String(s ?? "").replace(/\\([\\`*_{}[\]()#!+>.|-])/g, "$1");
+
+let currentRunId = null;
+let eventSource = null;
+let sources = [];            // [{num, title, url, kind}]
+let activityIndex = 0;
+
+/* ================= landing ================= */
+
+document.querySelectorAll(".examples button").forEach((btn) => {
+  btn.addEventListener("click", () => { $("question").value = btn.dataset.q; $("question").focus(); });
+});
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const body = {
+    mode: document.querySelector('input[name="mode"]:checked').value,
+    question: $("question").value.trim(),
+  };
+  const topic = $("topic").value.trim(); if (topic) body.topic = topic;
+  const focus = $("focus").value.trim(); if (focus) body.focus = focus;
+  const timeRange = $("time_range").value.trim(); if (timeRange) body.time_range = timeRange;
+  body.language = $("language").value;
+  if (!body.question) return;
+
+  try {
+    const resp = await fetch("/api/runs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { alert(data.error || `请求失败（HTTP ${resp.status}）`); return; }
+    enterRunningState(data.run_id, body.question);
+    connect(data.run_id);
+  } catch (e) {
+    alert("无法连接服务：" + e.message);
+  }
+});
+
+function enterRunningState(runId, question) {
+  currentRunId = runId;
+  activityIndex = 0;
+  sources = [];
+  $("landing").hidden = true;
+  $("result").hidden = true;
+  $("result").innerHTML = "";
+  $("running").hidden = false;
+  $("cancel-btn").disabled = false;
+  $("run-question").textContent = question;
+  $("activities").innerHTML = "";
+  addActivity("已接收调查请求", "");
+  addActivity("正在规划调查路径", "", true);
+}
+
+$("cancel-btn").addEventListener("click", async () => {
+  if (!currentRunId) return;
+  $("cancel-btn").disabled = true;
+  try { await fetch(`/api/runs/${currentRunId}/cancel`, { method: "POST" }); } catch (e) {}
+});
+
+/* ================= progress activities ================= */
+
+function addActivity(main, detail, isCurrent) {
+  activityIndex += 1;
+  const el = document.createElement("div");
+  el.className = "activity current";
+  el.id = "act-" + activityIndex;
+  el.innerHTML =
+    `<span class="mark">${isCurrent ? '<span class="spinner"></span>' : "·"}</span>` +
+    `<span>${esc(main)}${detail ? `<span class="detail">${esc(detail)}</span>` : ""}</span>`;
+  $("activities").appendChild(el);
+  el.scrollIntoView({ block: "nearest" });
+  return activityIndex;
+}
+
+function completeActivity(id) {
+  const el = $("act-" + id);
+  if (!el) return;
+  el.classList.remove("current");
+  el.classList.add("done");
+  el.querySelector(".mark").textContent = "✓";
+}
+
+/* ================= event handling ================= */
+
+function connect(runId) {
+  closeStream();
+  eventSource = new EventSource(`/api/runs/${runId}/events`);
+  eventSource.onmessage = (msg) => {
+    let event;
+    try { event = JSON.parse(msg.data); } catch (e) { return; }
+    if (event.type === "progress") handleProgress(event);
+    if (event.type === "terminal") handleTerminal(event);
+  };
+}
+
+function closeStream() { if (eventSource) { eventSource.close(); eventSource = null; } }
+
+function handleProgress(event) {
+  const kindByBoundary = {
+    decision_accepted: "decision",
+    action_running: "action",
+    observation_ready: "observation",
+    run_terminated: "terminal",
+  };
+  devLog(event, kindByBoundary[event.boundary] || "");
+  const b = event.boundary;
+
+  if (event.decision && b === "decision_accepted") {
+    // Close the generic "planning" placeholder once the first decision lands.
+    const planning = $("act-" + activityIndex);
+    if (planning && planning.textContent.includes("规划")) completeActivity(activityIndex);
+    const d = event.decision;
+    if (d.action === "search") {
+      window._curAct = addActivity(`正在搜索「${trim(d.query, 46)}」`, d.purpose ? trim(d.purpose, 60) : "");
+    } else if (d.action === "read") {
+      window._curAct = addActivity("正在阅读来源页面", trim(d.focus || d.candidate_source_id || "", 70));
+    } else if (d.action === "reflect") {
+      window._curAct = addActivity("正在归纳证据与立场", trim(d.assessment || "", 70));
+    } else if (d.action === "finish") {
+      window._curAct = addActivity("正在整理最终简报", "");
+    }
+  }
+
+  if (event.observation && b === "observation_ready") {
+    const o = event.observation;
+    if (o.action === "search" && o.outcome && o.outcome.payload && o.outcome.payload.items) {
+      completeActivity(window._curAct);
+      addActivity(`找到 ${o.outcome.payload.items.length} 条相关结果`,
+        trim((o.outcome.payload.items[0] || {}).title || "", 60));
+    } else if (o.action === "read" && o.outcome && o.outcome.payload) {
+      completeActivity(window._curAct);
+      addActivity("已读取并提取要点", trim(o.outcome.payload.title || o.outcome.payload.url || "", 60));
+    } else if (o.action === "reflect") {
+      completeActivity(window._curAct);
+    } else if (o.action === "finish") {
+      completeActivity(window._curAct);
+    }
+  }
+
+  if (b === "step_committed") {
+    if (window._curAct) { completeActivity(window._curAct); window._curAct = null; }
+  }
+}
+
+function trim(s, n) { s = String(s ?? ""); return s.length > n ? s.slice(0, n) + "…" : s; }
+
+function handleTerminal(event) {
+  devLog(event, "terminal");
+  completeActivity(window._curAct);
+  $("cancel-btn").disabled = true;
+  closeStream();
+  if (event.status === "failed") {
+    addActivity("调查未能完成", event.error || event.stop_reason || "");
+    return;
+  }
+  renderResult(event);
+  refreshHistory();
+}
+
+/* ================= result rendering ================= */
+
+function parseBrief(markdown) {
+  const sections = {};
+  let current = "_meta";
+  for (const raw of String(markdown || "").split("\n")) {
+    const h = raw.match(/^##\s+(.+)$/);
+    if (h) { current = h[1].trim(); sections[current] = []; continue; }
+    if (/^#\s/.test(raw)) continue;
+    (sections[current] = sections[current] || []).push(raw);
+  }
+  return sections;
+}
+
+const CITATION_RE = /\[S(\d+)\]/g;
+
+function citationChips(text) {
+  const nums = [...new Set([...String(text).matchAll(CITATION_RE)].map((m) => Number(m[1])))];
+  if (!nums.length) return "";
+  return `<div class="chips">${nums.map((n) =>
+    `<button class="chip" data-s="${n}" title="${esc((sources.find((s) => s.num === n) || {}).title || "")}">来源 S${n}</button>`
+  ).join("")}</div>`;
+}
+
+function tagClass(label) {
+  return String(label).toLowerCase().replace(/[^a-z_]/g, "");
+}
+
+function renderItems(items) {
+  return items.map((raw) => {
+    const line = raw.trim();
+    if (!line.startsWith("- ")) return "";
+    let rest = line.slice(2);
+    let label = "";
+    const m = rest.match(/^\*\*(.+?):\*\*\s+(.*)$/);
+    if (m) { label = m[1]; rest = m[2]; }
+    // Strip the trailing citation parenthetical; keep chips instead.
+    const citeTail = rest.match(/\s*\(([^()]*(?:\[S\d+\][^()]*)*)\)\s*$/);
+    if (citeTail && citeTail[1].match(/\[S\d+\]/)) rest = rest.slice(0, citeTail.index);
+    rest = unesc(rest);
+    let attributed = "";
+    const parts = rest.split("; attributed to: ");
+    if (parts.length === 2) {
+      rest = parts[0];
+      attributed = `<div class="subline">归因方：${esc(parts[1])}</div>`;
+    }
+    const labelHtml = label ? `<span class="tag ${tagClass(label.split(" / ")[0])}">${esc(label.split(" / ")[0])}</span>` +
+      (label.includes("/") ? `<span class="tag ${tagClass(label.split(" / ")[1] || "")}">${esc(label.split(" / ")[1])}</span>` : "") : "";
+    return `<div class="card">${labelHtml}${esc(rest)}${attributed}${citationChips(line)}</div>`;
+  }).join("");
+}
+
+function chipsFromRefs(refs) {
+  const nums = [...new Set((refs || []).map((ref) => Number(String(ref).replace(/^S/, ""))).filter(Number.isFinite))];
+  if (!nums.length) return "";
+  return `<div class="chips">${nums.map((n) =>
+    `<button class="chip" data-s="${n}" title="${esc((sources.find((s) => s.num === n) || {}).title || "")}">来源 S${n}</button>`
+  ).join("")}</div>`;
+}
+
+function bindSourceChips(resultEl) {
+  resultEl.querySelectorAll(".chip[data-s]").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const target = $("src-" + chip.dataset.s);
+      if (!target) return;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.classList.add("flash");
+      setTimeout(() => target.classList.remove("flash"), 1200);
+    });
+  });
+}
+
+function renderTypedResult(event) {
+  const report = event.report;
+  sources = (report.sources || []).map((source) => ({
+    num: Number(String(source.source_ref).replace(/^S/, "")),
+    url: source.url,
+    title: source.title,
+    kind: source.kind,
+  }));
+  const cards = (items, render, empty = "本部分没有记录。") =>
+    items && items.length ? `<div class="cards">${items.map(render).join("")}</div>` : `<div class="empty-section">${empty}</div>`;
+  const section = (title, content) => `<h2 class="section">${title}</h2>${content}`;
+  const html = [];
+  html.push(`<div class="result-topbar">
+    <span class="mini-brand" onclick="resetToLanding()"><span class="logo">舆</span>舆情洞察</span>
+    <button class="home" onclick="resetToLanding()">← 返回主页</button>
+  </div>`);
+  const timeScope = report.time_scope
+    ? ` · ${esc(report.time_scope.start_date)} 至 ${esc(report.time_scope.end_date)}` : "";
+  html.push(`<div class="result-head">
+    <span class="status-badge ${esc(event.status)}">${statusText(event.status)}</span>
+    <span class="result-meta">${esc(report.question)}${timeScope}</span>
+    <span class="result-actions"><button class="primary" onclick="resetToLanding()">发起新的调查</button><button onclick="toggleDev(true)">查看执行过程</button></span>
+  </div>`);
+  if (event.stop_reason) html.push(`<div class="card" style="margin-top:16px;background:#fbfcff"><b>结论说明：</b>${esc(event.stop_reason)}</div>`);
+
+  const conclusion = report.conclusion;
+  html.push(section("核心结论", conclusion
+    ? `<div class="cards"><div class="card">${esc(conclusion.summary)}${chipsFromRefs(conclusion.source_refs)}` +
+      ((conclusion.limitation_gap_ids || []).length ? `<div class="subline">限制项：${esc(conclusion.limitation_gap_ids.join("、"))}</div>` : "") + `</div></div>`
+    : `<div class="empty-section">没有通过校验并提交的最终结论。</div>`));
+  html.push(section("有据可查的论点", cards(report.claims, (item) =>
+    `<div class="card"><span class="tag ${tagClass(item.kind)}">${esc(item.kind)}</span><span class="tag ${tagClass(item.status)}">${esc(item.status)}</span>${esc(item.text)}` +
+    chipsFromRefs([...(item.supporting_source_refs || []), ...(item.contradicting_source_refs || [])]) + `</div>`)));
+  html.push(section("各方公开立场", cards(report.stakeholder_positions, (item) =>
+    `<div class="card"><b>${esc(item.stakeholder)}：</b>${esc(item.statement)}${chipsFromRefs(item.source_refs)}</div>`)));
+  html.push(section("舆论叙事", cards(report.narratives, (item) =>
+    `<div class="card"><span class="tag ${tagClass(item.kind)}">${esc(item.kind)}</span>${esc(item.summary)}` +
+    ((item.stakeholder_names || []).length ? `<div class="subline">归因方：${esc(item.stakeholder_names.join("、"))}</div>` : "") +
+    chipsFromRefs(item.source_refs) + `</div>`)));
+  html.push(section("议题覆盖情况", cards(report.coverage, (item) =>
+    `<div class="card"><span class="tag ${tagClass(item.status)}">${esc(item.status)}</span><code>${esc(item.gap_id)}</code> ${esc(item.question)}${chipsFromRefs(item.source_refs)}</div>`)));
+  if ((report.evidence_appendix || []).length) {
+    html.push(section("证据审计附录", `<details><summary>展开 ${report.evidence_appendix.length} 条证据</summary>` +
+      cards(report.evidence_appendix, (item) => `<div class="card"><code>${esc(item.evidence_id)}</code> ${esc(item.excerpt)}<div class="subline">定位：${esc(item.locator)}</div>${chipsFromRefs([item.source_ref])}</div>`) + `</details>`));
+  }
+  html.push(section("尚未解决的疑点", cards(report.remaining_gaps, (item) =>
+    `<div class="card"><span class="tag ${tagClass(item.status)}">${esc(item.status)}</span><code>${esc(item.gap_id)}</code> ${esc(item.question)}<div class="subline">${esc(item.detail)}</div></div>`, "没有尚未解决的疑点。")));
+  html.push(section("信息来源", cards(report.sources, (source) => {
+    const num = Number(String(source.source_ref).replace(/^S/, ""));
+    let host = ""; try { host = new URL(source.url).hostname; } catch (e) {}
+    const publication = source.published_at ? String(source.published_at).slice(0, 10) : "发布时间未知";
+    return `<div class="card source-card" id="src-${num}"><span class="num">${esc(source.source_ref)}</span><span><a href="${esc(source.url)}" target="_blank" rel="noopener">${esc(source.title)}</a><span class="kind">${esc(host)} · ${esc(source.kind)} · ${esc(publication)}</span></span></div>`;
+  }, "没有成功读取的来源。")));
+  html.push(`<div class="note">⚠️ ${esc(report.scope_limitation)}</div>`);
+
+  const resultEl = $("result");
+  resultEl.innerHTML = html.join("");
+  resultEl.hidden = false;
+  $("running").hidden = true;
+  window.scrollTo({ top: 0 });
+  bindSourceChips(resultEl);
+}
+
+function renderResult(event) {
+  if (event.report) {
+    renderTypedResult(event);
+    return;
+  }
+  sources = (event.source_urls || []).map((url, i) => ({
+    num: i + 1,
+    url,
+    title: `来源 ${i + 1}`,
+    kind: "",
+  }));
+  const sections = parseBrief(event.markdown);
+
+  const meta = {};
+  for (const line of sections["_meta"] || []) {
+    const m = line.match(/^\*\*(.+?):\*\*\s*(.*)$/);
+    if (m) meta[m[1]] = unesc(m[2]);
+  }
+
+  // Replace placeholder titles with real ones parsed from the Sources section.
+  for (const line of sections["Sources"] || []) {
+    const m = line.match(/^-\s+\[S(\d+)\]\s+\[(.+?)\]\((.+?)\)(?:\s+—\s+(.*))?$/);
+    if (m) {
+      const num = Number(m[1]);
+      const found = sources.find((s) => s.num === num);
+      if (found) { found.title = unesc(m[2]); found.url = m[3]; found.kind = m[4] ? unesc(m[4]) : ""; }
+    }
+  }
+
+  const html = [];
+  html.push(`<div class="result-topbar">
+    <span class="mini-brand" onclick="resetToLanding()"><span class="logo">舆</span>舆情洞察</span>
+    <button class="home" onclick="resetToLanding()">← 返回主页</button>
+  </div>`);
+  html.push(`<div class="result-head">
+    <span class="status-badge ${esc(event.status)}">${statusText(event.status)}</span>
+    <span class="result-meta">${esc(meta.Question || "")}</span>
+    <span class="result-actions">
+      <button class="primary" onclick="resetToLanding()">发起新的调查</button>
+      <button onclick="toggleDev(true)">查看执行过程</button>
+    </span>
+  </div>`);
+  if (event.stop_reason) {
+    html.push(`<div class="card" style="margin-top:16px;background:#fbfcff"><b>结论说明：</b>${esc(unesc(event.stop_reason))}</div>`);
+  }
+  const titles = {
+    "Core conclusion": "核心结论",
+    "Evidence-backed claims": "有据可查的论点",
+    "Stakeholder positions": "各方公开立场",
+    "Public narratives": "舆论叙事",
+    "Opinion coverage": "议题覆盖情况",
+    "Evidence appendix": "证据审计附录",
+    "Remaining gaps": "尚未解决的疑点",
+    "Sources": "信息来源",
+  };
+  for (const [key, label] of Object.entries(titles)) {
+    const items = sections[key] || [];
+    if (key === "Evidence appendix" && !items.some((l) => l.trim().startsWith("- "))) continue;
+    if (key === "Opinion coverage" && !items.some((l) => l.trim().startsWith("- "))) continue;
+    html.push(`<h2 class="section" id="sec-${key.replace(/\W/g, "")}">${label}</h2>`);
+    if (key === "Sources") {
+      const cards = items.map((line) => {
+        const m = line.match(/^-\s+\[S(\d+)\]\s+\[(.+?)\]\((.+?)\)(?:\s+—\s+(.*))?$/);
+        if (!m) return "";
+        const num = Number(m[1]);
+        let host = "";
+        try { host = new URL(m[3]).hostname; } catch (e) {}
+        return `<div class="card source-card" id="src-${num}">
+          <span class="num">S${num}</span>
+          <span><a href="${esc(m[3])}" target="_blank" rel="noopener">${esc(unesc(m[2]))}</a>
+          <span class="kind">${esc(host)}${m[4] ? " · " + esc(unesc(m[4])) : ""}</span></span>
+        </div>`;
+      }).join("");
+      html.push(cards ? `<div class="cards">${cards}</div>` : `<div class="empty-section">没有成功读取的来源。</div>`);
+      continue;
+    }
+    const rendered = renderItems(items);
+    html.push(rendered ? `<div class="cards">${rendered}</div>` : `<div class="empty-section">本部分没有记录。</div>`);
+  }
+  html.push(`<div class="note">⚠️ 说明：本简报基于可访问的公开网络信息整理，不测量全网情绪、传播规模或普遍程度。各论点均附来源编号，点击可跳转查看原始出处。</div>`);
+
+  const resultEl = $("result");
+  resultEl.innerHTML = html.join("");
+  resultEl.hidden = false;
+  $("running").hidden = true;
+  window.scrollTo({ top: 0 });
+
+  bindSourceChips(resultEl);
+}
+
+/* ================= history ================= */
+
+async function refreshHistory() {
+  try {
+    const r = await fetch("/api/runs");
+    const runs = ((await r.json()).runs || []).slice().reverse().slice(0, 8);
+    $("history").hidden = runs.length === 0;
+    const box = $("history-list");
+    box.innerHTML = "";
+    for (const run of runs) {
+      const el = document.createElement("div");
+      el.className = "hist-item";
+      el.innerHTML =
+        `<span class="st ${esc(run.status)}">${esc(statusText(run.status))}</span>` +
+        `<span class="q">${esc(run.question)}</span>` +
+        `<span class="time">${new Date(run.created_at * 1000).toLocaleString()}</span>`;
+      el.addEventListener("click", () => viewRun(run.run_id));
+      box.appendChild(el);
+    }
+  } catch (e) { /* landing stays without history */ }
+}
+
+async function viewRun(runId) {
+  let snap;
+  try {
+    snap = await (await fetch(`/api/runs/${runId}`)).json();
+  } catch (e) { alert("加载失败：" + e.message); return; }
+  closeStream();
+  currentRunId = runId;
+  if (snap.outcome && snap.outcome.markdown) {
+    $("landing").hidden = true;
+    renderResult({
+      status: snap.outcome.status || snap.status,
+      stop_reason: snap.outcome.stop_reason,
+      report: snap.outcome.report,
+      markdown: snap.outcome.markdown,
+      source_urls: snap.outcome.source_urls || [],
+    });
+    return;
+  }
+  if (snap.status === "running") {
+    enterRunningState(runId, snap.question);
+    connect(runId);
+    return;
+  }
+  // Terminal run without a rendered outcome (failed/cancelled).
+  $("landing").hidden = true;
+  const resultEl = $("result");
+  resultEl.innerHTML =
+    `<div class="result-topbar">
+      <span class="mini-brand" onclick="resetToLanding()"><span class="logo">舆</span>舆情洞察</span>
+      <button class="home" onclick="resetToLanding()">← 返回主页</button>
+    </div>` +
+    `<div class="result-head"><span class="status-badge ${esc(snap.status)}">${esc(statusText(snap.status))}</span>` +
+    `<span class="result-meta">${esc(snap.question)}</span>` +
+    `<button style="margin-left:auto;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600" onclick="resetToLanding()">返回</button></div>` +
+    `<div class="card" style="margin-top:16px">${esc(snap.error || snap.stop_reason || "本次调查未产出报告。")}</div>`;
+  resultEl.hidden = false;
+  window.scrollTo({ top: 0 });
+}
+
+function statusText(status) {
+  return { completed: "调查完成", partial: "部分完成", failed: "调查失败", cancelled: "已取消", running: "进行中", created: "已创建" }[status] || status;
+}
+
+function resetToLanding() {
+  closeStream();
+  currentRunId = null;
+  eventBuffer.length = 0;
+  $("devlog").innerHTML = "";
+  $("result").hidden = true;
+  $("running").hidden = true;
+  $("landing").hidden = false;
+  toggleDev(false);
+  refreshHistory();
+}
+
+/* ================= developer drawer ================= */
+
+const eventBuffer = [];
+
+function devLog(event, kind) {
+  eventBuffer.push({ event, kind });
+  if ($("devview").classList.contains("open")) appendDevLog(event, kind);
+}
+function appendDevLog(event, kind) {
+  const el = document.createElement("div");
+  el.className = "ev " + (kind || "");
+  el.innerHTML = `<b>${esc(event.boundary || event.type)}</b>` +
+    `<pre>${esc(JSON.stringify(event, null, 1)).slice(0, 1500)}</pre>`;
+  $("devlog").appendChild(el);
+  $("devlog").scrollTop = $("devlog").scrollHeight;
+}
+function toggleDev(open) {
+  const view = $("devview");
+  if (open && !view.classList.contains("open")) {
+    // First open replays every event seen so far.
+    $("devlog").innerHTML = "";
+    for (const item of eventBuffer) appendDevLog(item.event, item.kind);
+  }
+  view.classList.toggle("open", open);
+}
+$("devclose").addEventListener("click", () => toggleDev(false));
+</script>
+<script>refreshHistory();</script>
+</body>
+</html>

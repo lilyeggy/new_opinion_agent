@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pytest
 
 from opinion_search.app.contracts import SearchRequest
@@ -182,6 +184,8 @@ def test_successful_read_creates_normalized_source_and_locatable_evidence() -> N
         url=URL,
         title="Primary",
         content="The organization says the event occurred on 20 August.",
+        published_at=datetime(2026, 8, 25, tzinfo=timezone.utc),
+        publication_time_status="reported",
     )
     observation = ToolObservation(
         action="read",
@@ -200,6 +204,8 @@ def test_successful_read_creates_normalized_source_and_locatable_evidence() -> N
 
     assert delta.add_sources[0].source_kind is SourceKind.PRIMARY
     assert delta.add_sources[0].artifact_ref == "artifact-primary"
+    assert delta.add_sources[0].published_at == result.published_at
+    assert delta.add_sources[0].publication_status.value == "reported"
     assert delta.add_evidence[0].source_id == URL
     assert delta.add_evidence[0].acquired_for_gap_id == "gap-primary"
     assert "event date" in delta.add_evidence[0].locator
@@ -238,6 +244,51 @@ def test_evidence_locator_retains_original_selected_block_index() -> None:
         item for item in delta.add_evidence if "distinctive correction" in item.excerpt
     )
     assert "normalized block 2, chars 0-" in selected.locator
+
+
+def test_read_filters_promoted_navigation_and_bounds_evidence() -> None:
+    decision = ReadDecision(
+        action="read",
+        candidate_source_id=URL,
+        target_gap_id="gap-primary",
+        focus="Codex quota user reactions",
+    )
+    content = (
+        "推广：AnySearch 一站式搜索，立即注册并领取优惠。\n\n"
+        "[首页](https://example.com) [产品](https://example.com/p) "
+        "[下载](https://example.com/d) [登录](https://example.com/login)\n\n"
+        "Codex users report that the latest quota change reduces interruptions "
+        "during long coding sessions, although some users still want clearer limits.\n\n"
+        "Several Codex users say quota visibility matters more than a larger "
+        "headline allowance because unexpected throttling disrupts their work.\n\n"
+        "Codex quota discussions also compare the experience across paid plans "
+        "and ask for consistent documentation of the applicable limits.\n\n"
+        "A fourth Codex quota paragraph should not exceed the per-source cap."
+    )
+
+    delta = OpinionSearchObservationProcessor().build_delta(
+        _state(),
+        decision,
+        ToolObservation(
+            action="read",
+            outcome=ToolResult(
+                action_id="action-quality",
+                tool_name="read.web",
+                payload=ReadResult(
+                    url=URL,
+                    title="User reactions",
+                    content=content,
+                ).model_dump(mode="json"),
+                artifact_refs=("artifact-full-page",),
+                attempts=1,
+            ),
+        ),
+    )
+
+    assert len(delta.add_evidence) == 3
+    assert all("AnySearch" not in item.excerpt for item in delta.add_evidence)
+    assert all("立即注册" not in item.excerpt for item in delta.add_evidence)
+    assert delta.add_sources[0].artifact_ref == "artifact-full-page"
 
 
 def test_reflect_turns_evidence_links_into_claims_and_gap_updates() -> None:
@@ -357,7 +408,7 @@ def test_processor_rejects_unknown_claim_evidence_and_mismatched_tool() -> None:
         )
 
 
-def test_finish_verdict_is_control_output_not_domain_delta() -> None:
+def test_accepted_finish_commits_a_recoverable_final_synthesis() -> None:
     verdict = CompletionVerdict(
         disposition=CompletionDisposition.ACCEPT_COMPLETE,
         reason="Complete.",
@@ -377,5 +428,28 @@ def test_finish_verdict_is_control_output_not_domain_delta() -> None:
         _state(), decision, observation
     )
 
-    assert delta == type(delta)()
+    assert delta.set_final_synthesis is not None
+    assert delta.set_final_synthesis.summary == "Complete."
+    assert delta.set_final_synthesis.limitation_gap_ids == ("gap-primary",)
     assert evaluated is verdict
+
+
+def test_rejected_finish_does_not_commit_a_final_synthesis() -> None:
+    decision = FinishDecision(
+        action="finish",
+        answer_candidate="Not ready.",
+        resolved_gap_ids=(),
+        unresolved_gap_ids=("gap-primary",),
+    )
+    delta = OpinionSearchObservationProcessor().build_delta(
+        _state(),
+        decision,
+        FinishObservation(
+            completion_verdict=CompletionVerdict(
+                disposition=CompletionDisposition.REJECT_AND_CONTINUE,
+                reason="The gap remains open.",
+            )
+        ),
+    )
+
+    assert delta.set_final_synthesis is None

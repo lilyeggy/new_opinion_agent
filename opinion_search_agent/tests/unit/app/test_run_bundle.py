@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from opinion_search.app.run_bundle import RunBundleError, RunBundleWriter
-from opinion_search.domain.opinion.brief import SearchOutcome
+from opinion_search.domain.opinion.brief import SearchOutcome, SearchReportView
 from opinion_search.runtime.lifecycle import RunStatus
 
 
@@ -11,6 +11,10 @@ def _outcome(*, markdown: str = "# OpinionSearch Brief\n\nDone.") -> SearchOutco
     return SearchOutcome(
         status=RunStatus.COMPLETED,
         stop_reason="Accepted.",
+        report=SearchReportView(
+            question="What happened?",
+            scope_limitation="Accessible public-Web sources only.",
+        ),
         markdown=markdown,
         source_urls=("https://example.test/a",),
         remaining_gap_ids=(),
@@ -26,6 +30,10 @@ def test_write_report_creates_report_md_with_terminal_newline(tmp_path) -> None:
 
     assert report_path == (tmp_path / "report.md").resolve()
     assert report_path.read_text(encoding="utf-8") == "first report\n"
+    persisted = SearchOutcome.model_validate_json(
+        (tmp_path / "outcome.json").read_text(encoding="utf-8")
+    )
+    assert persisted == outcome
     assert not list(tmp_path.glob("*.tmp"))
 
 
@@ -34,6 +42,7 @@ def test_write_report_resolve_is_absolute_and_normalized(tmp_path) -> None:
     writer = RunBundleWriter(checkpoint)
 
     assert writer.report_path == (tmp_path / "sub" / "report.md").resolve()
+    assert writer.outcome_path == (tmp_path / "sub" / "outcome.json").resolve()
     assert str(writer.report_path).startswith("/")
 
 
@@ -73,7 +82,7 @@ def test_write_failure_returns_typed_error_and_keeps_old_report(
     writer = RunBundleWriter(checkpoint)
     asyncio.run(writer.write_report(_outcome(markdown="new report")))
 
-    import opinion_search.app.run_bundle as run_bundle
+    from opinion_search.app import run_bundle
 
     def fail_replace(source, target):
         raise OSError("simulated replace failure")
