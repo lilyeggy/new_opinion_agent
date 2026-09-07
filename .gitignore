@@ -6,3 +6,13 @@
 **/__pycache__/
 **/.mypy_cache/
 **/.pytest_cache/
+
+# Local guides, standalone webapps and reference archives
+.claude/
+ImplementationProcess/
+agent_infra_lab/
+archive/
+miroflow_code_guide/
+opinion_search_guide/
+opinion_search_interview_guide/
+references/
