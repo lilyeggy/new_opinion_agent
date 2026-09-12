@@ -241,6 +241,10 @@ function renderClarify(runId, snapshot) {
     el("ul", {}, (snapshot.clarification_questions || []).map((text) => el("li", { text }))),
     prior ? el("p", { class: "muted", text: `已收到的补充：${prior.split(/\n+/).filter(Boolean).join("；").slice(-160)}` }) : null,
     el("label", { text: "补充信息" }), answer,
+    // Time clarifications carry their own format hint; for event clarifications
+    // the user can always defer and the system proceeds on a stated assumption.
+    !/时间/.test(snapshot.phase || "") ? el("p", { class: "muted", style: "margin:6px 0 0; font-size:12.5px",
+      text: "不确定的问题可以直接回答“不知道”——系统会按最合理的理解继续调查，并在报告限制中注明这一假设。" }) : null,
     el("div", { class: "row", style: "margin-top:12px" }, [submit]),
     error,
   ]));

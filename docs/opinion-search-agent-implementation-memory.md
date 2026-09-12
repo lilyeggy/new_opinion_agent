@@ -2430,3 +2430,21 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 ### 28.4 边界
 
 单次对照存在模型随机性；结论限定为"决策恢复链路修复后，同题 live 可达 completed 且复核门真实通过"。90%/95% 门槛仍需案例回放与人工评分（registry 仍 blocked）。
+
+## 29. 低门槛澄清契约：用户永远可以往前走（2026-09-12）
+
+> 阶段状态：verified（离线回归 691 passed，含新增 `tests/investigation/test_clarify_proceed.py` 3 项；browser_acceptance 23/23）。首页文案与系统行为同步按"降低开始门槛"调整。
+
+背景：首页按用户反馈改为邀请式文案（"一句话就能开始，缺什么系统会再问你"，commit 76d9cb2 后重做 b28338b）；用户随后指出系统侧也必须适配，否则文案只是空头承诺。系统侧缺口：live 首跑一次追问 5 个问题（run 09e78bcf 澄清页实测）、纯退让回答（"不知道"）会被原样存储并再次追问、追问轮数无上限。
+
+### 29.1 系统行为变化
+
+- **追问收敛（prompt）**：`PLAN_INSTRUCTIONS`（service.py）限定每轮最多 3 问、只问会改变搜索方向的细节、不得重问澄清记录中已回答的内容；记录显示用户无法确定事件时，选最常见理解直接出计划。
+- **退让兜底（机制）**：`clarify()` 识别纯退让回答（`_DEFER_ANSWER`：只知道/不清楚/你看着办/随便/按你的理解等整句匹配，含具体内容的回答不误伤），或在第 `_MAX_PLANNER_CLARIFY_ROUNDS=2` 轮后，置 `plan_hint="proceed_on_assumption"`；`_investigate` 据此给 planner 追加 `PROCEED_ON_ASSUMPTION_INSTRUCTIONS`（禁止再回澄清、选最常见理解、把理解写进 subject 措辞）。`draft.json` 新增 `clarify_rounds`（create 初始化 0）。时间范围澄清不在此列（已有"不限时间"出口）。
+- **假设可见（契约）**：`build_report` 新增 `scope_notes` 参数；manager 四处发布投影（running/failed/cancelled/final）传入 `_assumption_note(data)`，假设以"用户未能明确事件对象，系统按最合理的理解继续调查：<subject>；这一理解可能与用户实际所指事件不同。"拼入 `scope_limitation`（Markdown、静态导出、工作台 limitations 同源展示）。
+- **前端**：澄清页（非时间阶段）在输入框下提示"不确定的问题可以直接回答"不知道"——系统会按最合理的理解继续调查，并在报告限制中注明这一假设。"
+
+### 29.2 验证与边界
+
+- `test_clarify_proceed.py`：纯退让正则不误伤含内容回答；"不知道"→ 跳过追问直接 completed 且 scope_limitation 含假设；两轮正常回答后第 2 轮强制继续（monkeypatch scripted planner）。
+- PROCEED 指令对 planner 的实际遵从度属 live 行为，未在本次验证（live 额度预算保留）；机制层面（提示注入、hint 持久化、注记落报告）为离线可验证事实。

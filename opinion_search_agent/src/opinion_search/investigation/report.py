@@ -58,7 +58,7 @@ def diff_reports(current, base):
     return changes
 
 
-def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None, mode="live", budget=None):
+def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None, mode="live", budget=None, scope_notes=()):
     findings = []
     for finding in state.findings:
         if not finding.active:
@@ -123,7 +123,7 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "search_failures": sum(s.outcome == "error" for s in state.searches),
         "read_failures": len(state.read_errors),
         "changes": changes, "no_material_change": no_change, "budget": budget,
-        "scope_limitation": "仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。",
+        "scope_limitation": " ".join(("仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。", *scope_notes)),
     }
     return report
 

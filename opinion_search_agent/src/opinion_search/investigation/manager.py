@@ -20,7 +20,7 @@ from opinion_search.investigation.export import render_page
 from opinion_search.investigation.presentation import confirmed_profile
 from opinion_search.investigation.report import build_report, diff_reports, markdown
 from opinion_search.investigation.workbench import build_workbench
-from opinion_search.investigation.service import PLAN_INSTRUCTIONS, PROFILE, InvestigationRun, build_loop, live_model
+from opinion_search.investigation.service import PLAN_INSTRUCTIONS, PROFILE, PROCEED_ON_ASSUMPTION_INSTRUCTIONS, InvestigationRun, build_loop, live_model
 from opinion_search.investigation.storage import Budget, CaseBusy, CaseLock, Corpus, atomic_json, atomic_text, read_json, verify_evidence
 from opinion_search.runtime.cancellation import EventCancellationSignal
 from opinion_search.runtime.checkpoint import JsonCheckpointStore
@@ -29,6 +29,13 @@ TERMINAL = {"completed", "partial", "failed", "cancelled"}
 ID_RE = re.compile(r"^[a-f0-9]{32}$")
 _QUESTION_SPLIT = re.compile(r"[\n\r；;]+|(?<=[。！!？?])")
 UPDATE_FIELDS = {"focus", "issue_ids", "finding_ids", "client_request_id"}
+# Low-barrier clarification: the user can always move forward. A pure defer
+# answer ("不知道") or repeated planner rounds force the plan to proceed on
+# its best interpretation instead of asking again.
+_MAX_PLANNER_CLARIFY_ROUNDS = 2
+_DEFER_ANSWER = re.compile(
+    r"^(?:(?:我)?(?:不知道|不清楚|不了解|说不好|确定不了|无法确定)|没有(?:更多)?(?:信息|线索|印象)"
+    r"|你(?:来)?定|你看着办|随便(?:查)?|都行|按你(?:们)?的?(?:理解|判断|意思)|就按你说的)[\s。，,.!！?？~]*$")
 _TIME_CLARIF_PHASE = "需要补充时间范围"
 _TIME_HINT_PHASE = "时间范围未能识别"
 _TIME_CLARIF_PHASES = {_TIME_CLARIF_PHASE, _TIME_HINT_PHASE}
@@ -51,6 +58,21 @@ def _cn_day_count(text: str) -> int | None:
             return None
         return tens * 10 + ones
     return _CN_DIGITS.get(text)
+
+
+def _assumption_note(data: dict) -> tuple[str, ...]:
+    """Limitation note for runs that proceeded on the program's interpretation.
+
+    When the user defers (or rounds are exhausted) the plan must not stall, but
+    the interpretation it picked is an assumption and has to stay visible in
+    every published projection of the run.
+    """
+
+    if data.get("plan_hint") != "proceed_on_assumption":
+        return ()
+    subject = (data.get("subject") or "").strip()
+    return (f"用户未能明确事件对象，系统按最合理的理解继续调查：{subject or data['request']['question']}；"
+            "这一理解可能与用户实际所指的事件不同。",)
 
 
 def _parse_time_answer(answer: str, anchor: date) -> str | None | object:
@@ -212,8 +234,8 @@ class Manager:
                     raise CaseBusy("This event already has an unfinished investigation.")
             data = {"run_id": identifier, "case_id": case_id, "parent_id": parent_id, "mode": mode,
                     "request": request.model_dump(mode="json"), "status": "planning", "phase": "明确事件与问题",
-                    "created_at": utcnow().isoformat(), "clarification_questions": [], "progress": {}, "plan": None,
-                    "followup": followup or None}
+                    "created_at": utcnow().isoformat(), "clarification_questions": [], "clarify_rounds": 0,
+                    "progress": {}, "plan": None, "followup": followup or None}
             self.save(data)
             if followup.get("client_request_id"):
                 self._register_client_request(case_root, followup["client_request_id"], followup["request_hash"], identifier)
@@ -296,7 +318,16 @@ class Manager:
                         lock.close()
                         return self.snapshot(identifier)
                     request["time_range"] = parsed
-                self.save(data, request=request, status="planning", clarification_questions=[])
+                    self.save(data, request=request, status="planning", clarification_questions=[])
+                else:
+                    rounds = data.get("clarify_rounds", 0) + 1
+                    # A defer answer or an exhausted round budget must never
+                    # bounce the user back to the same questions: the planner
+                    # gets one forced instruction to proceed on assumptions.
+                    forced = bool(_DEFER_ANSWER.match(payload["answer"].strip())) or rounds >= _MAX_PLANNER_CLARIFY_ROUNDS
+                    self.save(data, request=request, clarify_rounds=rounds,
+                              plan_hint="proceed_on_assumption" if forced else None,
+                              status="planning", clarification_questions=[])
                 self._launch(identifier, lock)
             except BaseException:
                 lock.close()
@@ -356,7 +387,7 @@ class Manager:
 
         try:
             report = build_report(state, "running", "调查进行中的阶段投影，内容待审查。",
-                case_id=data["case_id"], run_id=identifier, mode=data["mode"])
+                case_id=data["case_id"], run_id=identifier, mode=data["mode"], scope_notes=_assumption_note(data))
             atomic_json(self.path(identifier) / "workbench-provisional.json", build_workbench(report))
         except ValueError:
             # A state that predates the workbench contract keeps progress-only output.
@@ -568,7 +599,8 @@ class Manager:
                 parent = read_json(self.path(parent_id) / "report.json") if parent_id else None
                 budget = read_json(run_root / "budget.json")
                 report = build_report(run_state.domain_state, "failed", "调查中断，已保存的材料与判断仍然保留，报告不完整。",
-                    case_id=data["case_id"], run_id=identifier, parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget)
+                    case_id=data["case_id"], run_id=identifier, parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
+                    scope_notes=_assumption_note(data))
                 atomic_json(run_root / "report.json", report)
                 atomic_text(run_root / "report.md", markdown(report))
         except (OSError, ValueError):
@@ -588,7 +620,8 @@ class Manager:
         if raw and "state" in raw:
             state = InvestigationRun.model_validate(raw["state"]).domain_state
             report = build_report(state, "cancelled", note, case_id=data["case_id"], run_id=identifier,
-                                  parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget)
+                                  parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
+                                  scope_notes=_assumption_note(data))
         else:
             plan = data.get("plan") or {}
             report = {
@@ -632,7 +665,10 @@ class Manager:
                 plan = PlanProposal(subject=parent["subject"], questions=tuple(QuestionProposal(question=q["question"], required=q["required"]) for q in parent["issues"][:6]))
             elif config:
                 payload = {**request.model_dump(mode="json"), "required_questions": list(required)}
-                plan = await live_model(config, budget, PlanProposal).decide(structured_context(PLAN_INSTRUCTIONS, PlanProposal, payload))
+                instructions = PLAN_INSTRUCTIONS
+                if data.get("plan_hint") == "proceed_on_assumption":
+                    instructions += "\n" + PROCEED_ON_ASSUMPTION_INSTRUCTIONS
+                plan = await live_model(config, budget, PlanProposal).decide(structured_context(instructions, PlanProposal, payload))
             else:
                 budget.charge("model")
                 plan = offline_plan(request)
@@ -660,7 +696,7 @@ class Manager:
                 # An on-demand update keeps the event's confirmed emphasis: the
                 # event type does not change just because we re-investigate it.
                 profile=old_state.profile if old_state else confirmed_profile(plan, issues),
-                history=("用户请求按需更新，旧判断待重新取证和审查。",) if parent else ())
+                history=_assumption_note(data) + (("用户请求按需更新，旧判断待重新取证和审查。",) if parent else ()))
             references = []
             for url in request.reference_urls:
                 if not allowed_url(url, state):
@@ -702,7 +738,7 @@ class Manager:
         """Write the immutable report artifacts, then atomically expose the version."""
 
         status = result.status.value
-        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot())
+        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data))
         atomic_json(run_root / "report.json", report)
         atomic_text(run_root / "report.md", markdown(report))
         (run_root / "workbench-provisional.json").unlink(missing_ok=True)

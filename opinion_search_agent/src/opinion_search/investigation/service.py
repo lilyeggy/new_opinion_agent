@@ -33,13 +33,23 @@ InvestigationRun = RunState[State, Decision, Action, Observation]
 PROFILE = "public-event-investigation-v2"
 
 PLAN_INSTRUCTIONS = """Identify the public-service event from the user request. Return exactly one JSON object matching the schema.
-Do not invent missing identities. Ask concise Chinese clarification questions only if the
-event, region or scope cannot be identified. Otherwise create 3-6 specific research questions
-covering the actual user request, facts, disputes, attributed concerns, responses and changes.
+Do not invent missing identities. If the event, region or scope cannot be identified, ask clarification:
+at most three short Chinese questions per round, only for details that change what to search, and never
+re-ask anything already answered in the clarification transcript. If the transcript shows the user cannot
+identify the event, choose the most common interpretation and proceed without clarification. Otherwise create
+3-6 specific research questions covering the actual user request, facts, disputes, attributed concerns,
+responses and changes.
 Preserve explicit user questions: for each entry in required_questions, set the QuestionProposal
 covers field to that exact string; never drop or silently downgrade a user question.
 Social platforms are excluded. Clarification answers may identify an event but are not evidence
 for factual conclusions. All output prose is Chinese."""
+# Appended when the user defers ("不知道") or the clarification rounds are
+# exhausted: the low-barrier contract is that the user can always move forward,
+# with the interpretation recorded as an assumption, never a silent guess.
+PROCEED_ON_ASSUMPTION_INSTRUCTIONS = """The user could not identify the event and deferred to you. Do NOT return a clarification.
+Pick the most common interpretation of the request as the subject, use any specifics the user did provide,
+and phrase the subject so the interpretation is explicit. The program records this assumption in the
+report limitations."""
 REVIEW_INSTRUCTIONS = """Independently check each supplied finding against the exact excerpts. Return exactly one JSON object matching the schema.
 Return one verdict for EVERY finding ID and no additional IDs. Do not infer truth from IDs.
 Check attribution, negation, dates, numbers, scope, and unsupported population generalizations.
