@@ -40,13 +40,12 @@ async function route() {
 
 function renderHome() {
   clear(view);
-  view.append(createForm());
-  view.append(historyCard());
+  view.append(el("div", { class: "home-layout" }, [createForm(), historyCard()]));
   refreshHistory();
 }
 
 function createForm() {
-  const question = el("textarea", { placeholder: "例如：某市公交夜班车调整引发的争议与机构回应" });
+  const question = el("textarea", { placeholder: "例如：某市公交夜班车时间调整引发的争议与机构回应" });
   const focus = el("input", { placeholder: "可选：想重点关注的问题（如工作日替代出行、票价变化）" });
   const timeRange = el("input", { placeholder: "可选：YYYY-MM-DD 至 YYYY-MM-DD 或“过去一周”" });
   const region = el("input", { placeholder: "可选：地区" });
@@ -56,7 +55,7 @@ function createForm() {
     el("option", { value: "live", text: "真实联网（Brave / Jina / 模型）" }),
   ]);
   const error = el("p", { class: "error" });
-  const submit = el("button", { text: "开始调查" });
+  const submit = el("button", { class: "home-submit", text: "开始调查" });
   submit.addEventListener("click", async () => {
     error.textContent = "";
     if (!question.value.trim()) { error.textContent = "请填写要调查的公开事件。"; return; }
@@ -77,23 +76,31 @@ function createForm() {
       submit.disabled = false;
     }
   });
-  return el("section", { class: "card" }, [
+  return el("section", { class: "card home-form" }, [
     el("h2", { text: "发起公开事件调查" }),
-    el("p", { class: "muted", text: "输入公开事件与关注点，系统会查找公开材料、梳理争议与回应并生成可核查的中文报告。" }),
-    el("label", { text: "公开事件 *" }), question,
-    el("label", { text: "关注点（可选）" }), focus,
-    el("label", { text: "时间范围（可选）" }), timeRange,
-    el("label", { text: "地区（可选）" }), region,
-    el("label", { text: "参考链接（可选）" }), references,
-    el("label", { text: "运行模式" }), mode,
-    el("div", { class: "row", style: "margin-top:14px" }, [submit]),
+    el("p", { class: "muted lead", text: "输入公开事件与关注点，系统会查找公开材料、梳理争议与回应，并生成每条判断都可回溯原文的中文报告。" }),
+    el("label", { text: "公开事件 *" }),
+    question,
+    el("div", { class: "home-mode" }, [el("label", { text: "运行模式" }), mode]),
+    el("details", { class: "home-more" }, [
+      el("summary", { text: "更多范围设置（可选）" }),
+      el("label", { text: "关注点" }), focus,
+      el("label", { text: "时间范围" }), timeRange,
+      el("label", { text: "地区" }), region,
+      el("label", { text: "参考链接" }), references,
+    ]),
+    el("div", { class: "home-actions" }, [submit]),
     error,
   ]);
 }
 
 function historyCard() {
-  const list = el("div", { id: "history" }, [el("p", { class: "muted", text: "正在读取历史调查…" })]);
-  return el("section", { class: "card" }, [el("h2", { text: "历史调查" }), list]);
+  const list = el("div", { id: "history", class: "home-history-list" }, [el("p", { class: "muted", text: "正在读取历史调查…" })]);
+  return el("aside", { class: "card home-history" }, [
+    el("h2", { text: "历史调查" }),
+    el("p", { class: "muted lead", text: "点击任意一条查看它的工作台与全部版本。" }),
+    list,
+  ]);
 }
 
 async function refreshHistory() {
@@ -105,12 +112,12 @@ async function refreshHistory() {
     if (!data.investigations.length) { list.append(el("p", { class: "muted", text: "暂无调查记录。" })); return; }
     for (const item of data.investigations) {
       list.append(el("button", { class: "history-item", onClick: () => navigate(`/i/${item.run_id}`) }, [
-        el("div", { class: "row" }, [
+        el("div", { class: "history-meta" }, [
           el("span", { class: statusClass(item.status), text: statusLabel(item.status) }),
           el("span", { class: "muted", text: item.mode === "offline" ? "离线演示" : "真实联网" }),
-          el("span", { class: "muted", text: item.created_at || "" }),
+          el("span", { class: "muted", text: (item.created_at || "").slice(5, 16).replace("T", " ") }),
         ]),
-        el("div", { text: item.question || "（无问题）" }),
+        el("div", { class: "history-question", text: item.question || "（无问题）" }),
       ]));
     }
   } catch (error) {
