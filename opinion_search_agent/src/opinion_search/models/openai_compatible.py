@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import json
+import logging
 from collections.abc import Mapping
 from typing import Annotated, Protocol
 from urllib.parse import urlsplit, urlunsplit
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter, ValidationError
 
 from opinion_search.context.models import CompiledContext
 from opinion_search.domain.opinion.decisions import AgentDecision
@@ -17,6 +18,9 @@ from opinion_search.models.contracts import (
     ModelError,
     ModelErrorKind,
 )
+
+_LOGGER = logging.getLogger(__name__)
+_MAX_OUTPUT_TOKENS_CEILING = 32768
 
 
 class ModelHttpResponse(BaseModel):
@@ -84,6 +88,7 @@ class OpenAICompatibleModelClient:
         extra_headers: Mapping[str, str] | None = None,
         max_transport_attempts: int = 1,
         retry_backoff_seconds: float = 0.5,
+        max_output_tokens: int = 4096,
     ) -> None:
         normalized_key = api_key.strip()
         normalized_model = model.strip()
@@ -95,6 +100,8 @@ class OpenAICompatibleModelClient:
             raise ValueError("model timeout_seconds must be positive")
         if max_transport_attempts < 1:
             raise ValueError("model max_transport_attempts must be at least one")
+        if max_output_tokens < 1:
+            raise ValueError("model max_output_tokens must be positive")
         normalized_base_url = _validated_model_base_url(
             base_url,
             allow_insecure_loopback=allow_insecure_loopback,
@@ -108,8 +115,10 @@ class OpenAICompatibleModelClient:
         self._extra_headers = _validated_extra_headers(extra_headers)
         self._max_transport_attempts = max_transport_attempts
         self._retry_backoff_seconds = max(0.0, retry_backoff_seconds)
+        self._max_output_tokens = max_output_tokens
 
     async def decide(self, context: CompiledContext) -> AgentDecision:
+        current_tokens = self._max_output_tokens
         request: dict[str, JsonValue] = {
             "model": self._model,
             "messages": [
@@ -120,6 +129,9 @@ class OpenAICompatibleModelClient:
             ],
             "response_format": {"type": "json_object"},
             "temperature": 0,
+            # Reasoning-style models can drain a low cap on thinking alone and
+            # cut the decision JSON mid-object; state the cap explicitly.
+            "max_tokens": current_tokens,
         }
         for attempt in range(1, self._max_transport_attempts + 1):
             try:
@@ -131,12 +143,14 @@ class OpenAICompatibleModelClient:
                         "Accept": "application/json",
                         **self._extra_headers,
                     },
-                    json_body=request,
+                    # a fresh payload per attempt: a retried call must keep its
+                    # own recorded max_tokens, not alias the previous one
+                    json_body={**request, "max_tokens": current_tokens},
                 )
                 async with asyncio.timeout(self._timeout_seconds):
                     response = await awaitable
                 self._raise_for_status(response.status_code)
-                content = self._extract_content(response.json_body)
+                content, finish_reason = self._extract_content(response.json_body)
             except ModelClientError as exc:
                 # Provider faults are not model decisions: retry them so they do not
                 # consume the loop's decision-recovery budget.
@@ -157,18 +171,44 @@ class OpenAICompatibleModelClient:
                     ) from exc
                 await asyncio.sleep(self._retry_backoff_seconds * attempt)
                 continue
+            if finish_reason == "length":
+                # An output-cap truncation is a request-parameter fault, not a
+                # model decision: retry inside the transport budget with a
+                # larger cap instead of burning decision-recovery attempts.
+                if attempt >= self._max_transport_attempts:
+                    choice, message, last_content = _last_choice(response.json_body)
+                    diagnostics = _safe_empty_response_diagnostics(
+                        response.json_body, choice, message, last_content
+                    )
+                    raise _model_error(
+                        ModelErrorKind.EMPTY_RESPONSE,
+                        "The model decision was truncated or empty at the "
+                        f"output cap. {diagnostics}",
+                    )
+                current_tokens = min(current_tokens * 2, _MAX_OUTPUT_TOKENS_CEILING)
+                await asyncio.sleep(self._retry_backoff_seconds * attempt)
+                continue
             try:
                 return self._decision_adapter.validate_python(_first_json_object(content))
             except ValueError as exc:
+                # Keep the underlying cause and a content sample: without them a
+                # schema death cannot be told apart from a truncation or a
+                # field-type drift (P0 observability).
+                cause = _schema_error_summary(exc)
+                sample = " ".join(content[:240].split())
+                _LOGGER.warning(
+                    "decision schema mismatch (%s) | content sample: %s", cause, sample
+                )
+                message = (
+                    "The model response did not match the decision schema: "
+                    f"{cause} (content head: {sample[:160]})"
+                )
                 raise ModelClientError(
-                    ModelError(
-                        kind=ModelErrorKind.MALFORMED_RESPONSE,
-                        message=("The model response did not match the decision schema."),
-                    )
+                    ModelError(kind=ModelErrorKind.MALFORMED_RESPONSE, message=message)
                 ) from exc
 
     @staticmethod
-    def _extract_content(payload: JsonValue | None) -> str:
+    def _extract_content(payload: JsonValue | None) -> tuple[str, str]:
         if not isinstance(payload, dict):
             raise _model_error(
                 ModelErrorKind.MALFORMED_RESPONSE,
@@ -186,6 +226,9 @@ class OpenAICompatibleModelClient:
                 ModelErrorKind.MALFORMED_RESPONSE,
                 "The model provider returned an invalid choice.",
             )
+        finish_reason = choice.get("finish_reason")
+        if not isinstance(finish_reason, str):
+            finish_reason = ""
         message = choice.get("message")
         if not isinstance(message, dict):
             raise _model_error(
@@ -200,6 +243,11 @@ class OpenAICompatibleModelClient:
             )
         content = message.get("content")
         if content is None or (isinstance(content, str) and not content.strip()):
+            # A reasoning model can spend the whole output cap on thinking;
+            # a length-flagged empty body goes back to the caller so it can
+            # retry with a larger cap instead of burning a decision attempt.
+            if finish_reason == "length":
+                return "", finish_reason
             diagnostics = _safe_empty_response_diagnostics(
                 payload,
                 choice,
@@ -215,7 +263,7 @@ class OpenAICompatibleModelClient:
                 ModelErrorKind.MALFORMED_RESPONSE,
                 "The model decision content was not text.",
             )
-        return content
+        return content, finish_reason
 
     @staticmethod
     def _raise_for_status(status: int) -> None:
@@ -240,6 +288,20 @@ class OpenAICompatibleModelClient:
 
 def _model_error(kind: ModelErrorKind, message: str) -> ModelClientError:
     return ModelClientError(ModelError(kind=kind, message=message))
+
+
+def _last_choice(payload: JsonValue | None) -> tuple[dict, dict, object]:
+    """Best-effort (choice, message, content) extraction for post-hoc diagnostics."""
+
+    if isinstance(payload, dict):
+        choices = payload.get("choices")
+        if isinstance(choices, list) and choices and isinstance(choices[0], dict):
+            choice = choices[0]
+            message = choice.get("message")
+            if isinstance(message, dict):
+                return choice, message, message.get("content")
+            return choice, {}, None
+    return {}, {}, None
 
 
 def _safe_empty_response_diagnostics(
@@ -281,6 +343,24 @@ _TRANSIENT_MODEL_ERRORS = frozenset(
         ModelErrorKind.EMPTY_RESPONSE,
     }
 )
+
+
+def _schema_error_summary(exc: ValueError) -> str:
+    """Short human-readable cause for a schema-validation failure.
+
+    Pydantic and JSON errors carry the actual reason (field path, type
+    expectation, byte offset); surfacing it makes a truncation, a field-type
+    drift and an enum miss distinguishable instead of one generic message.
+    """
+
+    if isinstance(exc, ValidationError):
+        parts = []
+        for error in exc.errors()[:3]:
+            loc = ".".join(str(item) for item in error.get("loc", ())) or "<root>"
+            parts.append(f"{loc}: {error.get('msg', 'invalid')}")
+        return "; ".join(parts)[:220]
+    text = str(exc)
+    return text[:220] if text else "unparseable decision content"
 
 
 def _first_json_object(content: str) -> JsonValue:

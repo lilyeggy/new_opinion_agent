@@ -121,7 +121,9 @@ def test_adapter_sends_compiled_context_and_returns_typed_decision() -> None:
     assert call["json_body"]["model"] == "deepseek-v4-flash"
     assert call["json_body"]["response_format"] == {"type": "json_object"}
     assert call["json_body"]["messages"][0]["content"] == _context().rendered
-    assert "max_tokens" not in call["json_body"]
+    # reasoning-style models can drain a low cap on thinking alone and cut the
+    # decision JSON mid-object, so the output cap is stated explicitly
+    assert call["json_body"]["max_tokens"] == 4096
     assert "max_completion_tokens" not in call["json_body"]
 
 
@@ -376,3 +378,75 @@ def test_adapter_gives_up_after_the_transport_attempt_budget() -> None:
 
     assert captured.value.error.kind is ModelErrorKind.SERVER_ERROR
     assert len(transport.calls) == 2
+
+
+def _truncated(finish_reason: str = "length", content: str = "") -> ModelHttpResponse:
+    return ModelHttpResponse(
+        status_code=200,
+        json_body={
+            "choices": [
+                {"message": {"role": "assistant", "content": content}, "finish_reason": finish_reason}
+            ]
+        },
+    )
+
+
+def test_output_cap_truncation_retries_with_a_doubled_cap_in_transport_budget() -> None:
+    transport = FakeModelTransport(
+        responses=[_truncated(), _success(_search_decision_json())]
+    )
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key",
+        transport=transport,
+        retry_backoff_seconds=0,
+        max_transport_attempts=2,
+        max_output_tokens=512,
+    )
+
+    decision = asyncio.run(client.decide(_context()))
+
+    assert isinstance(decision, SearchDecision)
+    assert transport.calls[0]["json_body"]["max_tokens"] == 512
+    assert transport.calls[1]["json_body"]["max_tokens"] == 1024
+
+
+def test_reasoning_drained_empty_body_with_length_flag_is_a_truncation() -> None:
+    # deepseek-style models can return content="" with finish_reason="length":
+    # reasoning consumed the cap. This must retry, not burn a decision attempt.
+    transport = FakeModelTransport(responses=[_truncated(), _success(_search_decision_json())])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
+    )
+
+    assert isinstance(asyncio.run(client.decide(_context())), SearchDecision)
+    assert len(transport.calls) == 2
+
+
+def test_output_cap_truncation_exhausting_transport_budget_is_malformed() -> None:
+    transport = FakeModelTransport(responses=[_truncated(), _truncated()])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
+    )
+
+    with pytest.raises(ModelClientError) as captured:
+        asyncio.run(client.decide(_context()))
+
+    assert captured.value.error.kind is ModelErrorKind.EMPTY_RESPONSE
+    assert "output cap" in captured.value.error.message
+    assert "finish_reason='length'" in captured.value.error.message
+    assert len(transport.calls) == 2
+
+
+def test_schema_failure_message_names_the_field_and_the_content_sample() -> None:
+    transport = FakeModelTransport(responses=[_success('{"action":"search","query":123,"purpose":"x"}')])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0
+    )
+
+    with pytest.raises(ModelClientError) as captured:
+        asyncio.run(client.decide(_context()))
+
+    message = captured.value.error.message
+    assert message.startswith("The model response did not match the decision schema:")
+    assert "query" in message, "the failing field path must be named"
+    assert "content head:" in message, "a truncated raw sample must be included"

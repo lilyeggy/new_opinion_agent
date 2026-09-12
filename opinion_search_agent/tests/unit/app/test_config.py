@@ -122,3 +122,22 @@ def test_live_config_rejects_invalid_timeout_and_attempt_values(key: str, value:
                 key: value,
             }
         )
+
+
+def test_live_config_tunes_decision_budget_and_output_cap_from_env() -> None:
+    config = LiveConfig.from_env(
+        {
+            "OPINION_MODEL_API_KEY": "model-secret",
+            "BRAVE_SEARCH_API_KEY": "search-secret",
+            "OPINION_MAX_DECISION_ATTEMPTS": "4",
+            "OPINION_MODEL_MAX_OUTPUT_TOKENS": "8192",
+        }
+    )
+
+    assert config.max_decision_attempts == 4
+    assert config.model_max_output_tokens == 8192
+    defaults = LiveConfig.from_env(
+        {"OPINION_MODEL_API_KEY": "model-secret", "BRAVE_SEARCH_API_KEY": "search-secret"}
+    )
+    assert defaults.max_decision_attempts == 3
+    assert defaults.model_max_output_tokens == 4096

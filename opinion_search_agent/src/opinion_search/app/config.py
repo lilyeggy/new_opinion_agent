@@ -20,9 +20,14 @@ class LiveConfig(BaseModel):
     model_transport_attempts: int = Field(default=3, ge=1)
     tool_timeout_seconds: float = Field(default=30, gt=0)
     max_steps: int = Field(default=20, ge=1)
-    max_decision_attempts: int = Field(default=2, ge=1)
+    # Three attempts, not two: one semantic misstep by the model (an invented
+    # reference, a ninth question) used to end the whole run as partial.
+    max_decision_attempts: int = Field(default=3, ge=1)
     max_context_tokens: int = Field(default=32_000, ge=2_000)
     output_headroom_tokens: int = Field(default=2_000, ge=256)
+    # Reasoning-style models can drain a low cap on thinking alone; the client
+    # doubles this on output-cap truncations up to the transport budget.
+    model_max_output_tokens: int = Field(default=4096, gt=0)
     allow_insecure_model_endpoint: bool = False
 
     @model_validator(mode="after")
@@ -69,6 +74,12 @@ class LiveConfig(BaseModel):
             ),
             model_transport_attempts=_env_positive_int(
                 values.get("OPINION_MODEL_TRANSPORT_ATTEMPTS"), 3
+            ),
+            max_decision_attempts=_env_positive_int(
+                values.get("OPINION_MAX_DECISION_ATTEMPTS"), 3
+            ),
+            model_max_output_tokens=_env_positive_int(
+                values.get("OPINION_MODEL_MAX_OUTPUT_TOKENS"), 4096
             ),
             allow_insecure_model_endpoint=_env_flag(
                 values.get("OPINION_ALLOW_INSECURE_MODEL_ENDPOINT")

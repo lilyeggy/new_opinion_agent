@@ -57,10 +57,27 @@ class Validator:
             if any((x.issue_id, x.query.casefold(), x.page) == (decision.issue_id, decision.query.casefold(), decision.page) for x in state.searches):
                 raise ValueError("query/page already attempted; change the search direction")
         elif isinstance(decision, ReadDecision):
-            if decision.url not in {x["url"] for x in state.candidates} or not allowed_url(decision.url, state):
-                raise ValueError("read requires an allowed discovered candidate")
             if decision.url in state.read_attempts:
                 raise ValueError("use retrieve to revisit a page already fetched in this version")
+            candidate_urls = {x["url"] for x in state.candidates}
+
+            def _canon(value: str) -> str:
+                try:
+                    value = normalize_public_url(value)
+                except (ValueError, UnicodeError):
+                    pass
+                return value.rstrip("/")
+
+            matched = decision.url in candidate_urls or _canon(decision.url) in {_canon(u) for u in candidate_urls}
+            if not matched:
+                # The model may reformat a known url (scheme case, trailing
+                # slash) or reach for a link it saw on a page; name the rule
+                # and point at legal candidates so the retry can recover.
+                unread = [x["url"] for x in state.candidates if x["url"] not in state.read_attempts]
+                hint = " | ".join(unread[:3]) if unread else "run search first"
+                raise ValueError(f"read url is not a discovered candidate; copy a candidate url exactly ({hint})")
+            if not allowed_url(decision.url, state):
+                raise ValueError("read url is outside the allowed public source domains")
         elif isinstance(decision, RetrieveDecision):
             if decision.version_id and decision.version_id not in {x.version_id for x in state.sources}:
                 raise ValueError("unknown source version")

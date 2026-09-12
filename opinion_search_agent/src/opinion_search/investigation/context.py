@@ -20,14 +20,17 @@ Search to close specific questions: original documents, attributed concerns, ind
 reporting, official_response, event_response, followup. Use event aliases when useful.
 Set target_gap to name the gap a query closes; repeat a query direction never —
 switch alias, original source, official domain or material type instead.
-Read relevant candidates and retrieve complete saved documents again with a new focus.
+Read only exact candidate urls, copied character for character from the candidate
+list; to open any other link seen on a page, first surface it through search.
+Retrieve revisits complete saved documents again with a new focus.
 Copy visible evidence IDs exactly. A response addressing a question is not proof that
 the problem was solved or that people are satisfied. Give every response judgement an
 explicit coverage: response='direct' answers every part and leaves 'uncovered' empty,
 response='partial' must list the unanswered parts in 'uncovered', and both need a
 concrete 'coverage_reason'. Distinguish fact, attribution,
 interpretation, requests, stance targets, dates, source dependencies and uncertainty.
-Reflect creates atomic findings and explicit issue dispositions. Preserve all user questions.
+Reflect creates atomic findings and explicit issue dispositions. Preserve all user
+questions; the investigation may never hold more than eight questions in total.
 Reopen questions when new evidence changes the assessment, retaining a reason.
 Before finish, review ALL active findings in batches of at most eight. A separate reviewer
 checks evidence, not truth. Repair partial/contradicted/insufficient findings: retire old

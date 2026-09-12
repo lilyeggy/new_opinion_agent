@@ -2398,3 +2398,35 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 - 案例材料仍 blocked：registry 10 槽位无真实快照与人工标注，固定材料语义回放无法执行。
 - 核心结论 0 条 → 人工 95% 断言支持评分无分母；必答问题仅 1/8 answered，远达不到 90% 门槛。
 - 结论：**不得宣称 P5 通过**；live 链路的机制、溯源、诚实状态呈现验证通过，质量瓶颈（决策 schema 成功率、核心结论复核门）与 §20.7 判断一致，是下一步模型侧/提示侧工作的对象。
+
+## 28. 决策恢复修复与 live 复验（2026-09-12）
+
+> 阶段状态：verified（离线 685 passed + 同题 live 复验 completed）。单次对照，不构成质量结论。
+
+### 28.1 病因取证（run 73e84650 检查点）
+
+42 步里 7 次 invalid_decision：`read requires an allowed discovered candidate` ×5、未知 issue/evidence 引用 ×1、第九问题 ×1；致命一步为 schema 不匹配但 pydantic 原因被丢弃。`max_decision_attempts=2` 下一步两败即整轮 partial。
+
+### 28.2 修复（commit "decision-recovery resilience"）
+
+- **可观测性（P0）**：schema 失败消息携带 pydantic/JSON 具体原因（字段路径+期望）+ 内容头样本（≤160 字符入 failure；完整样本进服务日志 warning）。
+- **输出上限（P1）**：请求显式 `max_tokens`（新 `OPINION_MODEL_MAX_OUTPUT_TOKENS`，默认 4096）；`finish_reason=length`（含推理耗尽导致的空正文）在传输预算内翻倍上限重试，耗尽后给出带安全诊断的 EMPTY_RESPONSE——不再烧决策预算。
+- **决策预算（P1）**：默认 `max_decision_attempts` 2→3（新 `OPINION_MAX_DECISION_ATTEMPTS`）。注意：live 执行 profile id 内嵌该参数，旧未完成 live run 的恢复会被显式拒绝（契约性不兼容，非静默转换）。
+- **read 反馈（P2）**：URL 先规范化（协议大小写/尾斜杠）再对候选匹配；拒绝消息拆分三种原因并附最多 3 个合法候选 URL 提示；INSTRUCTIONS 明示"逐字复制候选 URL、页面内链接先 search"与"问题总数 ≤8"。
+
+### 28.3 同题 live 复验（run 014aa9b7，事件同 §27）
+
+| 指标 | 修复前 73e84650 | 修复后 014aa9b7 |
+|---|---|---|
+| 终态 | partial（约 1/4 预算即死于 schema） | **completed** |
+| stop_reason | Decision recovery was exhausted | 必答问题全部有处置、active findings 通过证据审查 |
+| 问题 | 8（1 answered） | 5（**全部 answered**） |
+| 核心结论 | 0 | **8**（含日期/数字/诚实的"无统一退费方案文本"表述） |
+| 证据 / 来源 | 75 / 13 | 67 / 13 |
+| 失败 | 0 搜索 / 3 读取 | 0 搜索 / 7 读取（如实计数） |
+
+浏览器断言 10/11 通过（唯一 FAIL 为脚本旧断言，对应"coverage 默认折叠 4 篇"的设计行为，展开后 13 篇已单独验证）。导出/Markdown/附件头正常。
+
+### 28.4 边界
+
+单次对照存在模型随机性；结论限定为"决策恢复链路修复后，同题 live 可达 completed 且复核门真实通过"。90%/95% 门槛仍需案例回放与人工评分（registry 仍 blocked）。
