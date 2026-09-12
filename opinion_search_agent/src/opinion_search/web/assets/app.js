@@ -44,6 +44,32 @@ function renderHome() {
   refreshHistory();
 }
 
+// Static product copy: what a request needs before an investigation can run.
+// Mirrors the backend contract (only the event description is required; the
+// planner asks follow-up questions instead of guessing when the event is vague).
+const GUIDE_EXAMPLES = [
+  "某市公交夜班车时间调整后，居民对替代出行安排的质疑与运营方的回应（过去一个月）",
+  "某高校食堂承包纠纷中，学生反映食品安全问题，校方与主管部门的处理进展",
+];
+
+function questionGuide(question) {
+  return el("div", { class: "home-guide" }, [
+    el("p", { class: "home-guide-title", text: "什么样的请求可以直接开跑？" }),
+    el("ul", { class: "home-guide-list" }, [
+      el("li", {}, [el("strong", { text: "具体主体" }), "：谁或哪个机构，最好带上城市或地区"]),
+      el("li", {}, [el("strong", { text: "具体事件" }), "：发生了什么，一句话说清楚"]),
+      el("li", {}, [el("strong", { text: "想核实的点" }), "：官方回应、处理进展、规则或费用变化"]),
+    ]),
+    el("p", { class: "muted home-guide-note", text: "时间范围可以不填（默认调查最近），写“过去一周”或“2026-09-07 至 2026-09-12”都可以；事件指向不清时，系统会先追问再开跑，不会凭空猜测。" }),
+    el("p", { class: "muted home-guide-note", text: "不适合的请求：泛泛话题（如“大家怎么看 AI”）、个人纠纷、要求持续监控或预测未来——这些没有可核查的具体公开事件。" }),
+    el("p", { class: "home-guide-title examples-title", text: "示例（点击填入）" }),
+    el("div", { class: "home-examples" }, GUIDE_EXAMPLES.map((text) => el("button", {
+      class: "home-example", type: "button", text,
+      onClick: () => { question.value = text; question.focus(); },
+    }))),
+  ]);
+}
+
 function createForm() {
   const question = el("textarea", { placeholder: "例如：某市公交夜班车时间调整引发的争议与机构回应" });
   const focus = el("input", { placeholder: "可选：想重点关注的问题（如工作日替代出行、票价变化）" });
@@ -81,6 +107,7 @@ function createForm() {
     el("p", { class: "muted lead", text: "输入公开事件与关注点，系统会查找公开材料、梳理争议与回应，并生成每条判断都可回溯原文的中文报告。" }),
     el("label", { text: "公开事件 *" }),
     question,
+    questionGuide(question),
     el("div", { class: "home-mode" }, [el("label", { text: "运行模式" }), mode]),
     el("details", { class: "home-more" }, [
       el("summary", { text: "更多范围设置（可选）" }),
