@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from hashlib import sha256
 import json
 import os
@@ -29,6 +29,61 @@ TERMINAL = {"completed", "partial", "failed", "cancelled"}
 ID_RE = re.compile(r"^[a-f0-9]{32}$")
 _QUESTION_SPLIT = re.compile(r"[\n\r；;]+|(?<=[。！!？?])")
 UPDATE_FIELDS = {"focus", "issue_ids", "finding_ids", "client_request_id"}
+_TIME_CLARIF_PHASE = "需要补充时间范围"
+_TIME_HINT_PHASE = "时间范围未能识别"
+_TIME_CLARIF_PHASES = {_TIME_CLARIF_PHASE, _TIME_HINT_PHASE}
+_TIME_UNPARSABLE = object()
+_ISO_DATE = r"\d{4}-\d{2}-\d{2}"
+_CN_DIGITS = {"一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+
+
+def _cn_day_count(text: str) -> int | None:
+    text = text.strip()
+    if text.isdigit():
+        return int(text)
+    if text == "十":
+        return 10
+    if "十" in text:
+        tens_part, _, ones_part = text.partition("十")
+        tens = _CN_DIGITS.get(tens_part, 1) if tens_part else 1
+        ones = _CN_DIGITS.get(ones_part, 0) if ones_part else 0
+        if (tens_part and tens_part not in _CN_DIGITS) or (ones_part and ones_part not in _CN_DIGITS):
+            return None
+        return tens * 10 + ones
+    return _CN_DIGITS.get(text)
+
+
+def _parse_time_answer(answer: str, anchor: date) -> str | None | object:
+    """Normalise a time-clarification answer into a bounded "start 至 end".
+
+    Users answer with 到, ~, spaces, lone dates or 相对天数 — all are
+    canonicalised here so the temporal parser downstream sees one shape.
+    Returns ``None`` for "no time bound", ``_TIME_UNPARSABLE`` when nothing
+    usable was recognised.
+    """
+
+    text = answer.strip()
+    if "不限时间" in text or text in {"不限", "全部", "全部时间", "无限制"}:
+        return None
+    pair = re.search(
+        rf"({_ISO_DATE})\s*(?:至|到|to|~|—|–|,|，|;|；|\s)\s*({_ISO_DATE})", text, re.I
+    )
+    if pair:
+        start, end = pair.groups()
+        if end < start:
+            start, end = end, start
+        return f"{start} 至 {end}"
+    single = re.search(rf"({_ISO_DATE})", text)
+    if single:
+        return f"{single.group(1)} 至 {anchor.isoformat()}"
+    relative = re.search(r"(?:过去|最近|近|前)\s*([0-9一二两三四五六七八九十]+)\s*(个?\s*月|周|星期|天|日)", text)
+    if relative:
+        count = _cn_day_count(relative.group(1))
+        unit = relative.group(2)
+        days = count * 30 if "月" in unit else count * 7 if unit in {"周", "星期"} else count
+        if days and 1 <= days <= 3650:
+            return f"{(anchor - timedelta(days=days - 1)).isoformat()} 至 {anchor.isoformat()}"
+    return _TIME_UNPARSABLE
 
 
 def budget_limits() -> dict[str, int]:
@@ -227,11 +282,20 @@ class Manager:
                     raise ValueError("This investigation is not awaiting clarification.")
                 request = dict(data["request"])
                 request["clarification"] = (request.get("clarification") or "") + "\n" + payload["answer"].strip()
-                time_match = re.search(r"\d{4}-\d{2}-\d{2}\s*(?:至|to|~)\s*\d{4}-\d{2}-\d{2}", payload["answer"])
-                if time_match:
-                    request["time_range"] = time_match.group()
-                elif "不限时间" in payload["answer"]:
-                    request["time_range"] = None
+                if data.get("phase") in _TIME_CLARIF_PHASES:
+                    parsed = _parse_time_answer(payload["answer"], date.today())
+                    if parsed is _TIME_UNPARSABLE:
+                        # Keep asking instead of silently looping: relaunching
+                        # planning without a usable range re-asks the identical
+                        # question and reads to the user as "nothing happened".
+                        self.save(data, request=request, status="needs_clarification",
+                                  phase=_TIME_HINT_PHASE,
+                                  clarification_questions=[
+                                      '未能识别时间范围。请用 "YYYY-MM-DD 至 YYYY-MM-DD"（也可用 到、~ 或空格分隔），'
+                                      '"最近N天"，或回答"不限时间"。'])
+                        lock.close()
+                        return self.snapshot(identifier)
+                    request["time_range"] = parsed
                 self.save(data, request=request, status="planning", clarification_questions=[])
                 self._launch(identifier, lock)
             except BaseException:
@@ -559,7 +623,7 @@ class Manager:
             frame = build_task_frame(request, anchor_date=date.today())
             if request.time_range and not frame.temporal_scope.is_bounded:
                 budget.pause()
-                self.save(data, status="needs_clarification", phase="需要补充时间范围", clarification_questions=["请提供 YYYY-MM-DD 至 YYYY-MM-DD，或回答“不限时间”。"])
+                self.save(data, status="needs_clarification", phase=_TIME_CLARIF_PHASE, clarification_questions=["请提供 YYYY-MM-DD 至 YYYY-MM-DD，或回答“不限时间”。"])
                 return
             required = required_questions(request)
             if data.get("plan"):

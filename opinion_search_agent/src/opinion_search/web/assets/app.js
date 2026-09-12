@@ -204,11 +204,13 @@ function renderClarify(runId, snapshot) {
     } catch (exception) { error.textContent = exception.message; }
     finally { submit.disabled = false; }
   });
+  const prior = ((snapshot.request && snapshot.request.clarification) || "").trim();
   view.append(el("section", { class: "card" }, [
     el("span", { class: "badge warn", text: "需要补充信息" }),
     el("h2", { text: snapshot.request.question }),
     el("p", { class: "muted", text: "为了确定调查对象，需要补充以下信息。刷新页面不会丢失。" }),
     el("ul", {}, (snapshot.clarification_questions || []).map((text) => el("li", { text }))),
+    prior ? el("p", { class: "muted", text: `已收到的补充：${prior.split(/\n+/).filter(Boolean).join("；").slice(-160)}` }) : null,
     el("label", { text: "补充信息" }), answer,
     el("div", { class: "row", style: "margin-top:12px" }, [submit]),
     error,
