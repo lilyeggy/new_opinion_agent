@@ -47,12 +47,21 @@ class BraveSearchAdapter:
         invocation: ToolInvocation[SearchArguments],
     ) -> ToolAdapterResponse:
         arguments = invocation.arguments
+        options = {
+            key: value for key, value in {
+                "freshness": arguments.freshness,
+                "search_lang": arguments.search_lang,
+                "country": arguments.country,
+                "offset": arguments.offset or None,
+            }.items() if value is not None
+        }
         query_string = urlencode(
             {
                 "q": arguments.query,
                 "count": arguments.max_results,
                 "result_filter": "web",
                 "text_decorations": "false",
+                **options,
             }
         )
         response = await self._transport.request(

@@ -1,0 +1,165 @@
+{
+  "status": "completed",
+  "stop_reason": "The factual baseline, stakeholder positions, dominant narratives, and counter-narratives are resolved with source-backed provenance.",
+  "report": {
+    "question": "What happened in the example event, and where do the public accounts disagree?",
+    "time_scope": null,
+    "conclusion": {
+      "summary": "The investigation has sufficient sourced coverage.",
+      "source_refs": [
+        "S1",
+        "S2",
+        "S3"
+      ],
+      "limitation_gap_ids": []
+    },
+    "claims": [
+      {
+        "claim_id": "claim-b1849dbb671d21e0",
+        "text": "The example event caused a disruption on 20 August.",
+        "kind": "fact",
+        "status": "supported",
+        "supporting_source_refs": [
+          "S1",
+          "S2"
+        ],
+        "contradicting_source_refs": []
+      },
+      {
+        "claim_id": "claim-cc5aebb63743e3de",
+        "text": "A technical fault was the established cause of the disruption.",
+        "kind": "attributed_statement",
+        "status": "contested",
+        "supporting_source_refs": [
+          "S1"
+        ],
+        "contradicting_source_refs": [
+          "S3"
+        ]
+      }
+    ],
+    "stakeholder_positions": [
+      {
+        "position_id": "position-7de577bd6cdc1aa9",
+        "stakeholder": "The organization",
+        "statement": "It attributed the disruption to a technical fault.",
+        "source_refs": [
+          "S1"
+        ]
+      }
+    ],
+    "narratives": [
+      {
+        "narrative_id": "narrative-f7a8d7452e502484",
+        "summary": "Independent coverage frames the disruption as real while treating the proposed cause as unverified.",
+        "kind": "dominant",
+        "stakeholder_names": [
+          "Independent reporters"
+        ],
+        "source_refs": [
+          "S2"
+        ]
+      },
+      {
+        "narrative_id": "narrative-e581a551987d5845",
+        "summary": "The available record does not establish one technical cause for the disruption.",
+        "kind": "counter",
+        "stakeholder_names": [
+          "Later analysts"
+        ],
+        "source_refs": [
+          "S3"
+        ]
+      }
+    ],
+    "coverage": [
+      {
+        "gap_id": "gap-factual-baseline",
+        "question": "What verifiable events and claims establish the factual baseline for Example event?",
+        "status": "resolved",
+        "source_refs": [
+          "S1"
+        ]
+      },
+      {
+        "gap_id": "gap-stakeholder-positions",
+        "question": "Which stakeholders have publicly taken positions on Example event, and what did they say?",
+        "status": "resolved",
+        "source_refs": [
+          "S1"
+        ]
+      },
+      {
+        "gap_id": "gap-dominant-narratives",
+        "question": "Which dominant or emerging public narratives frame Example event?",
+        "status": "resolved",
+        "source_refs": [
+          "S2"
+        ]
+      },
+      {
+        "gap_id": "gap-counter-narratives",
+        "question": "Which counter-narratives, criticisms, or material disagreements challenge the main framing of Example event?",
+        "status": "resolved",
+        "source_refs": [
+          "S3"
+        ]
+      }
+    ],
+    "evidence_appendix": [
+      {
+        "evidence_id": "evidence-6b028c8b9fb623d9",
+        "excerpt": "The organization announced that the example event occurred on 20 August and attributed the disruption to a technical fault.",
+        "source_ref": "S1",
+        "locator": "Reader normalized block 1, chars 0-123; focus: date, event and stated cause."
+      },
+      {
+        "evidence_id": "evidence-f56e23e494c2bbc1",
+        "excerpt": "Independent reporting confirms the 20 August disruption and notes that the technical cause has not been independently verified.",
+        "source_ref": "S2",
+        "locator": "Reader normalized block 1, chars 0-127; focus: independent confirmation and caveats."
+      },
+      {
+        "evidence_id": "evidence-c2071813a2a735f6",
+        "excerpt": "A later analysis agrees that disruption occurred but disputes whether the available records establish a single technical cause.",
+        "source_ref": "S3",
+        "locator": "Reader normalized block 1, chars 0-127; focus: correction and disagreement about cause."
+      }
+    ],
+    "remaining_gaps": [],
+    "sources": [
+      {
+        "source_ref": "S1",
+        "title": "Official announcement",
+        "url": "https://example.org/official-announcement",
+        "kind": "primary",
+        "published_at": null,
+        "publication_status": "unavailable"
+      },
+      {
+        "source_ref": "S2",
+        "title": "Independent report",
+        "url": "https://news.example.org/independent-report",
+        "kind": "reporting",
+        "published_at": null,
+        "publication_status": "unavailable"
+      },
+      {
+        "source_ref": "S3",
+        "title": "Later correction analysis",
+        "url": "https://analysis.example.org/correction",
+        "kind": "analysis",
+        "published_at": null,
+        "publication_status": "unavailable"
+      }
+    ],
+    "scope_limitation": "This brief summarizes accessible public-Web sources and does not measure whole-network sentiment, reach, or prevalence."
+  },
+  "markdown": "# OpinionSearch Brief\n\n**Question:** What happened in the example event, and where do the public accounts disagree?\n**Run status:** completed\n**Stop reason:** The factual baseline, stakeholder positions, dominant narratives, and counter-narratives are resolved with source-backed provenance.\n\n## Core conclusion\n\n- The investigation has sufficient sourced coverage. ([S1], [S2], [S3])\n\n## Evidence-backed claims\n\n- **fact / supported:** The example event caused a disruption on 20 August. (supports: [S1], [S2])\n- **attributed_statement / contested:** A technical fault was the established cause of the disruption. (supports: [S1]; contradicts: [S3])\n\n## Stakeholder positions\n\n- **The organization:** It attributed the disruption to a technical fault. ([S1])\n\n## Public narratives\n\n- **dominant:** Independent coverage frames the disruption as real while treating the proposed cause as unverified.; attributed to: Independent reporters ([S2])\n- **counter:** The available record does not establish one technical cause for the disruption.; attributed to: Later analysts ([S3])\n\n## Opinion coverage\n\n- `gap-factual-baseline` [resolved] What verifiable events and claims establish the factual baseline for Example event? — [S1]\n- `gap-stakeholder-positions` [resolved] Which stakeholders have publicly taken positions on Example event, and what did they say? — [S1]\n- `gap-dominant-narratives` [resolved] Which dominant or emerging public narratives frame Example event? — [S2]\n- `gap-counter-narratives` [resolved] Which counter-narratives, criticisms, or material disagreements challenge the main framing of Example event? — [S3]\n\n## Evidence appendix\n\n- `evidence-6b028c8b9fb623d9` The organization announced that the example event occurred on 20 August and attributed the disruption to a technical fault. ([S1])\n- `evidence-f56e23e494c2bbc1` Independent reporting confirms the 20 August disruption and notes that the technical cause has not been independently verified. ([S2])\n- `evidence-c2071813a2a735f6` A later analysis agrees that disruption occurred but disputes whether the available records establish a single technical cause. ([S3])\n\n## Remaining gaps\n\n- None recorded.\n\n## Sources\n\n- [S1] [Official announcement](https://example.org/official-announcement) — primary; unknown publication time\n- [S2] [Independent report](https://news.example.org/independent-report) — reporting; unknown publication time\n- [S3] [Later correction analysis](https://analysis.example.org/correction) — analysis; unknown publication time\n\n## Scope limitation\n\nThis brief summarizes accessible public-Web sources and does not measure whole-network sentiment, reach, or prevalence.",
+  "source_urls": [
+    "https://example.org/official-announcement",
+    "https://news.example.org/independent-report",
+    "https://analysis.example.org/correction"
+  ],
+  "remaining_gap_ids": []
+}

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import json
+from collections.abc import Mapping
 from typing import Annotated, Protocol
 from urllib.parse import urlsplit, urlunsplit
 
@@ -78,6 +80,10 @@ class OpenAICompatibleModelClient:
         model: str = "deepseek-v4-flash",
         timeout_seconds: float = 60,
         allow_insecure_loopback: bool = False,
+        decision_type: object = AgentDecision,
+        extra_headers: Mapping[str, str] | None = None,
+        max_transport_attempts: int = 1,
+        retry_backoff_seconds: float = 0.5,
     ) -> None:
         normalized_key = api_key.strip()
         normalized_model = model.strip()
@@ -87,6 +93,8 @@ class OpenAICompatibleModelClient:
             raise ValueError("model name must not be empty")
         if timeout_seconds <= 0:
             raise ValueError("model timeout_seconds must be positive")
+        if max_transport_attempts < 1:
+            raise ValueError("model max_transport_attempts must be at least one")
         normalized_base_url = _validated_model_base_url(
             base_url,
             allow_insecure_loopback=allow_insecure_loopback,
@@ -96,7 +104,10 @@ class OpenAICompatibleModelClient:
         self._endpoint = normalized_base_url + "/chat/completions"
         self._model = normalized_model
         self._timeout_seconds = timeout_seconds
-        self._decision_adapter = TypeAdapter(AgentDecision)
+        self._decision_adapter = TypeAdapter(decision_type)
+        self._extra_headers = _validated_extra_headers(extra_headers)
+        self._max_transport_attempts = max_transport_attempts
+        self._retry_backoff_seconds = max(0.0, retry_backoff_seconds)
 
     async def decide(self, context: CompiledContext) -> AgentDecision:
         request: dict[str, JsonValue] = {
@@ -110,36 +121,51 @@ class OpenAICompatibleModelClient:
             "response_format": {"type": "json_object"},
             "temperature": 0,
         }
-        try:
-            async with asyncio.timeout(self._timeout_seconds):
-                response = await self._transport.post(
+        for attempt in range(1, self._max_transport_attempts + 1):
+            try:
+                awaitable = self._transport.post(
                     url=self._endpoint,
                     headers={
                         "Authorization": f"Bearer {self._api_key}",
                         "Content-Type": "application/json",
                         "Accept": "application/json",
+                        **self._extra_headers,
                     },
                     json_body=request,
                 )
-        except TimeoutError as exc:
-            raise ModelClientError(
-                ModelError(
-                    kind=ModelErrorKind.TIMEOUT,
-                    message="The model request timed out.",
-                )
-            ) from exc
-
-        self._raise_for_status(response.status_code)
-        content = self._extract_content(response.json_body)
-        try:
-            return self._decision_adapter.validate_json(content)
-        except ValueError as exc:
-            raise ModelClientError(
-                ModelError(
-                    kind=ModelErrorKind.MALFORMED_RESPONSE,
-                    message=("The model response did not match the decision schema."),
-                )
-            ) from exc
+                async with asyncio.timeout(self._timeout_seconds):
+                    response = await awaitable
+                self._raise_for_status(response.status_code)
+                content = self._extract_content(response.json_body)
+            except ModelClientError as exc:
+                # Provider faults are not model decisions: retry them so they do not
+                # consume the loop's decision-recovery budget.
+                if (
+                    exc.error.kind not in _TRANSIENT_MODEL_ERRORS
+                    or attempt >= self._max_transport_attempts
+                ):
+                    raise
+                await asyncio.sleep(self._retry_backoff_seconds * attempt)
+                continue
+            except TimeoutError as exc:
+                if attempt >= self._max_transport_attempts:
+                    raise ModelClientError(
+                        ModelError(
+                            kind=ModelErrorKind.TIMEOUT,
+                            message="The model request timed out.",
+                        )
+                    ) from exc
+                await asyncio.sleep(self._retry_backoff_seconds * attempt)
+                continue
+            try:
+                return self._decision_adapter.validate_python(_first_json_object(content))
+            except ValueError as exc:
+                raise ModelClientError(
+                    ModelError(
+                        kind=ModelErrorKind.MALFORMED_RESPONSE,
+                        message=("The model response did not match the decision schema."),
+                    )
+                ) from exc
 
     @staticmethod
     def _extract_content(payload: JsonValue | None) -> str:
@@ -245,6 +271,74 @@ def _safe_empty_response_diagnostics(
         f"prompt_tokens={prompt_tokens}, "
         f"completion_tokens={completion_tokens}."
     )
+
+
+_RESERVED_HEADERS = frozenset({"authorization", "content-type", "accept"})
+_TRANSIENT_MODEL_ERRORS = frozenset(
+    {
+        ModelErrorKind.TIMEOUT,
+        ModelErrorKind.SERVER_ERROR,
+        ModelErrorKind.EMPTY_RESPONSE,
+    }
+)
+
+
+def _first_json_object(content: str) -> JsonValue:
+    """Parse the first JSON object in the model content.
+
+    Instructed-JSON models still append commentary, a second object, or a
+    tool-call block after the decision. Requiring the whole string to be one
+    document drops otherwise valid decisions, so take the first balanced object.
+    """
+    text = content.strip()
+    try:
+        return json.loads(text)
+    except ValueError:
+        pass
+    start = text.find("{")
+    if start < 0:
+        raise ValueError("the model response contained no JSON object")
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(text)):
+        character = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                in_string = False
+            continue
+        if character == '"':
+            in_string = True
+        elif character == "{":
+            depth += 1
+        elif character == "}":
+            depth -= 1
+            if depth == 0:
+                return json.loads(text[start : index + 1])
+    raise ValueError("the model response contained no complete JSON object")
+
+
+def _validated_extra_headers(
+    extra_headers: Mapping[str, str] | None,
+) -> dict[str, str]:
+    if not extra_headers:
+        return {}
+    normalized: dict[str, str] = {}
+    for name, value in extra_headers.items():
+        key = str(name).strip()
+        if not key:
+            raise ValueError("extra header names must not be empty")
+        if key.casefold() in _RESERVED_HEADERS:
+            raise ValueError(f"extra headers must not override {key}")
+        text = str(value).strip()
+        if not text:
+            raise ValueError(f"extra header {key} must not be empty")
+        normalized[key] = text
+    return normalized
 
 
 def _validated_model_base_url(

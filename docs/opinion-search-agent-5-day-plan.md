@@ -5,6 +5,9 @@
 > 最后更新：2026-08-20  
 > Canonical：[OpinionSearch Agent 项目设计](./public-opinion-search-agent-design.md)
 
+> **2026-09-11 执行入口更新**：下文保留原五天 Harness 实施基线；后续 Web 产品工作以 canonical design §18–19、[Web 调查计划](./superpowers/plans/2026-09-10-web-event-investigation.md)和[按事件组织的工作台实施指南](./opinionsearch-adaptive-workbench-implementation-plan-2026-09-11.md)为准。原 §2 对 Web UI/HTTP API 的排除仅适用于早期五天范围，已被用户后续 Web 委托扩展；多 Agent、社交采集、框架迁移和平台化仍不进入本轮。
+> **2026-09-12 状态修正**：工作台阶段 P0–P3 与 P4-1/4-2/4-3 已实施并经机制测试 + 浏览器主路径验证（实现记录 §21–§26）；P4-4 观点构成按启用条件保持 pending；P5（固定材料回放、真实联网对比、人工 90%/95% 评分）blocked 于案例材料（registry 10 槽位全部 blocked）与额度，不得以 P0–P4 完成宣称 P5 通过。
+
 除非明确说明，本计划中的命令从 `opinion_search_agent/` 执行。
 
 ## 1. 五天目标

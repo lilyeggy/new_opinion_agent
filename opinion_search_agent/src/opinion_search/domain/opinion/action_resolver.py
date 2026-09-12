@@ -36,10 +36,16 @@ class OpinionSearchActionResolver:
     ) -> OpinionAction:
         if isinstance(decision, SearchDecision):
             arguments = SearchArguments(query=decision.query)
+            # The optional provider constraints belong to the public-event
+            # investigation flow; the legacy opinion flow keeps its stable
+            # two-field action payload.
             return ToolAction(
                 decision_action="search",
                 tool_name="search.web",
-                arguments=arguments.model_dump(mode="json"),
+                arguments=arguments.model_dump(
+                    mode="json",
+                    exclude={"freshness", "search_lang", "country", "offset"},
+                ),
             )
 
         if isinstance(decision, ReadDecision):

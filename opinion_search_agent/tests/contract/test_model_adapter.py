@@ -244,3 +244,135 @@ def test_empty_response_preserves_only_safe_provider_diagnostics() -> None:
     assert "completion_tokens=2000" in message
     assert "private reasoning text" not in message
     assert "secret-key" not in message
+
+
+def test_adapter_sends_configured_extra_headers_without_overriding_auth() -> None:
+    transport = FakeModelTransport(
+        responses=[
+            _success(
+                '{"action":"search","query":"official statement",'
+                '"target_gap_id":"gap-primary",'
+                '"purpose":"Find the primary account."}'
+            )
+        ]
+    )
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key",
+        transport=transport,
+        extra_headers={"x-opencode-session": "session-123"},
+    )
+
+    asyncio.run(client.decide(_context()))
+
+    headers = transport.calls[0]["headers"]
+    assert headers["x-opencode-session"] == "session-123"
+    assert headers["Authorization"] == "Bearer secret-key"
+
+
+def test_adapter_rejects_extra_headers_that_shadow_auth() -> None:
+    with pytest.raises(ValueError, match="must not override Authorization"):
+        OpenAICompatibleModelClient(
+            api_key="secret-key",
+            extra_headers={"Authorization": "Bearer attacker"},
+        )
+    with pytest.raises(ValueError, match="must not be empty"):
+        OpenAICompatibleModelClient(
+            api_key="secret-key",
+            extra_headers={"x-opencode-session": "   "},
+        )
+
+
+def _search_decision_json() -> str:
+    return (
+        '{"action":"search","query":"official statement",'
+        '"target_gap_id":"gap-primary",'
+        '"purpose":"Find the primary account."}'
+    )
+
+
+@pytest.mark.parametrize(
+    "content",
+    [
+        _search_decision_json() + "\n\nNote: I searched the public web first.",
+        _search_decision_json() + '\n{"action":"read","url":"https://example.org"}',
+        "```json\n" + _search_decision_json() + "\n```",
+    ],
+)
+def test_adapter_reads_the_first_json_object_despite_trailing_model_output(content: str) -> None:
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key",
+        transport=FakeModelTransport(responses=[_success(content)]),
+    )
+
+    decision = asyncio.run(client.decide(_context()))
+
+    assert isinstance(decision, SearchDecision)
+    assert decision.query == "official statement"
+
+
+def test_adapter_still_rejects_content_without_a_json_object() -> None:
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key",
+        transport=FakeModelTransport(responses=[_success("I could not decide.")]),
+    )
+
+    with pytest.raises(ModelClientError) as captured:
+        asyncio.run(client.decide(_context()))
+
+    assert captured.value.error.kind is ModelErrorKind.MALFORMED_RESPONSE
+
+
+def _server_error() -> ModelHttpResponse:
+    return ModelHttpResponse(status_code=500, json_body={"error": "boom"})
+
+
+def _empty_choice() -> ModelHttpResponse:
+    return ModelHttpResponse(status_code=200, json_body={"choices": [{"finish_reason": "stop", "message": {"content": ""}}]})
+
+
+def test_adapter_retries_a_transient_provider_fault_then_succeeds() -> None:
+    transport = FakeModelTransport(responses=[_server_error(), _success(_search_decision_json())])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
+    )
+
+    decision = asyncio.run(client.decide(_context()))
+
+    assert isinstance(decision, SearchDecision)
+    assert len(transport.calls) == 2
+
+
+def test_adapter_retries_an_empty_provider_response_then_succeeds() -> None:
+    transport = FakeModelTransport(responses=[_empty_choice(), _success(_search_decision_json())])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
+    )
+
+    assert isinstance(asyncio.run(client.decide(_context())), SearchDecision)
+    assert len(transport.calls) == 2
+
+
+def test_adapter_does_not_retry_a_semantic_schema_mismatch() -> None:
+    transport = FakeModelTransport(responses=[_success("not a decision")])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=3
+    )
+
+    with pytest.raises(ModelClientError) as captured:
+        asyncio.run(client.decide(_context()))
+
+    assert captured.value.error.kind is ModelErrorKind.MALFORMED_RESPONSE
+    assert len(transport.calls) == 1
+
+
+def test_adapter_gives_up_after_the_transport_attempt_budget() -> None:
+    transport = FakeModelTransport(responses=[_server_error(), _server_error(), _server_error()])
+    client = OpenAICompatibleModelClient(
+        api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
+    )
+
+    with pytest.raises(ModelClientError) as captured:
+        asyncio.run(client.decide(_context()))
+
+    assert captured.value.error.kind is ModelErrorKind.SERVER_ERROR
+    assert len(transport.calls) == 2

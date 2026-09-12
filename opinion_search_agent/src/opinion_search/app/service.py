@@ -366,6 +366,8 @@ def build_live_service(
         model=config.model_name,
         timeout_seconds=config.model_timeout_seconds,
         allow_insecure_loopback=config.allow_insecure_model_endpoint,
+        extra_headers=config.model_extra_headers,
+        max_transport_attempts=config.model_transport_attempts,
     )
     result_cache = JsonActionResultCache(
         checkpoint_path.parent / "action_results"

@@ -1,0 +1,819 @@
+[
+  {
+    "step": 1,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:1",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:1",
+        "attempt": 1,
+        "decision": {
+          "action": "search",
+          "query": "example event official announcement",
+          "target_gap_id": "gap-factual-baseline",
+          "purpose": "Find the original account."
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:1",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:1:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "search",
+          "tool_name": "search.web",
+          "arguments": {
+            "query": "example event official announcement",
+            "max_results": 5
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:1",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:1:attempt:1:action",
+        "observation": {
+          "action": "search",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:1:attempt:1:action",
+            "tool_name": "search.web",
+            "payload": {
+              "query": "example event official announcement",
+              "items": [
+                {
+                  "title": "Official announcement",
+                  "url": "https://example.org/official-announcement",
+                  "snippet": "Official account of the event."
+                }
+              ]
+            },
+            "artifact_refs": [],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 1,
+      "candidates": 1,
+      "sources": 0,
+      "evidence": 0,
+      "claims": 0,
+      "positions": 0,
+      "narratives": 0,
+      "gaps": {
+        "gap-factual-baseline": "open",
+        "gap-stakeholder-positions": "open",
+        "gap-dominant-narratives": "open",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 2,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:2",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:2",
+        "attempt": 1,
+        "decision": {
+          "action": "read",
+          "candidate_source_id": "https://example.org/official-announcement",
+          "target_gap_id": "gap-factual-baseline",
+          "focus": "date, event and stated cause",
+          "source_kind": "primary"
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:2",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:2:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "read",
+          "tool_name": "read.web",
+          "arguments": {
+            "url": "https://example.org/official-announcement"
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:2",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:2:attempt:1:action",
+        "observation": {
+          "action": "read",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:2:attempt:1:action",
+            "tool_name": "read.web",
+            "payload": {
+              "url": "https://example.org/official-announcement",
+              "title": "Official announcement",
+              "content": "The organization announced that the example event occurred on 20 August and attributed the disruption to a technical fault.",
+              "publication_time_status": "unavailable"
+            },
+            "artifact_refs": [
+              "artifact-official"
+            ],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 2,
+      "candidates": 1,
+      "sources": 1,
+      "evidence": 1,
+      "claims": 0,
+      "positions": 0,
+      "narratives": 0,
+      "gaps": {
+        "gap-factual-baseline": "open",
+        "gap-stakeholder-positions": "open",
+        "gap-dominant-narratives": "open",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 3,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:3",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:3",
+        "attempt": 1,
+        "decision": {
+          "action": "reflect",
+          "assessment": "The original account establishes the event statement.",
+          "next_focus": "Find independent corroboration.",
+          "gap_assessments": [
+            {
+              "gap_id": "gap-factual-baseline",
+              "outcome": "resolved",
+              "evidence_ids": [
+                "evidence-6b028c8b9fb623d9"
+              ],
+              "rationale": "The original account establishes the event baseline."
+            },
+            {
+              "gap_id": "gap-stakeholder-positions",
+              "outcome": "resolved",
+              "evidence_ids": [
+                "evidence-6b028c8b9fb623d9"
+              ],
+              "rationale": "The organization states its causal position."
+            }
+          ],
+          "claim_proposals": [
+            {
+              "text": "The example event caused a disruption on 20 August.",
+              "kind": "fact",
+              "supporting_evidence_ids": [
+                "evidence-6b028c8b9fb623d9"
+              ],
+              "contradicting_evidence_ids": []
+            },
+            {
+              "text": "A technical fault was the established cause of the disruption.",
+              "kind": "attributed_statement",
+              "supporting_evidence_ids": [
+                "evidence-6b028c8b9fb623d9"
+              ],
+              "contradicting_evidence_ids": []
+            }
+          ],
+          "stakeholder_position_proposals": [
+            {
+              "stakeholder": "The organization",
+              "statement": "It attributed the disruption to a technical fault.",
+              "evidence_ids": [
+                "evidence-6b028c8b9fb623d9"
+              ]
+            }
+          ],
+          "narrative_proposals": []
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:3",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:3:attempt:1:action",
+        "action": {
+          "kind": "reflect",
+          "assessment": "The original account establishes the event statement.",
+          "next_focus": "Find independent corroboration.",
+          "assessed_gap_ids": [
+            "gap-factual-baseline",
+            "gap-stakeholder-positions"
+          ]
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:3",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:3:attempt:1:action",
+        "observation": {
+          "action": "reflect",
+          "assessment": "The original account establishes the event statement.",
+          "assessed_gap_ids": [
+            "gap-factual-baseline",
+            "gap-stakeholder-positions"
+          ]
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 3,
+      "candidates": 1,
+      "sources": 1,
+      "evidence": 1,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 0,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "open",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 4,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:4",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:4",
+        "attempt": 1,
+        "decision": {
+          "action": "search",
+          "query": "example event independent report",
+          "target_gap_id": "gap-dominant-narratives",
+          "purpose": "Find an independently reported public framing."
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:4",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:4:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "search",
+          "tool_name": "search.web",
+          "arguments": {
+            "query": "example event independent report",
+            "max_results": 5
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:4",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:4:attempt:1:action",
+        "observation": {
+          "action": "search",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:4:attempt:1:action",
+            "tool_name": "search.web",
+            "payload": {
+              "query": "example event independent report",
+              "items": [
+                {
+                  "title": "Independent report",
+                  "url": "https://news.example.org/independent-report",
+                  "snippet": "Independent reporting on the disruption."
+                }
+              ]
+            },
+            "artifact_refs": [],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 4,
+      "candidates": 2,
+      "sources": 1,
+      "evidence": 1,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 0,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "open",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 5,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:5",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:5",
+        "attempt": 1,
+        "decision": {
+          "action": "read",
+          "candidate_source_id": "https://news.example.org/independent-report",
+          "target_gap_id": "gap-dominant-narratives",
+          "focus": "independent confirmation and caveats",
+          "source_kind": "reporting"
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:5",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:5:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "read",
+          "tool_name": "read.web",
+          "arguments": {
+            "url": "https://news.example.org/independent-report"
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:5",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:5:attempt:1:action",
+        "observation": {
+          "action": "read",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:5:attempt:1:action",
+            "tool_name": "read.web",
+            "payload": {
+              "url": "https://news.example.org/independent-report",
+              "title": "Independent report",
+              "content": "Independent reporting confirms the 20 August disruption and notes that the technical cause has not been independently verified.",
+              "publication_time_status": "unavailable"
+            },
+            "artifact_refs": [
+              "artifact-report"
+            ],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 5,
+      "candidates": 2,
+      "sources": 2,
+      "evidence": 2,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 0,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "open",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 6,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:6",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:6",
+        "attempt": 1,
+        "decision": {
+          "action": "reflect",
+          "assessment": "Independent reporting corroborates the event and date.",
+          "next_focus": "Find a materially different account.",
+          "gap_assessments": [
+            {
+              "gap_id": "gap-dominant-narratives",
+              "outcome": "resolved",
+              "evidence_ids": [
+                "evidence-f56e23e494c2bbc1"
+              ],
+              "rationale": "Independent reporting supplies the dominant framing."
+            }
+          ],
+          "claim_proposals": [
+            {
+              "text": "The example event caused a disruption on 20 August.",
+              "kind": "fact",
+              "supporting_evidence_ids": [
+                "evidence-f56e23e494c2bbc1"
+              ],
+              "contradicting_evidence_ids": []
+            }
+          ],
+          "stakeholder_position_proposals": [],
+          "narrative_proposals": [
+            {
+              "summary": "Independent coverage frames the disruption as real while treating the proposed cause as unverified.",
+              "kind": "dominant",
+              "stakeholder_names": [
+                "Independent reporters"
+              ],
+              "evidence_ids": [
+                "evidence-f56e23e494c2bbc1"
+              ]
+            }
+          ]
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:6",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:6:attempt:1:action",
+        "action": {
+          "kind": "reflect",
+          "assessment": "Independent reporting corroborates the event and date.",
+          "next_focus": "Find a materially different account.",
+          "assessed_gap_ids": [
+            "gap-dominant-narratives"
+          ]
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:6",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:6:attempt:1:action",
+        "observation": {
+          "action": "reflect",
+          "assessment": "Independent reporting corroborates the event and date.",
+          "assessed_gap_ids": [
+            "gap-dominant-narratives"
+          ]
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 6,
+      "candidates": 2,
+      "sources": 2,
+      "evidence": 2,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 1,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "resolved",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 7,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:7",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:7",
+        "attempt": 1,
+        "decision": {
+          "action": "search",
+          "query": "example event correction alternative account",
+          "target_gap_id": "gap-counter-narratives",
+          "purpose": "Find correction or alternative causal accounts."
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:7",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:7:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "search",
+          "tool_name": "search.web",
+          "arguments": {
+            "query": "example event correction alternative account",
+            "max_results": 5
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:7",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:7:attempt:1:action",
+        "observation": {
+          "action": "search",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:7:attempt:1:action",
+            "tool_name": "search.web",
+            "payload": {
+              "query": "example event correction alternative account",
+              "items": [
+                {
+                  "title": "Later correction analysis",
+                  "url": "https://analysis.example.org/correction",
+                  "snippet": "Alternative account of the claimed cause."
+                }
+              ]
+            },
+            "artifact_refs": [],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 7,
+      "candidates": 3,
+      "sources": 2,
+      "evidence": 2,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 1,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "resolved",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 8,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:8",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:8",
+        "attempt": 1,
+        "decision": {
+          "action": "read",
+          "candidate_source_id": "https://analysis.example.org/correction",
+          "target_gap_id": "gap-counter-narratives",
+          "focus": "correction and disagreement about cause",
+          "source_kind": "analysis"
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:8",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:8:attempt:1:action",
+        "action": {
+          "kind": "tool",
+          "decision_action": "read",
+          "tool_name": "read.web",
+          "arguments": {
+            "url": "https://analysis.example.org/correction"
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:8",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:8:attempt:1:action",
+        "observation": {
+          "action": "read",
+          "outcome": {
+            "action_id": "search-analysis-offline-20260909:step:8:attempt:1:action",
+            "tool_name": "read.web",
+            "payload": {
+              "url": "https://analysis.example.org/correction",
+              "title": "Later correction analysis",
+              "content": "A later analysis agrees that disruption occurred but disputes whether the available records establish a single technical cause.",
+              "publication_time_status": "unavailable"
+            },
+            "artifact_refs": [
+              "artifact-alternate"
+            ],
+            "attempts": 1
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 8,
+      "candidates": 3,
+      "sources": 3,
+      "evidence": 3,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 1,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "resolved",
+        "gap-counter-narratives": "open"
+      }
+    }
+  },
+  {
+    "step": 9,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:9",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:9",
+        "attempt": 1,
+        "decision": {
+          "action": "reflect",
+          "assessment": "The later account preserves a causal contradiction.",
+          "next_focus": "Prepare an evidence-linked brief.",
+          "gap_assessments": [
+            {
+              "gap_id": "gap-counter-narratives",
+              "outcome": "resolved",
+              "evidence_ids": [
+                "evidence-c2071813a2a735f6"
+              ],
+              "rationale": "A later analysis supplies a material counter-frame."
+            }
+          ],
+          "claim_proposals": [
+            {
+              "text": "A technical fault was the established cause of the disruption.",
+              "kind": "attributed_statement",
+              "supporting_evidence_ids": [],
+              "contradicting_evidence_ids": [
+                "evidence-c2071813a2a735f6"
+              ]
+            }
+          ],
+          "stakeholder_position_proposals": [],
+          "narrative_proposals": [
+            {
+              "summary": "The available record does not establish one technical cause for the disruption.",
+              "kind": "counter",
+              "stakeholder_names": [
+                "Later analysts"
+              ],
+              "evidence_ids": [
+                "evidence-c2071813a2a735f6"
+              ]
+            }
+          ]
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:9",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:9:attempt:1:action",
+        "action": {
+          "kind": "reflect",
+          "assessment": "The later account preserves a causal contradiction.",
+          "next_focus": "Prepare an evidence-linked brief.",
+          "assessed_gap_ids": [
+            "gap-counter-narratives"
+          ]
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:9",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:9:attempt:1:action",
+        "observation": {
+          "action": "reflect",
+          "assessment": "The later account preserves a causal contradiction.",
+          "assessed_gap_ids": [
+            "gap-counter-narratives"
+          ]
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 9,
+      "candidates": 3,
+      "sources": 3,
+      "evidence": 3,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 2,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "resolved",
+        "gap-counter-narratives": "resolved"
+      }
+    }
+  },
+  {
+    "step": 10,
+    "record": {
+      "run_id": "search-analysis-offline-20260909",
+      "step_id": "search-analysis-offline-20260909:step:10",
+      "attempt": 1,
+      "phase": "committed",
+      "decision": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:10",
+        "attempt": 1,
+        "decision": {
+          "action": "finish",
+          "answer_candidate": "The investigation has sufficient sourced coverage.",
+          "resolved_gap_ids": [
+            "gap-factual-baseline",
+            "gap-stakeholder-positions",
+            "gap-dominant-narratives",
+            "gap-counter-narratives"
+          ],
+          "unresolved_gap_ids": []
+        }
+      },
+      "action": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:10",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:10:attempt:1:action",
+        "action": {
+          "kind": "finish",
+          "completion_verdict": {
+            "disposition": "accept_complete",
+            "reason": "The factual baseline, stakeholder positions, dominant narratives, and counter-narratives are resolved with source-backed provenance."
+          }
+        }
+      },
+      "observation": {
+        "run_id": "search-analysis-offline-20260909",
+        "step_id": "search-analysis-offline-20260909:step:10",
+        "attempt": 1,
+        "action_id": "search-analysis-offline-20260909:step:10:attempt:1:action",
+        "observation": {
+          "action": "finish",
+          "completion_verdict": {
+            "disposition": "accept_complete",
+            "reason": "The factual baseline, stakeholder positions, dominant narratives, and counter-narratives are resolved with source-backed provenance."
+          }
+        }
+      },
+      "failures": []
+    },
+    "state_after": {
+      "revision": 10,
+      "candidates": 3,
+      "sources": 3,
+      "evidence": 3,
+      "claims": 2,
+      "positions": 1,
+      "narratives": 2,
+      "gaps": {
+        "gap-factual-baseline": "resolved",
+        "gap-stakeholder-positions": "resolved",
+        "gap-dominant-narratives": "resolved",
+        "gap-counter-narratives": "resolved"
+      }
+    }
+  }
+]

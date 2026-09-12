@@ -1,0 +1,86 @@
+{
+  "schema": "opinion-investigation-cases/1",
+  "note": "登记表，不是现成数据集。materials 只有在取得可核验的公开原文快照后才允许填写；未取得的条目标记 status=blocked，禁止用新闻标题加模型编写正文冒充快照。",
+  "cases": [
+    {
+      "case_id": "transport-dev", "category": "公共交通", "split": "dev", "status": "blocked",
+      "event_identity": "待选定：某城市公交线路或末班时段的公开调整",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "需要可公开访问的原始公告与至少一份相关方或报道材料，并保存快照。" }
+    },
+    {
+      "case_id": "transport-holdout", "category": "公共交通", "split": "holdout", "status": "blocked",
+      "event_identity": "待选定：与 transport-dev 不同的城市/线路调整",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "保留案例；其答案不得进入生产代码、提示词或 query 模板。" }
+    },
+    {
+      "case_id": "facility-dev", "category": "公共设施", "split": "dev", "status": "blocked",
+      "event_identity": "待选定：某公共设施开闭/使用/改造安排",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "需要适用人群与实施细节的公开说明。" }
+    },
+    {
+      "case_id": "facility-holdout", "category": "公共设施", "split": "holdout", "status": "blocked",
+      "event_identity": "待选定：与 facility-dev 不同的设施事件",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "保留案例；不得据此调整生产实现。" }
+    },
+    {
+      "case_id": "tourism-dev", "category": "文旅服务", "split": "dev", "status": "blocked",
+      "event_identity": "待选定：预约/开放/票务规则调整",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "需要规则文本与争议材料的公开原文。" }
+    },
+    {
+      "case_id": "tourism-holdout", "category": "文旅服务", "split": "holdout", "status": "blocked",
+      "event_identity": "待选定：与 tourism-dev 不同的规则事件",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "保留案例。" }
+    },
+    {
+      "case_id": "rules-dev", "category": "服务规则调整", "split": "dev", "status": "blocked",
+      "event_identity": "待选定：新旧规则边界、适用对象、时间明确的公开调整",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "需要可对照的新旧规则文本。" }
+    },
+    {
+      "case_id": "rules-holdout", "category": "服务规则调整", "split": "holdout", "status": "blocked",
+      "event_identity": "待选定：与 rules-dev 不同的规则事件",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "保留案例。" }
+    },
+    {
+      "case_id": "response-dev", "category": "机构回应与修正", "split": "dev", "status": "blocked",
+      "event_identity": "待选定：至少两个可区分材料时点、含补充回应或修正",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "需要两个时点的公开材料快照，用于验证更新与版本比较。" }
+    },
+    {
+      "case_id": "response-holdout", "category": "机构回应与修正", "split": "holdout", "status": "blocked",
+      "event_identity": "待选定：与 response-dev 不同的双时点事件",
+      "user_request": "待填写", "required_questions": [],
+      "materials": [], "expected": {},
+      "stages": { "T0_allowed_materials": [], "T1_additional_materials": [] },
+      "annotation": { "author_kind": "none", "reviewed_by_human": false, "status": "blocked", "notes": "保留案例；其答案不得用于调参或结论模板。" }
+    }
+  ]
+}

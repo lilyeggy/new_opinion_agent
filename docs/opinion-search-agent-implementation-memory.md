@@ -2075,3 +2075,326 @@ Domain 现新增冻结、禁止额外字段的 `SearchReportView` 及其子模�
 `RunBundleWriter` 在 `report.md` 之外各自原子写入 `outcome.json`。terminal SSE 与 snapshot 直接包含 `report` JSON；服务重启优先校验并恢复 `outcome.json`，不再解析 Markdown。仅对升级前没有 sidecar 的历史 bundle 保留 `report=None` 的 legacy Markdown fallback。用户页优先渲染 typed report，证据审计附录默认折叠，旧 parser 只服务历史兼容。
 
 验证证据：领域/Run Bundle 定向测试 8 passed；除本地端口 Web 组外的 unit/contract/integration/e2e 共 546 passed、2 个 live-gated skipped；真实本地 HTTP/SSE/重启恢复 Web E2E 11 passed；`git diff --check`、`compileall` 与 index.html 内联 JavaScript 语法检查通过。
+
+## 20. Web 公开事件调查升级（S0–D，2026-09-10）
+
+> 关联设计：canonical design §18；执行计划：`docs/superpowers/plans/2026-09-10-web-event-investigation.md`。本节只记录已进入仓库并经过验证的事实。
+
+### 20.1 已实现并有测试的契约
+
+- **上下文完整性**：`structured_context` 的 `input.material` 与 Compiler 的 `memory.questions`/`memory.findings` 不可丢弃；超限时抛 `RequiredContextOverflow`，审查调用捕获后降级为未核查（`partial`），不会在丢失原文后照样成功。
+- **发布协议**：新增 `finalizing` 中间态；报告写入完成后才发布终态；`snapshot` 提供 `report_pending`；`resume` 可从终态 checkpoint 重新发布。取消发生在产生材料前也会写最小报告。
+- **更新语义**：`ReflectDecision.retirements`（显式理由）替代 `retire_finding_ids`；`State.retired` 记录；报告差异区分 `pending_reevaluation` 与 `withdrawn`。
+- **必答问题**：`required_questions(request)` 确定性抽取；`_cover_required` 为计划遗漏的用户问题补建 issue；State 校验器保证覆盖。
+- **证据完整性**：`verify_evidence` / `verify_state_integrity`；Reader/Retrieve 边界与发布前校验 `start/end/excerpt` 与 content hash。
+- **回应覆盖**：`FindingProposal` 新增 `response_target/covered/uncovered/coverage_reason`；校验器约束 direct/partial/attributed；`response_search_complete` 要求问题级实质查找完成且候选已处理。
+- **来源独立性**：报告新增 `independent`/`independent_source_count`，正文重复版本标记为“不作为独立证据”。
+- **预算**：规划前启动，等待澄清期间 `Budget.pause()`，恢复不归零。
+- **查询有界**：Resolver 不再静默 `[:600]` 截断，超长查询要求拆分。
+
+### 20.2 Web 主链
+
+- 新增 `Manager.evidence/versions/diff/report/markdown`、`web/investigation.html`、`web/assets/{api,ui,evidence,report,app}.js` 与 `style.css`。
+- 端点：`POST/GET /api/investigations`、`GET /api/investigations/{id}`、`/events`(SSE)、`/report`(md)、`/evidence/{eid}`、`/versions`、`/diff`、`POST /clarify|cancel|resume|update`。
+- 更新入口为页面内表单路由 `#/i/{id}/update`（不依赖原生 `window.prompt`），提交后原地转入进度页。
+- 旧首页移至 `/legacy`，新首页 `/`；静态资源 `no-store` 便于本地迭代；路径穿越被拒绝。
+- 旧 `action_resolver` 搜索载荷保持两字段，兼容既有契约测试。
+
+### 20.3 测试与验证证据
+
+```text
+pytest tests/investigation -q                    36 passed
+pytest tests/e2e/test_investigation_web.py -q     5 passed
+pytest -q -m "not live"                          613 passed, 2 deselected
+node --check（5 个前端模块通过）
+```
+
+实际浏览器操作（ZCode in-app browser，隔离服务 127.0.0.1:8917，离线模式）：提交明确事件自动开始 → 进度页经 SSE 实时切换到报告 → 打开证据面板定位到正确版本原文（标题/链接/获取与发布时间/字符区间/版本）→ 补充新进展生成新版本 → 版本比较显示“修订判断/判断未变/补充依据”，旧版报告与旧引用不变。截图 artifact 见会话产物目录。
+
+浏览器回归发现并修复的两个真实前端缺陷：`el()` 事件名大小写导致元素级 click 处理器失效；进度页在快照转为终态后未切换到报告视图。另将原生 `window.prompt` 改为页面内表单以提升可测性。
+
+### 20.4 版本与恢复（D 阶段补充）
+
+- **重查记录**：Read/Retrieve 每次处理一个已见 URL 时生成 `SourceCheck(url, version_id, checked_at, changed)`；`changed` 只在同 URL 出现新内容哈希时为真。报告 `checks` 与页面重查区展示，旧版引用不受影响。
+- **同 URL 变文**：内容哈希变化不覆盖旧 artifact，而是追加新的 `SourceVersion`，并在报告来源里标记 `discovery="changed_page"`。旧证据的 `start/end/excerpt` 仍对旧文本通过 `verify_state_integrity`。
+- **跨进程排他**：`CaseLock` 对 `cases/{case_id}/active.lock` 持 `fcntl.flock(LOCK_EX|LOCK_NB)`；同事件第二个进程 `create` 抛 `CaseBusy`。测试用真实子进程持有锁验证，不依赖同进程内对象。
+- **恢复不重放**：`resume` 从 checkpoint 恢复，已提交的 tool action（delta 已写入）不再执行；`finalizing` 中断后 resume 只重新发布，不重跑调查步骤。
+- **provider 失败不失真**：`build_report` 分别统计 `search_failures`/`read_failures`；`no_material_change` 仅在确有成功观测且无变化时为真。markdown 明确“抓取失败不代表没有新进展”，避免把不可用当成“无新进展”。
+
+### 20.5 已知限制与未验证
+
+- 真实联网发现质量已实测（见 §20.7）：来源与证据真实可核，但“核心结论”仍未确认，达不到 90%/95% 门槛。10 个保留案例的固定材料语义回放与人工评分仍未执行；案例登记表 `tests/investigation/cases/registry.json` 全部 `blocked`（无虚构材料替代）。
+- Reviewer 仍是与主 Agent 相同配置的独立调用，不构成独立事实来源或人工审查。
+- SSE 采用轮询快照而非事件总线；R05/R07 的部分“实质覆盖/转述关系”仍依赖模型判断，机制测试只覆盖结构约束。
+- 前端在 Playwright 可操作性检查下点击会超时，浏览器验收通过页面内 DOM click 与坐标点击完成（真实联网实测同样如此）。
+
+### 20.6 对下一节点的影响
+
+- 真实联网与人工验收仍待材料与评分就绪；在补齐前不得据机制测试宣称调查质量达标。
+- §20.7 的两个 stop_reason 指向下一优先项：模型决策的结构化成功率（partial 覆盖字段、schema 匹配）与“核心结论”复核门，而不是继续加机制测试。
+- 任何旧格式 run 不得由新流程 resume；格式判断集中在 `Manager.resume` 的 execution profile 检查。
+
+### 20.7 真实联网实测记录（2026-09-11）
+
+模型网关 `https://opencode.ai/zen/go/v1`、模型 `mimo-v2.5`、Brave 搜索、Jina 读取；本地服务 `127.0.0.1:8917`（live），浏览器实际点击完成全链。
+
+- **网关适配**：该网关对推理请求要求 `x-opencode-session` 头（缺省返回 400 `MissingSessionID`）；`GET /models` 对无效 key 也返回 200，不能作为凭据校验。新增通用能力 `OPINION_MODEL_EXTRA_HEADERS`（JSON 对象）与 `OpenAICompatibleModelClient(extra_headers=...)`，合并进请求头且拒绝覆盖 `Authorization`/`Content-Type`/`Accept`；有契约与配置测试。
+- **实时冒烟**：`RUN_LIVE_TOOL_TESTS=1 RUN_LIVE_AGENT_TESTS=1 pytest tests/e2e/test_real_web_smoke.py -m live` → 2 passed（真实 Brave + Jina + 模型）。
+- **父调查**（事件：重庆燃气计费异常争议，2024）：5 次搜索、35 条候选、仅读取 1 个来源、8 条证据、0 条已核查判断，终态 `partial`；`stop_reason = "Decision recovery was exhausted: use retrieve to revisit a page already fetched in this version"`。失败明细含 `invalid_decision`（partial 回应未给未覆盖项）与 `model_malformed_response`（决策 schema 不匹配）。
+- **子调查（补充进展）**：3 个来源、15 条证据、7 条判断，产出真实时间线（2024-04-19 发布会、04-26 退费 1182 件约 285.85 万元、05-06 换董事长）与 `修订判断/判断未变/新增判断`；终态 `partial`，`stop_reason = "core conclusions must be active and supported by a current review"`。
+- **浏览器全链**：提交 → 进度 → 报告（真实来源与证据、诚实的“部分完成”与停止原因）→ 证据抽屉（定位到不可变原文的字符区间并高亮）→ 补充新进展 → 版本比较（逐问题修订/未变/新增）。Playwright 定位点击仍超时，改用页面内 DOM click 完成。
+- **结论**：来源、证据、版本与恢复语义在真实联网下成立且不虚构；短板是模型决策成功率与“核心结论”复核门——前者导致一次运行只读到 1/35 个候选，后者使已有多来源判断仍无法升级为核心结论。两项都需要后续处理，不能用机制测试替代。
+
+### 20.8 换模型实测暴露并修复的三个真实缺陷（2026-09-11）
+
+切到 `deepseek-flash` 后连续三次真实联网运行分别失败，逐一定位并修复（均有测试）：
+
+- **决策提示未声明 JSON**：`deepseek` 系列在 `response_format=json_object` 下要求提示里含 “json” 字样，否则 400（`Prompt must contain the word 'json'`）。`PLAN_INSTRUCTIONS`/`REVIEW_INSTRUCTIONS` 原本没有，已在两处补上 “Return exactly one JSON object matching the schema.”，并加提示守卫测试 `tests/investigation/test_decision_prompts.py`。
+- **退休路径缺导入**：`ReflectDecision.retirements` 经 `reduce_state` 落地时 `NameError: utcnow`，会直接让 worker 崩溃；原因是该分支从未被测试覆盖。已补导入，并在 `test_update_reevaluation.py` 增加 `reduce_state` 级退休/去重测试。
+- **证据校验异常未收口**：`verify_evidence` 在读取/重取时抛 `ValueError`（原文与保存文本不一致）会中断整轮运行。已把 read/retrieve 的校验失败降级为 `ToolError` 观察记录（`_read_material` 抽取 + `except (ValueError, ContextOverflowError)`），使模型可继续，并在 `test_evidence_integrity.py` 增加该降级测试。
+- **模型输出容错**：模型常在 JSON 决策后追加说明、第二个 JSON 对象或 `<tool_calls>` 块，原先要求整段恰为一个 JSON 文档会误判为 schema 不匹配。客户端改为取首个平衡 JSON 对象（`_first_json_object`），仍拒绝完全无 JSON 的响应；有参数化测试。
+
+验证：`pytest -q -m "not live"` → **625 passed, 2 deselected**。
+
+**未完成（配额阻塞）**：`deepseek-flash` 的完整联网结果尚未观察到——修复后的下一次运行被工作区模型周额度拦下（全部模型返回 429 `GoUsageLimitError: Weekly usage limit reached. Resets in 2 days`）。因此上述修复只经单测验证，未经一次完整 deepseek-flash 联网运行验证。
+
+### 20.9 传输重试、超时与预算可配置（2026-09-11）
+
+额度恢复后继续实测，发现失败模式集中在**供应商瞬时故障**（HTTP 500、空响应、请求超时）而非决策语义错误，但每次瞬时故障都会消耗循环的 decision-recovery 预算（默认 2 次），使调查在材料齐全后仍以 `partial` 结束。
+
+- **传输层重试**：`OpenAICompatibleModelClient` 新增 `max_transport_attempts` 与 `retry_backoff_seconds`，对 `TIMEOUT`/`SERVER_ERROR`/`EMPTY_RESPONSE` 退避重试；schema 不匹配等**语义**失败仍交给循环的决策恢复，不再混淆两类失败。库默认 `max_transport_attempts=1`（不改变原语义），`LiveConfig.model_transport_attempts` 默认 3（env `OPINION_MODEL_TRANSPORT_ATTEMPTS`）。
+- **可配置超时**：`OPINION_MODEL_TIMEOUT_SECONDS`（默认 60；慢模型可调高）。
+- **可配置预算**：`OPINION_INVESTIGATION_SECONDS`/`_MODEL_CALLS`/`_SEARCHES`/`_READS`/`_CONSOLIDATE_SECONDS`（`Manager.budget_limits()` 读取，未设置即沿用原默认；已存在的 run 读回自身 limits，恢复不改变原始预算）。
+
+验证：`pytest -q -m "not live"` → **635 passed, 2 deselected**。
+
+**实测进展**：修复后同一事件的联网运行产出 10 个来源 / 47 条证据 / **39 条判断** / 3 个问题 `answered`，并在 1200s 墙钟耗尽时以“未复核判断保持限定”诚实收尾（`model` 仅用 53/80，瓶颈是模型速度而非调用数）。据此把该事件的重跑预算调高后继续观察。
+
+**首个完整完成的联网调查（2026-09-11）**：同一事件在 `OPINION_INVESTIGATION_SECONDS=2400`、`OPINION_INVESTIGATION_MODEL_CALLS=120` 下终态 `completed`（耗时 1530s，16 搜索 / 16 读取 / 59 次模型调用），产出 13 个来源 / 74 条证据 / 24 条判断 / **8 条核心结论**，6 个问题全部 `answered`，独立来源 13 个（含重庆市政府 `cq.gov.cn`、财新 `m.caixin.com`、中新网、澎湃、重庆日报）。审计停止原因自述为“必答问题均有明确处置且有效判断通过证据复核，但不构成真值保证”。报告如实并列了官方与企业的**两套统计口径**（联合调查组 3837 件/337.9 万元 与 企业公告 1182 件/285.85 万元）并标注净利润增速 824% 与专项审计 895.77% 的差异，未做单一化。浏览器端渲染核心结论、证据按钮与限制说明正常。
+
+结论更新：`deepseek-flash` 在“提示声明 JSON + 输出取首个 JSON 对象 + 瞬时故障重试 + 可配置超时/预算”之后可以跑出完整且可核查的联网调查；此前的 `partial` 主要是模型速度撞上墙钟预算，而非流程缺陷。仍非质量终判，人工 90%/95% 评分与 10 个保留案例语义回放未做。
+
+**更新的真实实测（同一事件，`completed` 父版之上补充进展）**：首次子调查终态 `partial`，20 个来源 / 93 条证据 / 0 条判断，`stop_reason = "Decision recovery was exhausted: a partial response must name the uncovered component"`——模型反复给出不合规的 `partial` 回应（未给未覆盖部分），两次恢复用尽。据此做了**可执行的纠错**：校验器消息改为直指字段（`"response='partial' must list the unanswered parts in 'uncovered', or set response to 'direct'/'non_substantive'"`；`coverage_reason` 同理），并在 `INSTRUCTIONS` 里前置声明覆盖字段契约。
+
+**纠错后的子调查（重跑）**：终态 `partial`，但已不再因校验失败中断——19 个来源 / 96 条证据 / 6 条判断 / **5 条核心结论**，6 个问题 `answered` + 1 个 `unavailable`，6 条复查记录 / 7 条版本变化；`stop_reason = "Material or review limitations remain; inspect the issue-level caveats."`，即**主动**因材料/复核限制保持部分完成（非崩溃）。浏览器版本比较对父版逐问题给出 `尚未重新评估`×4 / `修订判断`×2 / `新增判断`×1（新增项为“拟处罚金 1200 万元是否落地”），符合 R03 语义。
+
+验证：`pytest -q -m "not live"` → **636 passed, 2 deselected**。
+
+## 21. 工作台 P0–P1：契约冻结、投影与可信主链修复（2026-09-11）
+
+> 阶段状态：P0 verified；P1 implemented_unverified（API/投影/回归已验证，实际浏览器主路径 NOT_RUN）。
+
+### 21.1 P0 基线与复现检查
+
+- 基线确认：改动前 `tests/investigation + tests/e2e/test_investigation_web.py` = **47 passed**（需以无代理环境运行：沙箱 `HTTP_PROXY` 会使 httpx 发送 absolute-form 请求行，服务器原只按 origin-form 匹配 → e2e 全部 404。该环境问题已转为服务器兼容修复，见下）。
+- 四个缺陷锚点（`api.js` 断流直接 close、`report.py` 以 `duplicate_of is None` 冒充独立、`report.js` 暴露 evidence_id、`_publish` partial 覆盖 latest / `Budget.pause()` 丢已用时长）均先以测试复现再修复。
+- 预算契约确认：请求次数不重置与时间不重置是两项独立契约，新增 `test_pause_folds_elapsed_time_into_accumulated_budget` 与旧格式 budget.json 兼容测试。
+
+### 21.2 数据与不变量
+
+- `WorkbenchSnapshot`（`opinion-workbench/1`）：`investigation/workbench.py` 纯投影，输入为已发布 report.json，输出确定性（同一报告 → 同一 `snapshot_id`）；字段与模块白名单见 canonical design §19.1。模块状态枚举 ready/provisional/insufficient/unavailable/not_applicable；本阶段仅产生 ready/insufficient。
+- 关键不变量：时间线中无法解析为 ISO 日期的 `event_time` 单独列出、不参与排序；材料分布按“文档×已知发布日期”计数、同 URL 多版本不多算、未知日期单列；来源关系 `duplicate/unverified` 二值，“未识别重复”不等于已验证独立；引用在页面层只呈现局部序号（引N），内部 evidence_id 仅作为程序引用键。
+- `latest.json`（最近发布可读结果）与 `latest_completed.json`（最近完整结果，仅 completed 更新）职责分离；partial 快照携带 `latest_completed_run_id`。
+- `budget.json` 新增 `accumulated_seconds`：pause 将当前窗口折算进累计值；旧格式无该字段按 0 读取。
+
+### 21.3 接口与页面
+
+- 新增 `GET /api/investigations/{id}/workbench`（`snapshot_id` 锚定，不匹配 409）；`GET .../{id}` 携带 `workbench_revision`；`GET .../evidence/{eid}` 携带 `relations`。
+- 前端：新增 `workbench.js`（三视图 tab：事件总览/报道对照/议题与核查 + 完整报告入口）；`api.js` 断线先补取快照再有界退避重连（5 次），连接状态与调查状态分开显示；`app.js` 按路由令牌丢弃旧响应；取消失败不再把本地状态改成已取消；`evidence.js` 显示材料-判断关系并在关闭后归还焦点。
+- 服务器同时接受 absolute-form 请求目标（RFC 7230），修复代理环境下本地访问 404。
+
+### 21.4 验证
+
+- `pytest tests/investigation tests/e2e/test_investigation_web.py -q`（无代理环境）→ **59 passed**（含新增 `test_workbench_projection.py` 7 项、预算 2 项、发布指针 2 项、e2e workbench 1 项）。
+- `pytest -q -m "not live"`（无代理环境）→ **648 passed, 2 deselected**。
+- 真实运行（offline 固定材料，端口 8918）：completed run 的 workbench 返回 5 模块状态、4 个“引N”引用、时间线 1 节点、发布分布 2026-01-10×2、关系计数（2 页面/2 版本/0 重复/2 未核实）；错误 snapshot_id 返回 409；evidence relations 返回支持关系；页面与 4 个 JS 资源 200；`node --check` 6 个 JS 全部通过。
+- **NOT_RUN**：实际浏览器主路径操作（环境无浏览器自动化工具）；真实联网调查与人工质量评分（未委托、未消耗额度）。
+
+### 21.5 已知限制与下一步
+
+- facets（rule_change/billing_remedy 等）、EventNode 双时间口径模块、SearchTask/CoverageRecord、定向补查幂等创建、图表统计均未实施（P2–P4）。
+- 历史条目与版本列表仍以 run_id 前 8 位作辅助标识（非主标题）；完整报告视图的“回应覆盖”等旧区块保留在完整报告 tab，未强行迁移。
+- 实施指南要求 P1 退出须通过实际浏览器操作验收，当前以 API 级验证 + JS 语法/投影测试替代，浏览器主路径保持 pending。
+
+## 22. 工作台 P2–P4：事件侧重点、定向补查与统计成员绑定（2026-09-11）
+
+> 阶段状态：P2 / P3 / P4 implemented_unverified（机制与 API 验证完成；实际浏览器主路径 NOT_RUN，真实联网与人工评分未消耗额度）。P5 门槛未达成，未把代码完成当作 P5 通过。
+
+### 22.1 数据与不变量
+
+- **EventProfile**：facets ∈ {rule_change, service_change, billing_remedy, investigation_correction, general}，由计划提议、`presentation.confirmed_profile` 程序确认（未知名丢弃、general-only 不建档、用户必答问题不受影响）；随 State（`profile` 字段，缺省 None 兼容旧 checkpoint）提交并写入 report/workbench。State 校验 `profile.question_refs ⊆ issues`。
+- **Facet 模块（确定性）**：`presentation.FACET_MODULES` 四类侧重点 → 四个白名单模块；模块数据可用（绑定问题存在 active finding）才 ready，否则 insufficient 且缺口文案固定（旧规则不补写；受理渠道≠已退费、金额不明不填 0；计划恢复与已恢复分开；启动调查/结论/落地三分）。`highlights()` 只取 facet 模块且最多 3 个，ready/provisional 优先。
+- **Provisional 语义**：`publication_state != 终态` 时所有数据可用的模块（基础 + facet）一律 provisional；运行中每次 checkpoint 写 `workbench-provisional.json`，发布/失败/取消后删除或被 report.json 取代。
+- **SearchTask 最小契约**：SearchAttempt 增加 `task_id`（uid(search-task, issue, query, page)）、`target_gap`、`discovery_mode`；Reducer 按决策的 target_gap 判定 targeted/discovery；Compiler 注入 `memory.coverage`（每问题 attempts/errors/outcomes + 近期 gaps），提示词声明"重复方向改为换别名/原始出处/机构域名/材料类型"。
+- **材料成员口径**：发布分布按“URL=文档”计数，成员绑定 url→version_ids；点击成员数 == 显示计数（测试覆盖同 URL 两版本计 1 的场景）。
+
+### 22.2 接口与页面
+
+- `GET .../materials?snapshot_id&issue_id&offset&limit`（limit≤100）：同一快照内按议题成员筛选（finding 的 evidence/contradicting → version_ids），未知议题 409、负分页 400。
+- update 契约：`issue_ids`/`finding_ids` 必须属于父版 report，否则 ValueError(409)；`client_request_id` 以内容哈希（payload+parent_id）幂等，同 key 异内容 409，注册表 `cases/<case>/requests.json`；补查意图持久化于子 run `draft.followup`；并发创建仍由 CaseLock 排除。
+- diff 响应新增 `comparability`（same_case、两版 cutoff/status、口径变化标注位）。
+- 前端：总览新增“本事件重点模块”卡（facet 模块 + 状态徽标 + 选择理由 + 缺口说明）；报道对照新增“搜索覆盖（本次已查范围，非全网召回率）”；发布分布日期桶可展开成员链接；进度页新增“查看阶段工作台（待核查）”入口（无报告 tab、无下载/补查按钮、显示“阶段投影：内容未经最终审查”徽标）；补查表单支持勾选父版问题并以 `crypto.randomUUID` 生成幂等键。
+
+### 22.3 验证
+
+- `pytest tests/investigation tests/e2e/test_investigation_web.py -q`（无代理环境）→ **74 passed**（新增：facets 确认/差异/回退/insufficient 缺口/provisional/highlights 上限 7 项；定向补查引用校验/幂等/持久化/搜索任务/Compiler 覆盖/运行中投影 7 项；分布文档计数与成员绑定 1 项；e2e materials 与 diff comparability 断言）。
+- 真实运行（offline，端口 8918）：公交问题 → facets=[rule_change]、模块 rule-comparison(ready)、highlight=rule-comparison；水费问题 → facets=[billing_remedy]、模块 billing-remedy(ready)；同一工作台呈现不同重点（W02 场景）。materials 总数=2、issue 过滤=1、分页正常。定向补查：issue_ids 引用通过创建 201，同 key 重放返回同一 run_id，同 key 异内容 409。
+- JS：6 个模块 `node --check` 通过。
+- **NOT_RUN / pending**：实际浏览器主路径（无浏览器自动化工具）；真实联网调查与人工 90%/95% 评分（未委托额度）；观点构成图表（按计划保留 pending，需归因/去重/分类评估先行）；P5 的固定材料语义回放仅覆盖 offline 脚本夹具，10 个正式案例仍为 blocked 槽位。
+
+### 22.4 已知限制与下一步
+
+- facets 目前只影响模块选择与总览重点，搜索词生成尚未按 facet 分支（P3 的“让缺口影响下一次搜索”已具备 coverage 注入与 target_gap 通道，实际效果待真实模型运行观察）。
+- 阶段投影为每 checkpoint 全量重建，规模上限未测；发布分布/覆盖数据尚无独立 metrics.py（当前由 workbench 纯函数承担，字段已按 MetricSnapshot 口径预留）。
+- 10 个正式案例 registry 仍为 blocked；T0/T1 案例材料与人工标注到位后才能执行 P5 门槛。
+
+## 23. 工作台实际浏览器主路径验收（2026-09-11，P1/P5 补验）
+
+> 阶段状态：P1 verified（浏览器主路径补验完成）；P5 浏览器项完成，联网与人工评分项仍 NOT_RUN。
+
+### 23.1 方式
+
+Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱动真实 Chromium headless，访问本地 8918 服务器真实页面，按用户路径操作并逐步断言；脚本与截图存于托管工作区 `browser_acceptance.js` 与 `/tmp/ops-browser/`（11 张截图 + steps.json）。项目源码零新增依赖。
+
+### 23.2 结果：17/17 步通过
+
+首页表单创建 → 进度页（无百分比、含“查看阶段工作台（待核查）”）→ 阶段投影徽标可见并可返回 → 终态工作台总览（重点模块 rule-comparison 卡）→ 点击“引N”打开证据抽屉（真实保存原文摘录）→ 关闭后焦点回到触发元素 → 报道对照（材料条目 + 来源关系徽标）→ 议题与核查 → 完整报告（无内部 evidence_id chip）→ 定向补查表单（勾选父版问题 + 幂等键）创建子 run → 版本比较渲染差异 → 水费事件经同一 UI 呈现 billing-remedy 重点（无 rule-comparison）→ 历史项以事件文本而非哈希为标题 → 刷新恢复同一视图。
+
+### 23.3 浏览器验收发现并修复的三个真实缺陷
+
+纯 API/机制测试均未暴露，说明该层验收不可省：
+
+1. **终态工作台白屏**：`app.js` 残留对已删除变量 `paintConnection` 的赋值，渲染即抛 ReferenceError——此前 API 验收全绿是因为从未执行这段前端代码。
+2. **证据抽屉无法打开**：`evidence.js` 的 `let triggerCounter` 位于 `return` 之后成死代码，`open()` 触发 TDZ 错误。
+3. **内部 ID 泄漏残留**：完整报告“核心回答”与“事件时间线”两处 chips 未传引用标签映射，仍显示原始 evidence_id。
+
+### 23.4 验证命令
+
+- 浏览器：`node browser_acceptance.js`（BASE_URL 指向本地服务器）→ `17/17 steps passed`。
+- 修复后 6 个前端模块 `node --check` 通过；后端无改动。
+- 未覆盖：SSE 真实断线恢复（需断网注入）、320px 窄屏与键盘全键盘走查——留作后续浏览器验收扩展。
+
+## 24. 参考版式落地与自包含 HTML 导出（2026-09-11）
+
+> 阶段状态：verified（机制测试 + e2e + 真实浏览器 23/23 步）。用户确认的目标：页面随事件变化 + 可直接产出可打开/分享的 HTML。
+
+### 24.1 设计取舍（明确拒绝的路径）
+
+用户提出“直接产生 HTML”。采纳的是**投影的渲染出口**，不是“让模型写页面”：
+
+- 拒绝：模型输出 HTML/CSS/脚本/组件名/像素布局/百分比。理由与实施指南 §3.3 一致（外部材料不可信、统计必须可复算、每事件一套页面无法回归）。
+- 采纳：同一份 `opinion-workbench/1` 快照可产出在线页面 / 自包含 HTML / Markdown / JSON；内容自适应由 facet 模块与投影决定，模型只提议领域内容。
+
+### 24.2 实现
+
+- **共享样式 `web/assets/workbench.css`**：在线页 `<link>` 引用；导出时由 `export.render_page` 读取同一文件内联，保证两种呈现版式一致（无复制维护）。类名前缀 `os-*`。
+- **`investigation/export.py`**：纯模板渲染，输入 workbench 投影 + report（取 evidence/sources/source_relation_counts）+ `evidence_context`（manager 提供 before/after）。不使用 JS、不用外部资源；`html.escape` 全量转义；外链仅 http/https（`_safe_url`）；引用角标 `[n]` 以 `#cite-n` 锚点跳转“引用与原文”；缺失正文/缺证据时显示"保持未知"而非相近原文。
+- **`Manager.page()` + `_evidence_context()`**：先经 `workbench()` 校验 snapshot 锚定（不匹配 409），再一次性读取归档正文切片（`verify_evidence` 失败即跳过，不伪造）。
+- **接口**：`GET /api/investigations/{id}/page`（`snapshot_id` 锚定；`download=1` 返回 `Content-Disposition: attachment`）；前端顶栏提供“打开静态页 / 下载 HTML / 下载 Markdown / 版本比较”。
+- **版式重建**（`workbench.js` 重写）：左侧调查导航、眉标（facets + 状态）、标题行（补查入口）、范围行 + 检索范围折叠（搜索覆盖）、摘要内联引用角标、材料分布可按日期筛选（点击即筛报道列表）、议题块（依据/反驳引用 + 对照相关材料 + 补查缺失依据）、常驻证据核查栏（选中材料 → 原文片段高亮 + 关系 + 仍缺 + 补查入口）、引用与原文附录、底部材料集口径。
+
+### 24.3 浏览器验收发现并修复的缺陷
+
+1. **哈希链接被静默丢弃**：`ui.js` 的 `el()` 仅对 http/https 设置 `href`，导致 `#/...` 入口（版本比较、查看上一完整结果）渲染成无 href 的空锚点，点击无反应——纯 API 验收不可见。
+2. （同批）补齐新布局下遗漏的“版本比较”入口与补查表单的问题预选（`?issue=` 直达并勾选对应问题）。
+
+### 24.4 验证
+
+- `tests/investigation/test_page_export.py` 7 项：自包含/内联样式、快照绑定、无内部 ID、转义注入文本（`<script>` → 实体）、上下文与定位、缺证据与模块缺口的诚实呈现、阶段投影标记、offline 虚构材料标记。
+- `pytest -q -m "not live"`：见本轮回归结果（后端无回归）。
+- 浏览器 23/23 步：新增“导出被服务为 text/html”“导出自包含且无内部 ID”“附件下载头”“静态页在独立页面渲染成功”，以及新布局的侧栏/证据栏/日期筛选/议题/引用附录。
+- **未覆盖**：断网注入的 SSE 恢复、320px 窄屏、全键盘走查；导出页在极端材料量下的体积（未压缩）。
+
+## 25. 工作台视觉打磨与两处真实缺口修复（2026-09-11）
+
+> 阶段状态：verified（测试全绿 + 浏览器 23/23 + 1440px 截图复核）。
+
+### 25.1 视觉改造（用户反馈“间距和设计不好”）
+
+- **间距体系**：`.os-page` 内定义局部令牌 `--os-gap-xs/sm/md/lg/xl`（6/10/16/24/32）与 `--os-pad-x`；断点只改 `--os-pad-x`，避免各处魔法数字（此前 18/20/22/24 混用）。
+- **页面容器**：工作台加卡片外壳（`max-width: 1400px`、圆角 14px、边框），并让 `body.wide` 把 `main` 放宽到 1440px（此前被 `main{max-width:1040px}` 压窄，右侧证据栏挤压正文）。
+- **顶栏**：导出/比较入口收进 `.os-tools` 药丸组（含分隔线），与品牌徽标分区，不再是一串裸文本。
+- **眉标与范围行**：眉标改为“键—值 + 分隔点 + 状态徽标”结构；范围行用 `.os-meta-item`（标签 + 加粗值），并把重复的状态/演示徽标从范围行移到眉标，消除重复与换行。
+- **分区层次**：研判摘要改为卡片（浅底 + 左侧强调条 + 判断间虚线分隔）；模块卡、议题卡、材料卡统一 `--os-radius` 与内边距；章节标题加 3px 强调条；正文段落限宽 `76–78ch`。
+- **材料分布**：日柱卡改为固定宽 88px（此前 `flex: 1 1 76px` 会把单日卡片拉伸到整行、计数与柱子分离），柱高 68px 容器内底部对齐，日期只显示 `MM-DD`；导出页同步。
+- **列表与证据栏**：材料卡加 hover 阴影与元信息行；证据栏改为带边框的浅底卡片、粘性定位、独立标题层级；引用角标改为上标样式并支持选中态。
+- **基础页**：`style.css` 统一卡片圆角/内边距、输入聚焦环、按钮 hover、历史项 hover；页头链接层级与主题色统一。
+
+### 25.2 打磨过程中发现并修复的真实缺口
+
+1. **定向补查丢失事件侧重点**：子版本此前 `profile=None`，导致补查后“本事件重点模块”整体消失（浏览器截图才看出来）。改为继承父版已确认 profile（`profile=old_state.profile`），并加测试 `test_update_run_inherits_the_parent_event_emphasis`。
+2. **导出页缺设计令牌**：导出只内联 `workbench.css`，而 `--bg/--panel/--ink` 等令牌定义在 `style.css`，脱离浏览器默认值就会失去配色（深色模式下更明显）。现导出同时内联 `EXPORT_BASE` + `style.css` + `workbench.css`。
+
+### 25.3 验证
+
+- `pytest -q -m "not live"`：全绿（含新增 facet 继承测试；导出 7 项）。
+- 浏览器 23/23 步复跑通过（含导出与的新布局断言）。
+- 1440×1000@2x 截图复核：总览 / 报道对照 / 议题与核查 / 静态导出四个视图。
+- **未覆盖**：320px 窄屏与深色模式截图复核（CSS 已写暗色友好的令牌引用，但未实测）、全键盘走查。
+
+## 26. 深色/窄屏/键盘打磨与 P4 增量（2026-09-11/12）
+
+> 阶段状态：verified（非 live 全量回归 + 浏览器 23/23 + 走查 9/9 截图复核）。
+
+### 26.1 视觉与可达性打磨（覆盖 §25.3 的未验证项）
+
+- **深色模式**：令牌调优（accent 提亮为参考稿 `#96b7ff`，warn/danger/ok 同步提亮，panel/bg/line 拉开一档）；accent 实心主按钮在深色下文字翻转为深藏青；mark 高亮深色下改为暗琥珀底 + 亮琥珀字；`.badge` 的 `display:inline-block` 曾覆盖 UA `[hidden]`，连接状态徽标隐藏时仍渲染为顶部空胶囊——补 `[hidden]{display:none!important}`（线上与导出同源生效）。深色截图逐视图复核（总览/证据栏/引用/议题/导出）。
+- **窄屏**：≤850px 证据栏 `order:-1` 提到单列最前（此前在整页最底部）；≤620px 工具组居中换行并去掉行首残留分隔线、区块头改上下堆叠、研判卡内边距收窄；走查中发现筛选行 label 被 flex 收缩至 CJK 一字一行，加 `flex:0 0 auto`。320px 无横向溢出（脚本断言）。
+- **键盘**：全局 `a/button/summary:focus-visible` 2px 实线焦点环；证据抽屉打开时焦点移入"关闭"按钮、Esc 任意位置关闭、关闭后焦点回落触发 chip（回落逻辑原有）；抽屉收起时 `visibility:hidden` 移出 Tab 序（此前关闭的抽屉按钮仍可被 Tab 聚焦）。
+- **验证**：走查脚本（`/tmp/os-polish/verify_polish.js`，Playwright）：Tab 6 次到导航钮、焦点环 2px solid、行内引用可键盘聚焦、抽屉焦点入内/Esc 关闭/焦点回落、320px 无溢出——全部通过。
+
+### 26.2 P4-3：图表度量契约（`investigation/metrics.py`，新增）
+
+- `METRIC_DEF_VERSION = "workbench-metrics-1"`；发布分布从 workbench.py 迁入 `metrics.publication_distribution`，新增 `metric_def_version` / `material_set_version`（版本集合哈希）/ `inclusion`（口径文本），成员绑定不变（同 URL 多正文版本按文档计）。
+- 新增 `metrics.issue_involvement`：每议题"涉及材料"计数，成员 = 该议题 active finding 引用（支持 + 反驳）命中的**正文版本**，与 `materials` 端点及前端 coverage 过滤完全同一口径（显示计数 == 点击下钻成员数，W19）；同一版本在同一议题只计一次、跨议题允许重复；观点构成（百分比）仍按条件保持 pending。
+- 投影 `views.issues.issues[].involved_materials`（count/members/members_hash/inclusion）；前端议题区按钮改为"对照相关材料（N 篇）"，导出议题区显示"涉及材料：N 篇（同一快照内的筛选口径，非公众讨论总量）"。
+- 测试：`test_publication_distribution_carries_its_metric_definition`（定义版本/材料集版本稳定性与敏感性）、`test_issue_involvement_counts_match_the_drilldown_membership`（跨议题重复、未激活 finding 不计、与 coverage 过滤基一致）、`test_export_shows_per_issue_material_counts_from_the_snapshot`。
+
+### 26.3 W18 前端入口：partial 不掩盖上一完整结果
+
+- 后端 `snapshot.latest_completed_run_id`（§21 已有机制测试）此前无任何 UI 消费。现工作台顶部新增 `.os-version-note` 横幅："本版本{状态}；最近一次完整结果仍可查看：查看上一完整版本"，并注明"未复评的判断以当前页面为准，不视为已被上一版撤回"；`renderPending`（终态无报告）同步提供链接。浏览器断言横幅出现且 href 指向 `latest_completed_run_id`。
+
+### 26.4 导出修复：`{cards}` 字面量
+
+- `export.py` `_overview_section` 第二段字符串漏 `f` 前缀，静态导出渲染出字面量 `{cards}` 且重点模块卡从未被插入导出页。修复并加回归测试（`test_export_renders_facet_module_cards_instead_of_template_literals`）。
+
+### 26.5 验证
+
+- `pytest tests/investigation -q`：79 passed（含 4 项新测试）；`tests/e2e/test_investigation_web.py`：7 passed；`pytest -q -m "not live"`：675 passed, 2 deselected。
+- 浏览器验收 23/23（`browser_acceptance.js`）；走查 9/9（新增 W18 横幅断言、W19 计数 == 下钻列表断言）。
+- 导出页 grep：无 `{cards}`，模块卡与"涉及材料"计数出现。
+- **未覆盖 / NOT_RUN**：真实联网调查与人工质量评分（额度与案例材料，P5 仍 blocked，registry 10 槽位全部 blocked）；观点构成图表按条件 pending；真实断网注入的 SSE 恢复演练未做（有界重连逻辑有机制测试）。
+
+### 26.6 W 场景补强（2026-09-12）
+
+- **W11 证据定位**：新增 `test_evidence_positioning_survives_emoji_and_combining_marks`——astral emoji（🙂🌙）与组合字符（e\u0301）文本上 `verify_evidence` 按码点切片校验通过，manager/export 的 before/excerpt/after 预切重组恒等于原文；被丢弃 emoji 的"近似原文"无法通过校验（fail closed）。前端只渲染预切文本，不存在 UTF-16 下标换算。
+- **W17 对照页**：版本比较从"纯文本拼接"升级为逐条渲染——每条判断带"（核查：{核查结论} · 依据 N 条）"（不暴露内部 evidence_id），撤回原因逐条显示（`retired_reasons`），未复评仍是独立状态标签不叫撤回。浏览器断言：`.issue li` 含"核查："与"依据"（6 条）。
+- **W12 断网注入演练**（此前仅有机制测试，无浏览器级验证）：真实 Chromium 从创建起 route.abort 全部 `/events` SSE——页面出现"连接中断，正在恢复…"横幅（脚本捕获到可见窗口），快照补取路径完成调查并渲染工作台，URL run 不变（未新建 run）。与 §21 的有界退避机制测试互补。
+- **W23 宽度走查**：64 字长标题 run 在 768/1024px 无横向溢出（scrollWidth 断言），截图 `narrow768-longtitle.png`。
+- 验证：`pytest -q -m "not live"` 676 passed, 2 deselected；浏览器验收 23/23；走查脚本 14 项全过。
+
+## 27. 额度恢复后的首次 live 验证（2026-09-12）
+
+> 阶段状态：verified（机制与溯源）；质量门槛 NOT_CLAIMED（仍达不到 90%/95%，理由见下）。
+
+### 27.1 额度现状（更正 §20.9 的"额度耗尽"记录）
+
+最小探测（各一次调用，不打印密钥）：模型网关 `opencode.ai/zen/go/v1` + `deepseek-flash` + `x-opencode-session` 头 → **200 OK**（43 tokens）；Brave → **200 OK**，本月剩余 **1,884 次**；Jina 无 key 走匿名档 → 200 OK。9/11 的"额度耗尽"只代表当时状态。注意 `.env` 的 `OPINION_MODEL_EXTRA_HEADERS` 是 **JSON 格式**；另发现一个 pytest 遗留服务进程占端口（`--env-file /dev/null`），重启服务时需先清理。
+
+### 27.2 live 运行记录
+
+- 事件：重庆燃气费计费争议的退费安排与整改进展（经 Web API `mode=live` 创建，runs 目录 `/tmp/os-polish/live-runs`，run `73e84650a9214f929ed16be1490c9f1d`）。
+- 结果：**partial**；13 个真实来源（含官方通报/媒体，发布窗口 2024-04-14 — 2025-02-14，11 篇发布时间未知）、75 条证据（全部通过字符区间校验）、8 个问题（1 个 answered：2024 年首轮退费到账进度；7 个 open）、18 条 active 判断、**0 条核心结论**（复核门未通过任何核心断言）。
+- 失败诚实计数：搜索失败 0、读取失败 3（UI 总览明示"缺失材料不代表没有新进展"）；来源关系全部标"未核实"，不冒充独立。
+- stop_reason：`Decision recovery was exhausted: The model response did not match the decision schema.`——与 §20.7 一致，模型决策结构化成功率仍是质量瓶颈。模型本轮未提出可用 facets，投影如实回退 general 视图。
+- 新契约在真实数据上生效：发布分布携带 `metric_def_version/material_set_version`；议题涉及计数（1–2 篇/题）与 `materials?issue_id=` 端点总数一致（W19 实测通过）；导出自包含、无内部 ID、Markdown/附件头正常。
+
+### 27.3 浏览器验证
+
+部分完成徽标、空研判卡（"尚无可对外核查的核心判断"）、读取失败提示、13 篇材料展开（"展开全部 13 篇"）、证据栏真实原文与关系——10 项断言全过（coverage 计数断言首跑误写为 ≥10，实为设计上默认折叠 4 篇 + 展开按钮，修正后确认）。截图 `/tmp/os-polish/live-shots/`。
+
+### 27.4 尚未完成（与 P5 门槛对照）
+
+- 案例材料仍 blocked：registry 10 槽位无真实快照与人工标注，固定材料语义回放无法执行。
+- 核心结论 0 条 → 人工 95% 断言支持评分无分母；必答问题仅 1/8 answered，远达不到 90% 门槛。
+- 结论：**不得宣称 P5 通过**；live 链路的机制、溯源、诚实状态呈现验证通过，质量瓶颈（决策 schema 成功率、核心结论复核门）与 §20.7 判断一致，是下一步模型侧/提示侧工作的对象。

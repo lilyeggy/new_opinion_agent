@@ -1,0 +1,70 @@
+{
+  "过去30天": {
+    "subject": "分析某品牌发布事件",
+    "temporal_scope": {
+      "anchor_date": "2026-09-09",
+      "start_date": "2026-08-11",
+      "end_date": "2026-09-09",
+      "provenance": "explicit_request",
+      "original_expression": "过去30天"
+    },
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": []
+  },
+  "过去 30 天": {
+    "subject": "分析某品牌发布事件",
+    "temporal_scope": {
+      "anchor_date": "2026-09-09",
+      "start_date": null,
+      "end_date": null,
+      "provenance": "unspecified",
+      "original_expression": null
+    },
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": []
+  },
+  "上个月": {
+    "subject": "分析某品牌发布事件",
+    "temporal_scope": {
+      "anchor_date": "2026-09-09",
+      "start_date": null,
+      "end_date": null,
+      "provenance": "unspecified",
+      "original_expression": null
+    },
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": []
+  },
+  "2026-09-01 至 2026-09-09": {
+    "subject": "分析某品牌发布事件",
+    "temporal_scope": {
+      "anchor_date": "2026-09-09",
+      "start_date": "2026-09-01",
+      "end_date": "2026-09-09",
+      "provenance": "explicit_request",
+      "original_expression": "2026-09-01 至 2026-09-09"
+    },
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": []
+  },
+  "inferred_question": {
+    "subject": "分析某品牌过去一周的争议",
+    "temporal_scope": {
+      "anchor_date": "2026-09-09",
+      "start_date": "2026-09-03",
+      "end_date": "2026-09-09",
+      "provenance": "inferred_from_question",
+      "original_expression": "过去一周"
+    },
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": []
+  },
+  "numeric_irrelevant_block": [
+    "This unrelated travel article describes 2026 summer vacation destinations and routes."
+  ]
+}

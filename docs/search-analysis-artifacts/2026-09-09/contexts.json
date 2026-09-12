@@ -1,0 +1,1757 @@
+[
+  {
+    "step": 1,
+    "sha256": "079afc51de4d3f5f4d3b3fc778d868254676c38c81fdee20c16bb0b762c1d05c",
+    "estimated_tokens": 2940,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.open-gaps",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.gap.3",
+        "memory.gap.4"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 2940,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 175
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 58
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 84
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 50
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        }
+      ]
+    }
+  },
+  {
+    "step": 2,
+    "sha256": "3bd873702b1e22411b5337d50481f8cb99b6453724cdfaed28e0ae0e1abcdeb8",
+    "estimated_tokens": 3260,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.open-gaps",
+        "memory.gap.1",
+        "memory.candidate.1",
+        "memory.gap-query-history.1",
+        "memory.gap.2",
+        "memory.pending-candidates",
+        "memory.current-focus",
+        "memory.gap.3",
+        "memory.gap.4",
+        "recent.step.1.tool-result",
+        "recent.step.1.decision"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 3260,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 175
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 58
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 84
+        },
+        {
+          "section_id": "memory.candidate.1",
+          "estimated_tokens": 75
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.pending-candidates",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 50
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "recent.step.1.tool-result",
+          "estimated_tokens": 81
+        },
+        {
+          "section_id": "recent.step.1.decision",
+          "estimated_tokens": 69
+        }
+      ]
+    }
+  },
+  {
+    "step": 3,
+    "sha256": "498084747821214b138118f5bffc9a426b58789f17a349fdcedcc5befa33494a",
+    "estimated_tokens": 3691,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.evidence.1",
+        "memory.open-gaps",
+        "memory.gap.1",
+        "memory.gap-query-history.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.source.1",
+        "memory.read-sources",
+        "memory.gap.3",
+        "memory.gap.4",
+        "recent.step.1.tool-result",
+        "recent.step.2.tool-result",
+        "recent.step.1.decision",
+        "recent.step.2.decision"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 3691,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 175
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 79
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 58
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 50
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "recent.step.1.tool-result",
+          "estimated_tokens": 81
+        },
+        {
+          "section_id": "recent.step.2.tool-result",
+          "estimated_tokens": 100
+        },
+        {
+          "section_id": "recent.step.1.decision",
+          "estimated_tokens": 69
+        },
+        {
+          "section_id": "recent.step.2.decision",
+          "estimated_tokens": 80
+        }
+      ]
+    }
+  },
+  {
+    "step": 4,
+    "sha256": "63f46e124477e3052348e8a6e2b3d01b4232c797a78fe4ec927977af4db0b766",
+    "estimated_tokens": 4580,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.open-gaps",
+        "memory.gap.3",
+        "memory.evidence.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.source.1",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap.4",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "recent.step.1.tool-result",
+        "recent.step.2.tool-result",
+        "recent.step.1.decision",
+        "recent.step.2.decision",
+        "recent.step.3.decision",
+        "recent.step.3.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 4580,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 39
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 212
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 45
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 86
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 42
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "recent.step.1.tool-result",
+          "estimated_tokens": 81
+        },
+        {
+          "section_id": "recent.step.2.tool-result",
+          "estimated_tokens": 100
+        },
+        {
+          "section_id": "recent.step.1.decision",
+          "estimated_tokens": 69
+        },
+        {
+          "section_id": "recent.step.2.decision",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "recent.step.3.decision",
+          "estimated_tokens": 301
+        },
+        {
+          "section_id": "recent.step.3.observation",
+          "estimated_tokens": 77
+        }
+      ]
+    }
+  },
+  {
+    "step": 5,
+    "sha256": "e57329f02339c177247f27ca6d48e7fc4ab563fd398fbe969b5c6e0e7cef6a57",
+    "estimated_tokens": 4759,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.open-gaps",
+        "memory.candidate.1",
+        "memory.gap-query-history.3",
+        "memory.gap.3",
+        "memory.evidence.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.pending-candidates",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.source.1",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap.4",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "recent.step.2.tool-result",
+        "recent.step.4.tool-result",
+        "recent.step.2.decision",
+        "recent.step.3.decision",
+        "recent.step.4.decision",
+        "recent.step.3.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 4759,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 39
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 212
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 45
+        },
+        {
+          "section_id": "memory.candidate.1",
+          "estimated_tokens": 78
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 86
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.pending-candidates",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 42
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "recent.step.2.tool-result",
+          "estimated_tokens": 100
+        },
+        {
+          "section_id": "recent.step.4.tool-result",
+          "estimated_tokens": 83
+        },
+        {
+          "section_id": "recent.step.2.decision",
+          "estimated_tokens": 80
+        },
+        {
+          "section_id": "recent.step.3.decision",
+          "estimated_tokens": 301
+        },
+        {
+          "section_id": "recent.step.4.decision",
+          "estimated_tokens": 74
+        },
+        {
+          "section_id": "recent.step.3.observation",
+          "estimated_tokens": 77
+        }
+      ]
+    }
+  },
+  {
+    "step": 6,
+    "sha256": "22115a6eab72855fdf24c1a19a9ee6b56639f062f93a5a440ebc662cf10b555c",
+    "estimated_tokens": 4949,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.evidence.2",
+        "memory.open-gaps",
+        "memory.gap-query-history.3",
+        "memory.gap.3",
+        "memory.evidence.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.source.1",
+        "memory.source.2",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap.4",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "recent.step.4.tool-result",
+        "recent.step.5.tool-result",
+        "recent.step.3.decision",
+        "recent.step.4.decision",
+        "recent.step.5.decision",
+        "recent.step.3.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 4949,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 39
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 212
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 134
+        },
+        {
+          "section_id": "memory.evidence.2",
+          "estimated_tokens": 159
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 45
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 86
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 42
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 55
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "recent.step.4.tool-result",
+          "estimated_tokens": 83
+        },
+        {
+          "section_id": "recent.step.5.tool-result",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "recent.step.3.decision",
+          "estimated_tokens": 301
+        },
+        {
+          "section_id": "recent.step.4.decision",
+          "estimated_tokens": 74
+        },
+        {
+          "section_id": "recent.step.5.decision",
+          "estimated_tokens": 84
+        },
+        {
+          "section_id": "recent.step.3.observation",
+          "estimated_tokens": 77
+        }
+      ]
+    }
+  },
+  {
+    "step": 7,
+    "sha256": "e075f9306515007d9e9d019cea9b707ad1f1a13561c90f61038d1ea808b48a13",
+    "estimated_tokens": 5127,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.open-gaps",
+        "memory.gap.4",
+        "memory.evidence.1",
+        "memory.evidence.2",
+        "memory.narrative.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.reflection.2",
+        "memory.source.1",
+        "memory.source.2",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap-query-history.3",
+        "memory.gap.3",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "memory.gap-note.3",
+        "recent.step.4.tool-result",
+        "recent.step.5.tool-result",
+        "recent.step.4.decision",
+        "recent.step.5.decision",
+        "recent.step.6.decision",
+        "recent.step.6.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 5127,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 231
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 141
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.evidence.2",
+          "estimated_tokens": 178
+        },
+        {
+          "section_id": "memory.narrative.1",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.reflection.2",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 55
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 92
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 53
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap-note.3",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "recent.step.4.tool-result",
+          "estimated_tokens": 83
+        },
+        {
+          "section_id": "recent.step.5.tool-result",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "recent.step.4.decision",
+          "estimated_tokens": 74
+        },
+        {
+          "section_id": "recent.step.5.decision",
+          "estimated_tokens": 84
+        },
+        {
+          "section_id": "recent.step.6.decision",
+          "estimated_tokens": 234
+        },
+        {
+          "section_id": "recent.step.6.observation",
+          "estimated_tokens": 71
+        }
+      ]
+    }
+  },
+  {
+    "step": 8,
+    "sha256": "b776cb984c62b6ebfb1c8984726c39fb3ca986736a9a807cbfdcd29bc8f03a86",
+    "estimated_tokens": 5309,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.open-gaps",
+        "memory.candidate.1",
+        "memory.gap-query-history.4",
+        "memory.gap.4",
+        "memory.evidence.1",
+        "memory.evidence.2",
+        "memory.narrative.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.pending-candidates",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.reflection.2",
+        "memory.source.1",
+        "memory.source.2",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap-query-history.3",
+        "memory.gap.3",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "memory.gap-note.3",
+        "recent.step.5.tool-result",
+        "recent.step.7.tool-result",
+        "recent.step.5.decision",
+        "recent.step.6.decision",
+        "recent.step.7.decision",
+        "recent.step.6.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 5309,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 231
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 141
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.candidate.1",
+          "estimated_tokens": 78
+        },
+        {
+          "section_id": "memory.gap-query-history.4",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 91
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.evidence.2",
+          "estimated_tokens": 178
+        },
+        {
+          "section_id": "memory.narrative.1",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.pending-candidates",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.reflection.2",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 55
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 92
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 53
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap-note.3",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "recent.step.5.tool-result",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "recent.step.7.tool-result",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "recent.step.5.decision",
+          "estimated_tokens": 84
+        },
+        {
+          "section_id": "recent.step.6.decision",
+          "estimated_tokens": 234
+        },
+        {
+          "section_id": "recent.step.7.decision",
+          "estimated_tokens": 77
+        },
+        {
+          "section_id": "recent.step.6.observation",
+          "estimated_tokens": 71
+        }
+      ]
+    }
+  },
+  {
+    "step": 9,
+    "sha256": "4bd66053b152c69360886507b45dc644e2069906a9d311f09d8c9eb3fd63c4a0",
+    "estimated_tokens": 5491,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.current-gap",
+        "memory.opinion-coverage",
+        "memory.evidence-catalog.current",
+        "memory.evidence.3",
+        "memory.open-gaps",
+        "memory.gap-query-history.4",
+        "memory.gap.4",
+        "memory.evidence.1",
+        "memory.evidence.2",
+        "memory.narrative.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.claim.2",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.reflection.2",
+        "memory.source.1",
+        "memory.source.2",
+        "memory.source.3",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap-query-history.3",
+        "memory.gap.3",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "memory.gap-note.3",
+        "recent.step.7.tool-result",
+        "recent.step.8.tool-result",
+        "recent.step.6.decision",
+        "recent.step.7.decision",
+        "recent.step.8.decision",
+        "recent.step.6.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 5491,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.current-gap",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 231
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 182
+        },
+        {
+          "section_id": "memory.evidence.3",
+          "estimated_tokens": 159
+        },
+        {
+          "section_id": "memory.open-gaps",
+          "estimated_tokens": 38
+        },
+        {
+          "section_id": "memory.gap-query-history.4",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.evidence.2",
+          "estimated_tokens": 178
+        },
+        {
+          "section_id": "memory.narrative.1",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 43
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.reflection.2",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.3",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 65
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 92
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 53
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap-note.3",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "recent.step.7.tool-result",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "recent.step.8.tool-result",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "recent.step.6.decision",
+          "estimated_tokens": 234
+        },
+        {
+          "section_id": "recent.step.7.decision",
+          "estimated_tokens": 77
+        },
+        {
+          "section_id": "recent.step.8.decision",
+          "estimated_tokens": 83
+        },
+        {
+          "section_id": "recent.step.6.observation",
+          "estimated_tokens": 71
+        }
+      ]
+    }
+  },
+  {
+    "step": 10,
+    "sha256": "a3db8b498796e1b08b62416177e1baed857654a8f0fb6eefdfb7de9622b694ff",
+    "estimated_tokens": 5696,
+    "plan": {
+      "selected_section_ids": [
+        "instructions.core",
+        "instructions.opinion-semantics",
+        "protocol.decision-schema",
+        "protocol.tool.1",
+        "protocol.tool.2",
+        "task.request",
+        "memory.evidence-catalog.current",
+        "memory.opinion-coverage",
+        "memory.claim.2",
+        "memory.narrative.2",
+        "memory.evidence.1",
+        "memory.evidence.3",
+        "memory.evidence.2",
+        "memory.narrative.1",
+        "memory.position.1",
+        "memory.claim.1",
+        "memory.gap.1",
+        "memory.gap.2",
+        "memory.current-focus",
+        "memory.reflection.1",
+        "memory.reflection.2",
+        "memory.reflection.3",
+        "memory.source.1",
+        "memory.source.2",
+        "memory.source.3",
+        "memory.read-sources",
+        "memory.gap-query-history.1",
+        "memory.gap-query-history.3",
+        "memory.gap-query-history.4",
+        "memory.gap.3",
+        "memory.gap.4",
+        "memory.resolved-gaps",
+        "memory.gap-note.1",
+        "memory.gap-note.2",
+        "memory.gap-note.3",
+        "memory.gap-note.4",
+        "memory.evidence-catalog.history.1",
+        "recent.step.7.tool-result",
+        "recent.step.8.tool-result",
+        "recent.step.7.decision",
+        "recent.step.8.decision",
+        "recent.step.9.decision",
+        "recent.step.9.observation"
+      ],
+      "dropped_section_ids": [],
+      "compacted_section_ids": [],
+      "input_token_limit": 14000,
+      "estimated_input_tokens": 5696,
+      "section_measures": [
+        {
+          "section_id": "instructions.core",
+          "estimated_tokens": 165
+        },
+        {
+          "section_id": "instructions.opinion-semantics",
+          "estimated_tokens": 166
+        },
+        {
+          "section_id": "protocol.decision-schema",
+          "estimated_tokens": 1579
+        },
+        {
+          "section_id": "protocol.tool.1",
+          "estimated_tokens": 95
+        },
+        {
+          "section_id": "protocol.tool.2",
+          "estimated_tokens": 121
+        },
+        {
+          "section_id": "task.request",
+          "estimated_tokens": 155
+        },
+        {
+          "section_id": "memory.evidence-catalog.current",
+          "estimated_tokens": 139
+        },
+        {
+          "section_id": "memory.opinion-coverage",
+          "estimated_tokens": 249
+        },
+        {
+          "section_id": "memory.claim.2",
+          "estimated_tokens": 100
+        },
+        {
+          "section_id": "memory.narrative.2",
+          "estimated_tokens": 94
+        },
+        {
+          "section_id": "memory.evidence.1",
+          "estimated_tokens": 186
+        },
+        {
+          "section_id": "memory.evidence.3",
+          "estimated_tokens": 178
+        },
+        {
+          "section_id": "memory.evidence.2",
+          "estimated_tokens": 178
+        },
+        {
+          "section_id": "memory.narrative.1",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "memory.position.1",
+          "estimated_tokens": 82
+        },
+        {
+          "section_id": "memory.claim.1",
+          "estimated_tokens": 93
+        },
+        {
+          "section_id": "memory.gap.1",
+          "estimated_tokens": 96
+        },
+        {
+          "section_id": "memory.gap.2",
+          "estimated_tokens": 88
+        },
+        {
+          "section_id": "memory.current-focus",
+          "estimated_tokens": 42
+        },
+        {
+          "section_id": "memory.reflection.1",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.reflection.2",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.reflection.3",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.source.1",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.2",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.source.3",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "memory.read-sources",
+          "estimated_tokens": 65
+        },
+        {
+          "section_id": "memory.gap-query-history.1",
+          "estimated_tokens": 47
+        },
+        {
+          "section_id": "memory.gap-query-history.3",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap-query-history.4",
+          "estimated_tokens": 49
+        },
+        {
+          "section_id": "memory.gap.3",
+          "estimated_tokens": 92
+        },
+        {
+          "section_id": "memory.gap.4",
+          "estimated_tokens": 102
+        },
+        {
+          "section_id": "memory.resolved-gaps",
+          "estimated_tokens": 60
+        },
+        {
+          "section_id": "memory.gap-note.1",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.2",
+          "estimated_tokens": 46
+        },
+        {
+          "section_id": "memory.gap-note.3",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.gap-note.4",
+          "estimated_tokens": 48
+        },
+        {
+          "section_id": "memory.evidence-catalog.history.1",
+          "estimated_tokens": 89
+        },
+        {
+          "section_id": "recent.step.7.tool-result",
+          "estimated_tokens": 87
+        },
+        {
+          "section_id": "recent.step.8.tool-result",
+          "estimated_tokens": 101
+        },
+        {
+          "section_id": "recent.step.7.decision",
+          "estimated_tokens": 77
+        },
+        {
+          "section_id": "recent.step.8.decision",
+          "estimated_tokens": 83
+        },
+        {
+          "section_id": "recent.step.9.decision",
+          "estimated_tokens": 231
+        },
+        {
+          "section_id": "recent.step.9.observation",
+          "estimated_tokens": 70
+        }
+      ]
+    }
+  }
+]

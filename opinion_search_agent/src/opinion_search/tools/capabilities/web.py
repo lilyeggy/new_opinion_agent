@@ -25,6 +25,10 @@ class SearchArguments(BaseModel):
 
     query: NonEmptyText
     max_results: Annotated[int, Field(ge=1, le=10)] = 5
+    freshness: str | None = None
+    search_lang: str | None = None
+    country: str | None = None
+    offset: Annotated[int, Field(ge=0, le=9)] = 0
 
 
 class SearchHit(BaseModel):
@@ -68,6 +72,7 @@ class ReadResult(BaseModel):
     title: NonEmptyText
     content: NonEmptyText
     published_at: datetime | None = None
+    updated_at: datetime | None = None
     publication_time_status: PublicationTimeStatus = PublicationTimeStatus.UNAVAILABLE
 
     @model_validator(mode="after")

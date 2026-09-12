@@ -838,3 +838,111 @@ opinion_search_agent/
 8. 不设计 Environment、Control Plane、Evaluation、Data Infra 或 Model Infra 接口。
 9. 软件测试和 deterministic fixtures 用于验收前两层，不包装成 Eval 平台。
 10. 所有新增功能必须直接加强前两层或验证 OpinionSearch workload，否则不进入本项目。
+
+## 18. Web 公开事件调查 v2（新增产品流程）
+
+> 状态：领域与后端已实现并有离线/机制测试；Web 主链已接通并通过实际浏览器操作验证；真实联网质量与人工验收仍未执行。权威进度见 `superpowers/plans/2026-09-10-web-event-investigation.md` 与 `opinion-search-agent-implementation-memory.md`。
+
+本节定义一套面向“公共服务与社会争议公开事件调查”的新流程，与 §8 的旧 opinion 流程并存。旧流程不删除、不改造；新流程置于独立的执行 profile `public-event-investigation-v2` 与独立的 `investigations/` 存储命名空间，避免与旧 `opinion-.../run.json` 混淆。
+
+### 18.1 适用范围与格式边界
+
+- 新领域 State 与 report 使用 `schema_version = 2`；通用 checkpoint envelope 的 `CHECKPOINT_SCHEMA_VERSION` 是另一层概念，两者不得统一成同一数字。
+- 旧 checkpoint 可能带相同的 envelope 版本号但缺少新 profile，`Manager.resume` 以 execution profile 拒绝其由新流程续跑；旧未完成 run 只能只读或以旧流程查看。
+- 旧报告继续只读浏览与 Markdown 下载（`/legacy` 与既有 `/api/runs`）；新主页只进入新调查流程。
+
+### 18.2 领域契约（不变量）
+
+- 状态提交仍是 `Processor → Delta → Reducer`；调查规则只存在于领域层，通用 Runtime 不新增舆情语义。
+- 用户明确提出的问题（`State.required_questions`）必须被 `issues.origin_questions` 覆盖；校验器拒绝静默丢弃或降级。
+- 只有显式 `RetiredFinding`（含理由）才能把“旧判断消失”表述为撤回；更新中未复评的旧判断显示为“尚未重新评估”。
+- 任何 `Evidence` 必须满足 `artifact_text[start:end] == excerpt` 且 source `content_hash` 与 artifact 一致，校验发生在 Reader/Retrieve 边界与发布前。
+- 回应判定（direct/partial/non_substantive）必须给出覆盖理由；partial 必须指出未覆盖部分，direct 不得留下未覆盖部分；attributed 必须有明确主体。
+- `not_found` 需要问题级、有界的回应类搜索已实质完成且无未处理候选；读取失败或未完成一律 `unavailable`。
+
+### 18.3 发布协议
+
+- 终态先进入中间状态 `finalizing`；`report.json` 与 `report.md` 完整写入后才切换为 `completed/partial/cancelled/failed` 并暴露 `report`。
+- `snapshot` 在报告写入前不返回 `report`，并给出 `report_pending`；中断后 `resume` 由终态 checkpoint 重建并重新发布。
+- 取消若发生在产生材料之前，也会写入一份最小可读报告，保证“终态必有报告”。
+
+### 18.4 Web 契约
+
+- 新增 `/api/investigations` 系列端点与 `web/investigation.html` + `web/assets/` 模块；沿用现有 stdlib HTTP 服务，不引入构建框架。
+- SSE 采用“服务端持久化快照 + 轮询变更”，断线与晚加入都从 snapshot 重建，不创建新任务。
+- 证据端点只在对应版本定位原文，返回字符区间与上下文；主界面不展示内部 hash 与工具 JSON，开发者视图保留。
+
+### 18.5 版本、复查与恢复
+
+- **复查记录**：每次对已见 URL 的读取产生 `SourceCheck(url, version_id, checked_at, changed)`，`changed` 仅在同 URL 内容哈希变化时为真；报告与页面呈现为“重查记录”，不改动既有引用。
+- **版本不可变**：同 URL 内容变化不覆盖旧 artifact，而是追加新的 `SourceVersion`，来源标记 `discovery="changed_page"`；旧证据的字符区间继续对旧文校验通过。
+- **跨进程排他**：同一事件同时只允许一个活动调查；`CaseLock` 以文件锁（`fcntl.flock`，非阻塞）实现，第二个持有者以 `CaseBusy` 拒绝，不依赖进程内对象。
+- **恢复语义**：`resume` 从 checkpoint 恢复，已提交的工具动作不再重放；`finalizing` 中断后仅重新发布报告，不重跑调查步骤；预算不在恢复时归零。
+- **失败不粉饰**：抓取/读取失败在报告中分别计数（`search_failures`/`read_failures`），不得表述为“无新进展”；`no_material_change` 只在确有成功观测且无变化时为真。
+
+## 19. 按事件组织的 Web 研判工作台（规划，2026-09-11）
+
+> 状态：用户认可工作台设计方向；以下为后续实施契约，不表示新增功能已经实现。执行细则、代码基线、阶段与验收见 [工作台实施指南](./opinionsearch-adaptive-workbench-implementation-plan-2026-09-11.md)。§18 中的实现和验证状态仍须以实现记录的最新条目及当前产物复核，不以本节规划覆盖历史事实。
+
+- 产品以有时间边界、可核查、可继续补查的事件工作台为主要入口；报告和 Markdown 是同一调查状态的投影视图。
+- 保留统一导航与证据交互。根据事件属性、用户必答问题、调查阶段和证据条件，选择白名单模块及其顺序；不让模型生成任意页面代码，不为具体事件硬编码页面。
+- 事件属性包括规则与适用范围、服务可用性、费用与补救、调查与纠正，允许组合；未知类型回退通用视图。首批优先实现规则与费用两种内容适配。
+- 总览、报道对照、议题与核查共用版本化数据。模块状态区分可用、待核查、材料不足、不可获得和不适用；不适用不能用于隐藏用户必答问题。
+- 模型提议领域内容，程序维护引用、统计、版本和布局约束。状态继续经 Processor → Delta → Reducer 提交，工作台投影不成为第二权威状态，不向通用 Runtime 加入页面语义。
+- 事件发生时间、材料发布时间、获取时间分别处理。材料分布不解释为全网声量；观点构成仅在统计单元、归因、去重、分母及下钻成员可审计时启用。
+- 来源重复、转述和独立验证分开。未发现正文重复不能当作已经证明来源独立；不发布由该假设推得的独立来源数量。
+- 浏览筛选不发起调查。定向补查在 completed/partial 父版上显式创建关联新 run；活动调查首版只提供浏览、取消和恢复，不增加运行时交互指令队列。
+- 服务端持久化快照负责恢复；断流补取和有界重连不创建新 run。正文、引用、指标、模块与报告绑定一致版本，旧版保持只读。
+- 保留最近调查结果与最近完整结果两种指针职责；partial 可读但不得掩盖上一完整版本，未复评判断不得表述为撤回。具体迁移按实施指南验证后落地。
+- 沿用 Python 单 Agent、现有 HTTP 与原生 Web 模块、Brave/Jina、事件内 FTS5/BM25，不增加框架迁移、CLI 产品功能、社交采集、自动监测、云平台或多 Agent。
+
+本阶段只发布规划和交互参考。代码、浏览器主路径、固定材料回放与真实联网人工质量分别验收；画布认可不等于上述验收已通过。
+
+### 19.1 已落地的稳定契约（2026-09-11，实施指南 P0–P1 首批）
+
+以下契约已进入仓库并经测试（实现记录 §21），实现次序与验证证据见实现记录与实施指南：
+
+- **WorkbenchSnapshot（`opinion-workbench/1`）**：`investigation/workbench.py` 纯投影，从已发布 report.json 确定性生成；携带 `snapshot_id`（内容绑定）、`publication_state`、`profile`（首版仅 `general`）、`modules[]`（五类白名单模块 + ready/insufficient 状态）、`views`（overview / coverage / issues）、`citations`（evidence_id → 局部引用号“引N”）。
+- **`GET /api/investigations/{id}/workbench`**：`snapshot_id` 参数锚定快照，不匹配返回 409，不静默切换到最新；SSE 快照携带 `workbench_revision`。
+- **版本指针**：`latest.json` 表示最近发布可读结果；新增 `latest_completed.json` 仅在 `completed` 时更新；partial 快照携带 `latest_completed_run_id`。
+- **来源关系**：report 新增 `source.relation`（duplicate/unverified）与 `source_relation_counts`（document/version/identified_duplicate/unverified）；`independent` 字段保留兼容，但页面与统计不再以“未重复”当作“已验证独立”。
+- **证据关系**：`GET .../evidence/{eid}` 返回 `relations`（该证据与各判断的支持/反驳关系）。
+- **预算累计用时**：`budget.json` 新增 `accumulated_seconds`；暂停把已用时长折算进累计值，恢复不重置时间窗口（旧格式文件兼容读取）。
+- **SSE 客户端恢复**：断线后先补取服务端快照再以有界退避重连（5 次），页面区分连接状态与调查状态；旧响应按路由令牌丢弃。
+- **HTTP 请求目标**：服务器同时接受 origin-form 与 absolute-form（RFC 7230 要求），本地回环经代理访问不再 404。
+
+### 19.2 已落地的稳定契约（2026-09-11，实施指南 P2–P4 批次）
+
+以下契约已进入仓库并经测试（实现记录 §22）：
+
+- **EventProfile**：`domain/investigation/models.py` 新增实体；模型在计划阶段提议 facets，`investigation/presentation.py` 程序确认（未知名直接丢弃，不得扩大白名单）；确认结果随 State 提交并进入 report/workbench。允许集合：rule_change / service_change / billing_remedy / investigation_correction / general（可组合）。
+- **Facet 模块**：`presentation.py` 确定性映射四类侧重点 → 白名单模块（rule-comparison / service-availability / billing-remedy / investigation-progress），模块数据可用才 ready、不足则 insufficient 并附具体缺口文案（旧规则不补写、受理渠道不等于已退费、计划恢复与已恢复分开等）；运行中数据可用但未终审一律 provisional。总览重点模块最多 3 个。
+- **运行中阶段投影**：每次 checkpoint 写 `workbench-provisional.json`（同 `opinion-workbench/1` 契约，`publication_state=running`）；workbench 端点在 report.json 产生前返回它，发布后删除。前端进度页提供“查看阶段工作台（待核查）”入口。
+- **SearchTask / 覆盖记录（最小）**：SearchDecision 新增 `target_gap`；SearchAttempt 新增 `task_id`/`target_gap`/`discovery_mode`（discovery/targeted/user_provided），由 Reducer 维护；Compiler 向模型注入 `memory.coverage`（每问题尝试次数、失败数与近期缺口），`coverage` 视图对外展示“本次已查范围，非全网召回率”。
+- **定向补查**：update 契约扩展 `issue_ids` / `finding_ids` / `client_request_id`；引用必须属于父版报告，否则拒绝；`client_request_id` 按内容哈希幂等（同 key 同内容返回同一 run，同 key 异内容 409），并发仍受 CaseLock 约束；补查意图持久化在子 run 的 `followup` 字段。
+- **材料筛选端点**：`GET .../materials?snapshot_id&issue_id&offset&limit`（limit ≤ 100），总数与列表同一成员口径；workbench 发布分布的每个日期桶绑定成员（同 URL 多正文版本按文档计一次，成员含 version_ids）。
+- **版本比较口径**：diff 响应携带 `comparability`（同事件、两版截止时间与状态、口径变化标注位）。
+
+仍为待实施：观点构成图表（需归因/去重/分类评估通过，当前保留观点对照并标 pending）；旧格式 workbench 兼容视图的历史样本验证；真实联网调查与人工质量评分。
+
+### 19.3 浏览器主路径验收（2026-09-11）
+
+实际浏览器主路径验收已完成（实现记录 §23）：Playwright + 真实 Chromium 驱动本地服务器页面，17/17 步通过（创建→阶段投影→三视图→证据抽屉→定向补查→版本比较→两类事件差异→历史→刷新恢复），并据此修复三个纯 API 验收无法暴露的前端缺陷。未覆盖：真实断网注入的 SSE 恢复、320px 窄屏与全键盘走查。
+
+### 19.4 参考版式落地与自包含 HTML 导出（2026-09-11）
+
+- **版式**：在线页面按 `docs/design/professional-event-workbench.reference.html` 重建——左侧调查导航（事件总览/报道对照/议题与核查/引用与原文/完整报告）、眉标（事件侧重点 + 调查状态）、标题行（补查入口）、范围行与“检索范围”折叠（搜索覆盖）、当前研判摘要（判断文字 + 内联 [n] 引用角标）、事件进程与材料分布（可按日期筛选）、报道对照（议题/材料类型筛选、展开全部）、议题与回应对应（依据/反驳引用、对照相关材料、补查缺失依据）、常驻证据核查栏（材料元信息、原文片段与上下文、字符定位、与判断的关系、仍缺依据、补查入口）。
+- **共享样式**：新增 `web/assets/workbench.css`，在线页面以 `<link>` 引用，HTML 导出时整份内联——两种呈现版式恒等、无重复维护。
+- **自包含 HTML 导出（`GET /api/investigations/{id}/page`，`?snapshot_id=` 锚定、`?download=1` 附件下载）**：非新权威，仍是同一份已发布 workbench 投影的渲染出口；证据原文片段与上下文内联（`.before/.excerpt/.after`），引用角标在页内可跳转到“引用与原文”；全部文本转义、仅 http/https 外链；不含内部 evidence_id；无需 JavaScript 即可阅读。页面顶部提供“打开静态页 / 下载 HTML / 下载 Markdown / 版本比较”。
+- **边界不变**：模型仍不输出 HTML/CSS/脚本/组件名/百分比；页面结构由白名单模块与投影决定，导出只是同一份快照的另一呈现形式。验收：`tests/investigation/test_page_export.py` 7 项 + e2e `/page` 断言 + 浏览器 23/23 步（含导出被服务为 HTML、自包含、无内部 ID、附件头、静态页独立渲染）。
+- **版式规范（2026-09-11 打磨）**：工作台内以局部令牌固定间距节奏（6/10/16/24/32），工作台页面独占较宽的 `main`（`body.wide`，1440px），分区卡片化（研判摘要/模块卡/材料卡/议题卡/证据栏统一圆角与内边距），页首划分为品牌区、状态徽标区与工具组；导出时同时内联 `style.css`（设计令牌）与 `workbench.css`（版式），保证离线呈现与在线一致。
+- **补查继承侧重点**：定向补查生成的新版本继承父版已确认的 `EventProfile`——事件类型不因重新调查而改变。
+
+### 19.5 图表度量契约与版本入口（2026-09-12，实施指南 P4 增量）
+
+以下契约已进入仓库并经测试（实现记录 §26）：
+
+- **`investigation/metrics.py`（新增）**：程序计算图表度量，模型不可写任何计数/百分比。`METRIC_DEF_VERSION="workbench-metrics-1"`；发布分布携带 `metric_def_version` / `material_set_version`（材料集版本哈希）/ `inclusion` 口径文本，成员绑定不变（同 URL 多正文版本按文档计一次）。
+- **议题涉及数量**：`views.issues.issues[].involved_materials`（count/members/members_hash/inclusion）；成员 = 该议题 active finding 引用（支持+反驳）命中的正文版本，与 `materials?issue_id=` 端点及前端 coverage 过滤同一口径——显示计数恒等于点击下钻成员数（W19）；同一版本同一议题只计一次、跨议题允许重复。观点构成（百分比图）仍待归因/去重/分类评估，保持 pending。
+- **W18 版本入口**：partial/failed/cancelled 或被新版本覆盖的 complete 打开时，工作台顶部横幅提供"查看上一完整版本"（数据源 `snapshot.latest_completed_run_id`），注明未复评判断不视为被上一版撤回；终态无报告页同步提供。partial 不掩盖上一完整结果。
+- **导出一致性**：导出页与在线页共用同一投影字段渲染模块卡与涉及材料计数；`{cards}` 字面量缺陷修复并有回归测试。
