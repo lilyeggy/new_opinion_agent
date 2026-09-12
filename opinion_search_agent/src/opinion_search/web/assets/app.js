@@ -44,29 +44,31 @@ function renderHome() {
   refreshHistory();
 }
 
-// Static product copy: what a request needs before an investigation can run.
-// Mirrors the backend contract (only the event description is required; the
-// planner asks follow-up questions instead of guessing when the event is vague).
+// Static product copy under the question field. Tone goal: lower the bar to
+// starting — one sentence is enough, the planner asks follow-up questions
+// instead of requiring a complete query up front.
 const GUIDE_EXAMPLES = [
-  "某市公交夜班车时间调整后，居民对替代出行安排的质疑与运营方的回应（过去一个月）",
-  "某高校食堂承包纠纷中，学生反映食品安全问题，校方与主管部门的处理进展",
+  "某市公交夜班车时间调整，上班族吐槽通勤不便",
+  "某高校食堂被学生反映饭菜有问题",
 ];
 
 function questionGuide(question) {
   return el("div", { class: "home-guide" }, [
-    el("p", { class: "home-guide-title", text: "什么样的请求可以直接开跑？" }),
-    el("ul", { class: "home-guide-list" }, [
-      el("li", {}, [el("strong", { text: "具体主体" }), "：谁或哪个机构，最好带上城市或地区"]),
-      el("li", {}, [el("strong", { text: "具体事件" }), "：发生了什么，一句话说清楚"]),
-      el("li", {}, [el("strong", { text: "想核实的点" }), "：官方回应、处理进展、规则或费用变化"]),
-    ]),
-    el("p", { class: "muted home-guide-note", text: "时间范围可以不填（默认调查最近），写“过去一周”或“2026-09-07 至 2026-09-12”都可以；事件指向不清时，系统会先追问再开跑，不会凭空猜测。" }),
-    el("p", { class: "muted home-guide-note", text: "不适合的请求：泛泛话题（如“大家怎么看 AI”）、个人纠纷、要求持续监控或预测未来——这些没有可核查的具体公开事件。" }),
-    el("p", { class: "home-guide-title examples-title", text: "示例（点击填入）" }),
+    el("p", { class: "muted home-guide-hint", text: "一句话就能开始：写下你看到的事件就行，不用一次写全，缺什么系统会再问你。" }),
+    el("p", { class: "home-guide-title", text: "没有头绪？点一个试试" }),
     el("div", { class: "home-examples" }, GUIDE_EXAMPLES.map((text) => el("button", {
       class: "home-example", type: "button", text,
       onClick: () => { question.value = text; question.focus(); },
     }))),
+    el("details", { class: "home-more guide-more" }, [
+      el("summary", { text: "想查得更准？可以补充（可选）" }),
+      el("ul", { class: "home-guide-list" }, [
+        el("li", {}, [el("strong", { text: "谁 / 哪里" }), "：具体机构、学校、公司或城市"]),
+        el("li", {}, [el("strong", { text: "发生了什么" }), "：一句话说清事件"]),
+        el("li", {}, [el("strong", { text: "关心什么" }), "：官方回应、处理进展、规则或费用变化"]),
+      ]),
+      el("p", { class: "muted home-guide-note", text: "以上都可以先不写：时间范围留空默认查最近，其余信息系统会通过追问补齐。" }),
+    ]),
   ]);
 }
 
