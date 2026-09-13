@@ -2610,3 +2610,28 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 - 其他视图的摘要高度为 0（前一条 F08 CDP 检查在 390px 覆盖），验证“切视图直接进入目标内容”不是仅靠 CSS 隐藏。
 
 边界：这些是机制/布局走查，不是真实长材料、十余篇来源、多时点的完整人工视觉评审；真实材料走查仍属 P5 未完成项。
+
+## 35. 固定材料模型回放 harness（代码层，2026-09-13）
+
+> 阶段状态：harness verified（定向/Web 138 passed；non-live 732 passed, 2 deselected）。真实模型执行 NOT_RUN，未消耗模型预算。
+
+### 35.1 契约
+
+- `build_loop()` 支持显式注入 `search_adapter` / `reader_adapter`；若提供 frozen adapters 且未提供 model，则仍使用配置中的 live model/reviewer，若提供 explicit model/reviewer 则用于测试或脚本回放。原 live/offline 分支行为不变。
+- `Manager` 新增可选 `loop_builder` 注入点，默认仍为 `build_loop`；工作台 API 与 create 契约不变。
+- 新增 `investigation/replay.py`：
+  - `ReplayMaterial` / `ReplayCase` / `load_replay_case()`：支持内联 `content` 或 `snapshot_path` + sha256 校验；快照不存在、hash 不一致、未知 role 都拒绝。
+  - `ReplaySearchAdapter`：所有 search purpose 只返回冻结材料，模型仍选择 query/purpose/target_gap。
+  - `ReplayReaderAdapter`：只读取冻结 URL 的原文；未知 URL 拒绝，不访问 live 页面。
+  - `replay_loop_builder()` 与 `run_replay_case()`：用真实模型/审查器跑正常 loop 和 report 管线，只是把 Brave/Jina 替换成冻结材料；支持 manifest 中的 `clarification_answers`。
+
+### 35.2 测试
+
+- `test_load_replay_case_checks_snapshot_hash`：sha256 错误拒绝。
+- `test_replay_adapters_only_serve_frozen_materials`：搜索只返回冻结条目、读取只接受冻结 URL。
+- `test_build_loop_can_run_on_frozen_adapters_with_a_scripted_model`：用 scripted model/reviewer 跑完整 AgentLoop，验证 sources/evidence/reflection/review/finish 都从冻结 adapters 落地；程序数字护栏也在该测试中被实际触发并促使模型修正测试文本。
+
+### 35.3 边界
+
+- 这只是固定材料模型回放的能力入口，不是本次已执行的真实模型结果；真正运行需要模型 API 预算与案例材料决定。
+- 不调用 Brave/Jina，不改变 web 产品模式，不把 synthetic replay 与真实材料 registry 混同。

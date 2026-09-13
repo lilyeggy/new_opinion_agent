@@ -231,9 +231,10 @@ class Worker:
 class Manager:
     """Local event/version orchestration; the AgentLoop owns step transactions."""
 
-    def __init__(self, root: Path, config_loader=None):
+    def __init__(self, root: Path, config_loader=None, loop_builder=None):
         self.root = root
         self.config_loader = config_loader or LiveConfig.from_env
+        self.loop_builder = loop_builder
         self.workers: dict[str, Worker] = {}
         self.mutex = threading.RLock()
 
@@ -886,8 +887,9 @@ class Manager:
                     progress={"questions": [q.model_dump(mode="json") for q in state.issues], "source_count": len(state.sources), "finding_count": sum(f.active for f in state.findings), "read_errors": len(state.read_errors), "search_errors": sum(s.outcome == "error" for s in state.searches)})
                 manager._write_provisional_workbench(identifier, data, state)
 
-        loop = build_loop(run_root, case_root, data["mode"], budget, Hook(), worker.signal, config,
-                          bool(parent), fixture=offline_fixture)
+        builder = self.loop_builder or build_loop
+        loop = builder(run_root, case_root, data["mode"], budget, Hook(), worker.signal, config,
+                       bool(parent), fixture=offline_fixture)
         result = await loop.resume()
         await self._publish(identifier, data, result, parent, run_root, case_root, budget)
 

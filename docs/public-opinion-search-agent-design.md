@@ -964,6 +964,12 @@ opinion_search_agent/
 - `test_replay_cases.py` 通过真实 Manager 端到端执行，验证父版隔离、模块内容、复合组件、搜索方向和子版定向更新；所有 case 标记 `quality_claim=mechanism_only`。
 - 真实材料十个 registry 槽位仍 blocked；机制回放通过不等于 live 搜索或人工质量验收通过。
 
+### 19.10 固定材料模型回放契约（2026-09-13）
+
+- `build_loop()` 可注入 frozen `search_adapter` / `reader_adapter`，仍使用生产 live model/reviewer 与正常 loop/report 管线；`Manager` 提供可选 `loop_builder` 注入点，web 产品路径不变。
+- `investigation/replay.py` 定义 manifest、sha256 快照校验、只服务冻结材料的 search/read adapter，以及 `run_replay_case()`；不访问 Brave/Jina 页面。
+- 机制层回放案例继续使用 synthetic fixtures；固定材料模型回放用于真实模型 + 冻结材料，真实执行与人工评分仍待 P5 预算和材料决定。
+
 ### 19.3 浏览器主路径验收（2026-09-11）
 
 实际浏览器主路径验收已完成（实现记录 §23）：Playwright + 真实 Chromium 驱动本地服务器页面，17/17 步通过（创建→阶段投影→三视图→证据抽屉→定向补查→版本比较→两类事件差异→历史→刷新恢复），并据此修复三个纯 API 验收无法暴露的前端缺陷。未覆盖：真实断网注入的 SSE 恢复、320px 窄屏与全键盘走查。

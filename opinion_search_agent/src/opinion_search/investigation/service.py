@@ -214,12 +214,28 @@ class Executor:
         return Observation(action="read", outcome=outcome, sources=() if existing else (source,), evidence=evidence, check=check)
 
 
-def build_loop(run_root: Path, case_root: Path, mode, budget, hook, signal, config=None, update=False, fixture="bus"):
+def build_loop(run_root: Path, case_root: Path, mode, budget, hook, signal, config=None, update=False,
+              fixture="bus", search_adapter=None, reader_adapter=None, model=None, reviewer=None,
+              model_name=None):
     checkpoint = JsonCheckpointStore(run_root / "run.json", InvestigationRun, execution_profile=PROFILE)
     corpus = Corpus(case_root)
     compiler = Compiler(budget)
     registry = ToolRegistry()
-    if mode == "live":
+    custom_adapters = search_adapter is not None or reader_adapter is not None
+    if custom_adapters:
+        if search_adapter is None or reader_adapter is None:
+            raise ValueError("search_adapter and reader_adapter must be provided together")
+        search, reader = search_adapter, reader_adapter
+        if model is None:
+            if config is None:
+                raise ValueError("frozen-material adapters require a live config or an explicit model")
+            model = live_model(config, budget, Decision)
+            reviewer = reviewer or live_model(config, budget, ReviewResult)
+            model_name = model_name or config.model_name
+        else:
+            reviewer = reviewer or model
+            model_name = model_name or "scripted-replay"
+    elif mode == "live":
         transport = HttpxTransport()
         search = BraveSearchAdapter(transport=transport, api_key=config.brave_search_api_key.get_secret_value())
         reader = JinaReaderAdapter(transport=transport, api_key=config.jina_api_key.get_secret_value() if config.jina_api_key else None, artifact_store=corpus.artifacts)
