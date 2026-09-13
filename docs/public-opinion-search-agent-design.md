@@ -947,6 +947,17 @@ opinion_search_agent/
 - **来源关系契约**：`SourceRelationProposal` / `SourceRelation` 支持 same_text / repost / excerpt / followup；basis evidence 必须属于关系两端版本，由 Validator 与 State 双层校验；report 给出 `relation_status`（program_hash_duplicate / model_proposed / unverified）与关系依据，页面标注“模型提出、待人工复核”，依赖关系来源不进入独立来源统计。
 - **材料主张关系**：workbench materials 从已审查判断派生 summary / subjects / issue_questions / judgments（支持/反驳、kind、引用）；evidence relations 标记 active 与历史判断；材料卡支持“定位判断”，不再只是来源列表。
 
+### 19.8 2026-09-12 审查第三轮修复契约
+
+以下契约已进入仓库并经测试（实现记录 §32），对应审查 F08/F11/F12：
+
+- **信息层次**：事件头部用中文侧重点并隐藏内部 snapshot hash；当前研判摘要只在总览渲染，其他视图直接进入目标内容；外层品牌栏在工作台路由隐藏，`body.wide > main` 不再叠加嵌套 padding。
+- **窄屏证据**：≤850px 证据栏默认隐藏，由标题行按钮按需展开；打开/关闭有焦点归还；窄屏选引用自动展开证据栏。
+- **投影版本与不可变产物**：`workbench_revision` 绑定 report 内容、status 与 `PROJECTION_VERSION`；发布时固化 `workbench.json`，后续 GET 读取该产物；旧 run 缺文件时重建并显式标记来源。
+- **时间语义**：`started_at`（开始）、`lookup_cutoff`（查找截止）、`generated_at`（报告生成）分离，State.cutoff 继续只表示查找截止；workbench/Markdown/静态导出/report.js 使用同一组字段。
+- **计数单位**：materials 暴露 document_key / document_version_count，workbench 与静态导出按页面归组，同 URL 多正文版本在文档内展开；页面显示页面数与正文版本数两个口径。
+- **确定性澄清兜底**：`_assumption_fallback_plan()` 在 假设继续 hint 下替换持续 clarification；进度页与工作台提供对象纠正入口并把假设写进限制说明。
+
 ### 19.3 浏览器主路径验收（2026-09-11）
 
 实际浏览器主路径验收已完成（实现记录 §23）：Playwright + 真实 Chromium 驱动本地服务器页面，17/17 步通过（创建→阶段投影→三视图→证据抽屉→定向补查→版本比较→两类事件差异→历史→刷新恢复），并据此修复三个纯 API 验收无法暴露的前端缺陷。未覆盖：真实断网注入的 SSE 恢复、320px 窄屏与全键盘走查。

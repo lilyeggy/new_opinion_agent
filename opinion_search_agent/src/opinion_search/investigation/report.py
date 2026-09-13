@@ -127,6 +127,9 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "schema_version": 2, "case_id": case_id, "run_id": run_id, "parent_id": parent_id,
         "mode": mode, "subject": state.subject, "question": state.request.question,
         "status": status, "stop_reason": reason, "cutoff": state.cutoff.isoformat(),
+        "lookup_cutoff": state.cutoff.isoformat(),
+        "generated_at": state.cutoff.isoformat(),
+        "started_at": None,
         "state_revision": state.revision,
         "profile": state.profile.model_dump(mode="json") if state.profile else None,
         "required_questions": list(state.required_questions),
@@ -149,7 +152,10 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
 
 def markdown(report):
     esc = _escape_markdown
-    lines = [f"# {esc(report['subject'])}", "", f"调查状态：{LABELS.get(report['status'], report['status'])}", f"调查截止：{report['cutoff']}", ""]
+    lines = [f"# {esc(report['subject'])}", "", f"调查状态：{LABELS.get(report['status'], report['status'])}",
+             f"调查开始：{report.get('started_at') or '未知'}",
+             f"查找截止：{report.get('lookup_cutoff') or report['cutoff']}",
+             f"报告生成：{report.get('generated_at') or report['cutoff']}", ""]
     if report["mode"] == "offline":
         lines.extend(["> 虚构材料演示，不代表真实事件或实时搜索结果。", ""])
     if report.get("search_failures") or report.get("read_failures"):

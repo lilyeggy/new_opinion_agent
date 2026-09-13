@@ -79,6 +79,30 @@ def _assumption_note(data: dict) -> tuple[str, ...]:
             "这一理解可能与用户实际所指的事件不同。",)
 
 
+def _assumption_fallback_plan(request: InvestigationRequest) -> PlanProposal:
+    """Deterministic plan when the planner keeps asking after the user deferred.
+
+    The product contract says the user can always move forward. Prompt text
+    alone cannot guarantee that, so the program replaces a model clarification
+    with a minimal bounded plan after the assumption hint is set; the subject
+    and limitation notes keep the interpretation visible.
+    """
+
+    subject = request.topic or request.question
+    return PlanProposal(
+        subject=subject,
+        questions=(
+            QuestionProposal(question=f"{subject}：目前可以确认的公开事实是什么？",
+                             components=("事实与变化", "适用范围", "执行或生效安排")),
+            QuestionProposal(question="公开材料中有哪些争议或诉求？",
+                             components=("受影响主体", "具体诉求")),
+            QuestionProposal(question="现有回应覆盖了什么，仍缺少什么？",
+                             components=("已回应内容", "未回答事项")),
+        ),
+        facet_rationale="用户未明确对象或模型持续追问，系统按常见理解先形成可核查计划。",
+    )
+
+
 def _parse_time_answer(answer: str, anchor: date) -> str | None | object:
     """Normalise a time-clarification answer into a bounded "start 至 end".
 
@@ -424,17 +448,32 @@ class Manager:
         try:
             report = build_report(state, "running", "调查进行中的阶段投影，内容待审查。",
                 case_id=data["case_id"], run_id=identifier, mode=data["mode"], scope_notes=_assumption_note(data))
+            report["generated_at"] = utcnow().isoformat()
+            report["started_at"] = data.get("created_at")
+            report["lookup_cutoff"] = report["cutoff"]
             atomic_json(self.path(identifier) / "workbench-provisional.json", build_workbench(report))
         except ValueError:
             # A state that predates the workbench contract keeps progress-only output.
             return
+
+    def _workbench_projection(self, identifier, report):
+        """Return the published workbench artifact, not a fresh projection."""
+
+        saved = read_json(self.path(identifier) / "workbench.json")
+        if saved is not None:
+            saved.setdefault("projection_source", "saved")
+            return saved
+        projection = build_workbench(report)
+        projection["projection_source"] = "rebuilt_from_report"
+        return projection
 
     def workbench(self, identifier, snapshot_id=None):
         """A consistent workbench projection bound to the published version.
 
         A caller that pins ``snapshot_id`` always gets that exact view or a
         conflict: silently switching to the newest snapshot would mix content
-        from different versions in one page.
+        from different versions in one page. Published projections are read
+        from their immutable artifact instead of being rebuilt on every GET.
         """
 
         report = read_json(self.path(identifier) / "report.json")
@@ -444,7 +483,7 @@ class Manager:
                 raise FileNotFoundError("The workbench is available once material has been committed.")
             projection = provisional
         else:
-            projection = build_workbench(report)
+            projection = self._workbench_projection(identifier, report)
         if snapshot_id and snapshot_id != projection["snapshot_id"]:
             raise ValueError("The requested workbench snapshot does not match this version; reload the current one.")
         return projection
@@ -631,7 +670,7 @@ class Manager:
         report = read_json(self.path(identifier) / "report.json")
         if report and data["status"] in TERMINAL:
             output["report"] = report
-            output["workbench_revision"] = build_workbench(report)["snapshot_id"]
+            output["workbench_revision"] = self._workbench_projection(identifier, report)["snapshot_id"]
         output["report_pending"] = data["status"] == "finalizing"
         latest_completed = read_json(self.root / "cases" / data["case_id"] / "latest_completed.json")
         if latest_completed and latest_completed.get("run_id") != identifier:
@@ -746,6 +785,11 @@ class Manager:
             else:
                 budget.charge("model")
                 plan = offline_plan(request)
+            if plan.clarification and data.get("plan_hint") == "proceed_on_assumption":
+                # The prompt asks the model to proceed on its best interpretation;
+                # if it still asks again, the program replaces the clarification
+                # with a bounded plan so deferring can never loop forever.
+                plan = _assumption_fallback_plan(request)
             if worker.cancelled:
                 self._cancel_publish(identifier, data)
                 return
@@ -852,7 +896,13 @@ class Manager:
 
         status = result.status.value
         report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data))
+        report["generated_at"] = utcnow().isoformat()
+        report["started_at"] = data.get("created_at")
+        report["lookup_cutoff"] = report["cutoff"]
         atomic_json(run_root / "report.json", report)
+        projection = build_workbench(report)
+        projection["projection_source"] = "saved"
+        atomic_json(run_root / "workbench.json", projection)
         atomic_text(run_root / "report.md", markdown(report))
         (run_root / "workbench-provisional.json").unlink(missing_ok=True)
         if status in {"completed", "partial"}:

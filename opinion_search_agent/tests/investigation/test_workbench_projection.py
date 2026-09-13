@@ -202,3 +202,42 @@ def test_material_without_a_linked_judgment_falls_back_to_the_excerpt():
     assert material["summary"] == "末班提前至22时"
     assert material["summary_source"] == "excerpt"
     assert material["judgments"] == []
+
+
+def test_workbench_revision_changes_when_publication_status_changes():
+    state = _state()
+    completed = build_report(state, "completed", "完成", case_id="c", run_id="revision-status")
+    partial = build_report(state, "partial", "材料有限", case_id="c", run_id="revision-status")
+    assert workbench_revision(completed) != workbench_revision(partial)
+
+
+def test_materials_group_same_url_versions_under_one_document_key():
+    stamp = utcnow()
+    first = SourceVersion(version_id="v1", url="https://a.example/doc", final_url="https://a.example/doc",
+                          title="页面", fetched_at=stamp, published_at=stamp, artifact_ref="artifacts/a",
+                          content_hash="h1")
+    second = first.model_copy(update={"version_id": "v1b", "content_hash": "h2", "fetched_at": stamp})
+    report = build_report(_state(sources=(first, second)), "partial", "无判断", case_id="c", run_id="doc-group")
+    materials = build_workbench(report)["views"]["coverage"]["materials"]
+    assert materials[0]["document_key"] == materials[1]["document_key"]
+    assert materials[0]["document_version_count"] == 2
+    assert materials[1]["document_version_count"] == 2
+
+
+def test_published_workbench_is_saved_with_time_semantics(manager, run_offline):
+    from opinion_search.investigation.storage import read_json
+
+    snapshot = run_offline(manager, {"question": "某市公交夜班车调整的争议与回应"})
+    run_id = snapshot["run_id"]
+    draft = manager.load(run_id)
+    report = snapshot["report"]
+    saved = read_json(manager.path(run_id) / "workbench.json")
+
+    assert report["started_at"] == draft["created_at"]
+    assert report["lookup_cutoff"] == report["cutoff"]
+    assert report["generated_at"]
+    assert saved is not None and saved["projection_source"] == "saved"
+    assert saved["generated_at"] == report["generated_at"]
+    assert saved["lookup_cutoff"] == report["lookup_cutoff"]
+    assert saved["snapshot_id"] == snapshot["workbench_revision"]
+    assert manager.workbench(run_id)["snapshot_id"] == saved["snapshot_id"]

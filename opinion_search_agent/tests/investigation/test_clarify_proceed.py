@@ -87,3 +87,22 @@ def test_second_round_forces_proceed_even_without_deferral(monkeypatch, manager,
     assert final["status"] == "completed"
     assert "最合理的理解" in final["report"]["scope_limitation"]
     assert "某高校" in final["request"]["clarification"]
+
+
+def test_deferred_clarification_replaces_a_persistent_planner_question(monkeypatch, manager, wait_for_terminal):
+    from opinion_search.domain.investigation.models import PlanProposal
+    from opinion_search.investigation import offline
+
+    def always_asks(request):
+        return PlanProposal(subject=request.question, clarification=("请确认具体是哪一个事件。",))
+
+    monkeypatch.setattr(offline, "offline_plan", always_asks)
+    first = _ambiguous_clarification(manager)
+    run_id = first["run_id"]
+
+    clarified = manager.clarify(run_id, {"answer": "不知道"})
+    assert clarified["plan_hint"] == "proceed_on_assumption"
+    final = wait_for_terminal(manager, run_id)
+    assert final["status"] == "completed", final
+    assert "最合理的理解" in final["report"]["scope_limitation"]
+    assert final["report"]["issues"]

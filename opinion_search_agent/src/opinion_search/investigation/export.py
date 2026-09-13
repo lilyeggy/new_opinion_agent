@@ -170,19 +170,22 @@ def _heading(workbench, overview, coverage) -> str:
     def meta(label, value):
         return f'<span class="os-meta-item"><span>{_esc(label)}</span><b>{_esc(value)}</b></span>'
 
+    generated_at = _esc(str(workbench.get("generated_at") or "")[:16].replace("T", " "))
+    lookup_cutoff = _esc(str(workbench.get("lookup_cutoff") or "")[:16].replace("T", " "))
+    page_count = len({m.get("document_key") or m.get("version_id") for m in materials})
     return (
         '<div class="os-heading">'
         '<div class="os-eyebrow"><span>事件侧重点</span>'
-        f'<b>{_esc(facets)}</b><span class="os-sep">·</span>'
-        f'<span>快照 {_esc(str(workbench.get("snapshot_id", ""))[-8:])}</span>'
-        '<span class="os-sep">·</span><span>静态导出</span>'
-        f'<span class="os-tag">{_esc(state)}</span>'
+        f'<b>{_esc(facets)}</b>'
+        + (f'<span class="os-sep">·</span><span>报告生成 {generated_at}</span>' if generated_at else "")
+        + (f'<span class="os-sep">·</span><span>查找截止 {lookup_cutoff}</span>' if lookup_cutoff else "")
+        + f'<span class="os-tag">{_esc(state)}</span>'
         + ('<span class="os-tag warn">虚构材料演示</span>' if overview.get("mode") == "offline" else "")
         + '</div>'
         f'<div class="os-title-row"><h2>{_esc(overview.get("subject", ""))}</h2></div>'
         '<div class="os-scope-row">'
         + meta("排查问题", overview.get("question", ""))
-        + meta("收录材料", f"{len(materials)} 篇")
+        + meta("收录材料", f"{page_count} 个页面 / {len(materials)} 个正文版本")
         + (meta("材料发布窗口", window_value) if window_value else "")
         + meta("发布时未知", f"{sum(1 for m in materials if not m.get('published_at'))} 篇")
         + "</div>"
@@ -298,7 +301,11 @@ def _module_card(module, citations) -> str:
 def _coverage_section(coverage, citations) -> str:
     materials = coverage.get("materials", [])
     stories = []
+    groups = {}
     for material in materials:
+        groups.setdefault(material.get("document_key") or material.get("version_id"), []).append(material)
+    for versions in groups.values():
+        material = versions[0]
         url = _safe_url(material.get("final_url") or material.get("url"))
         title = (f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{_esc(material["title"])}</a>'
                  if url else _esc(material["title"]))
@@ -324,13 +331,24 @@ def _coverage_section(coverage, citations) -> str:
             f'｜{_esc("反驳" if judgment.get("relation") == "contradict" else "支持")}：{_esc(judgment.get("text", ""))} '
             f'{_cite_links(citations, judgment.get("citation_ids"))}</div>'
             for judgment in material.get("judgments", []) or [])
+        extra_versions = versions[1:]
+        version_details = ""
+        if extra_versions:
+            rows = "".join(
+                f'<div class="os-version-row"><span class="os-note">'
+                f'{_esc(ROLE_LABELS.get(version.get("role", ""), version.get("role", "")))}｜获取 '
+                f'{_esc(str(version.get("fetched_at") or "")[:10])}</span>'
+                f'{_cite_links(citations, version.get("citation_ids"))}</div>'
+                for version in extra_versions)
+            version_details = (f'<details class="os-version-detail"><summary>本页面另有 '
+                               f'{len(extra_versions)} 个正文版本</summary>{rows}</details>')
         stories.append(
             '<article class="os-story">'
             f'<small><span>{_esc(material.get("role_label") or ROLE_LABELS.get(material.get("role", ""), ""))}</span>'
             f'<span>发布 {_esc(str(material.get("published_at") or "未知")[:10])}</span>'
             f'<span>获取 {_esc(str(material.get("fetched_at") or "")[:10])}</span>{relation_tag}</small>'
             f'<strong>{title}</strong>{relation_basis}{summary_html}{context_html}{judgment_links}'
-            f'<p>{_cite_links(citations, material.get("citation_ids"))}</p></article>')
+            f'<p>{_cite_links(citations, material.get("citation_ids"))}</p>{version_details}</article>')
     counts = coverage.get("search_coverage", [])
     coverage_note = ""
     if counts:
@@ -346,7 +364,7 @@ def _coverage_section(coverage, citations) -> str:
     return (
         '<section class="os-section" id="sec-coverage">'
         '<div class="os-section-head"><h3>同一事件，不同报道角度</h3>'
-        f'<span class="os-note">{len(materials)} 篇收录材料（未知发布日期 '
+        f'<span class="os-note">{len(groups)} 个页面 / {len(materials)} 个正文版本（未知发布日期 '
         f'{coverage.get("unknown_date_count", 0)} 篇，排最后）</span></div>'
         '<p class="os-note">比较同一问题下的报道；被采访者观点保留主体，转载与重复内容不作为独立证据。</p>'
         + "".join(stories) + coverage_note + "</section>")

@@ -139,7 +139,7 @@ function header(report, handlers) {
     ]),
     el("h2", { text: report.subject }),
     el("p", { class: "muted", text: `用户请求：${report.question}` }),
-    el("p", { class: "muted", text: `调查截止：${report.cutoff}` }),
+    el("p", { class: "muted", text: `报告生成：${report.generated_at || report.cutoff}｜查找截止：${report.lookup_cutoff || report.cutoff}｜开始：${report.started_at || "未知"}` }),
     (report.search_failures || report.read_failures)
       ? el("p", { class: "notice", text: `本轮存在供应商搜索/读取失败（搜索失败 ${report.search_failures}，读取失败 ${report.read_failures}）：缺失材料不代表没有新进展。` })
       : null,

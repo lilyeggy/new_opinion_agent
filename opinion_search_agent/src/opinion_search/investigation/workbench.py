@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import json
 import re
+from hashlib import sha256
 
 from opinion_search.domain.investigation.models import SEARCH_DIRECTIONS, uid
 from opinion_search.investigation import metrics
 from opinion_search.investigation.presentation import facet_modules, highlights
 
 FORMAT = "opinion-workbench/1"
+PROJECTION_VERSION = "workbench-projection-2"
 MODULE_STATES = ("ready", "provisional", "insufficient", "unavailable", "not_applicable")
 TERMINAL_STATES = {"completed", "partial", "failed", "cancelled"}
 
@@ -23,9 +25,16 @@ _DATE_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
 
 def workbench_revision(report) -> str:
-    """Cheap, deterministic reference so SSE clients can detect new snapshots."""
+    """Content and projection-policy bound reference for one published view.
 
-    return uid("workbench", report["run_id"], report["cutoff"], str(report.get("state_revision", "")))
+    Status, material/evidence content and the projection policy participate in
+    the id, so changing a partial to completed or changing projection rules
+    produces a different reference instead of silently mutating the old page.
+    """
+
+    content_hash = sha256(json.dumps(report, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    return uid("workbench", report["run_id"], report["cutoff"], str(report.get("state_revision", "")),
+               report.get("status", ""), FORMAT, PROJECTION_VERSION, content_hash)
 
 
 def build_workbench(report) -> dict:
@@ -80,11 +89,14 @@ def build_workbench(report) -> dict:
     }
     return {
         "format": FORMAT,
+        "projection_version": PROJECTION_VERSION,
         "snapshot_id": workbench_revision(report),
         "run_id": report["run_id"],
         "case_id": report["case_id"],
         "parent_id": report.get("parent_id"),
-        "generated_at": report["cutoff"],
+        "generated_at": report.get("generated_at") or report["cutoff"],
+        "started_at": report.get("started_at"),
+        "lookup_cutoff": report.get("lookup_cutoff") or report["cutoff"],
         "publication_state": report["status"],
         "profile": profile if profile else {"facets": ["general"], "config_version": "workbench-modules-1",
                                             "rationale": "未确认事件侧重点，使用通用视图。"},
@@ -240,6 +252,9 @@ def _materials(sources, evidence, findings, issues):
     unknown = [s for s in sources if not s.get("published_at")]
     ordered = sorted(known, key=lambda s: str(s["published_at"])) + unknown
     material_evidence = {item["evidence_id"]: item for item in evidence}
+    document_versions: dict[str, int] = {}
+    for source in ordered:
+        document_versions[source["url"]] = document_versions.get(source["url"], 0) + 1
     result = []
     for source in ordered:
         version_id = source["version_id"]
@@ -275,7 +290,10 @@ def _materials(sources, evidence, findings, issues):
             "relation_status": source.get("relation_status", "unverified"),
             "relation_evidence_ids": list(source.get("relation_evidence_ids", [])),
             "relation_explanation": source.get("relation_explanation", ""),
-            "duplicate_of": source.get("duplicate_of"), "citation_ids": citation_ids,
+            "duplicate_of": source.get("duplicate_of"),
+            "document_key": uid("document", source["url"]),
+            "document_version_count": document_versions.get(source["url"], 1),
+            "citation_ids": citation_ids,
             "summary": summary, "summary_source": summary_source,
             "summary_kind": unique_linked[0].get("kind", "") if unique_linked else "",
             "subjects": list(dict.fromkeys(item["stakeholder"] for item in unique_linked if item["stakeholder"])),

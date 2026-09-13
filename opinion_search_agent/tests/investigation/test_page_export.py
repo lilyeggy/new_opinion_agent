@@ -138,3 +138,32 @@ def test_export_renders_structured_facet_fields_with_explicit_unknowns():
     assert "os-facet-field" in page
     assert "旧值" in page and "新值" in page
     assert "未知" in page, "missing module fields stay unknown instead of being filled"
+
+
+def test_export_groups_same_url_versions_under_one_page():
+    from datetime import timedelta
+    from opinion_search.domain.investigation.models import SourceVersion, utcnow
+
+    first = SourceVersion(version_id="v1", url="https://a.example/doc", final_url="https://a.example/doc",
+                          title="同页", fetched_at=utcnow(), artifact_ref="artifacts/a", content_hash="h1")
+    second = first.model_copy(update={"version_id": "v2", "content_hash": "h2",
+                                      "fetched_at": first.fetched_at + timedelta(hours=1)})
+    state = _state()
+    state = state.model_copy(update={"sources": (first, second)})
+    report = build_report(state, "partial", "材料有限", case_id="c", run_id="export-group")
+    page = render_page(build_workbench(report), report=report, evidence_context={})
+    assert "1 个页面 / 2 个正文版本" in page
+    assert "本页面另有 1 个正文版本" in page
+
+
+def test_markdown_states_start_lookup_and_generation_times():
+    from opinion_search.investigation.report import markdown
+
+    state = _state()
+    report = build_report(state, "completed", "完成", case_id="c", run_id="export-times")
+    report["started_at"] = "2026-01-01T00:00:00+00:00"
+    report["generated_at"] = "2026-01-01T01:00:00+00:00"
+    text = markdown(report)
+    assert "调查开始：2026-01-01T00:00:00+00:00" in text
+    assert "查找截止：" in text
+    assert "报告生成：2026-01-01T01:00:00+00:00" in text

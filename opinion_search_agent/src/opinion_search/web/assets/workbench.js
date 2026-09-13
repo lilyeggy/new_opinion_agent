@@ -3,6 +3,8 @@ import { renderReport } from "./report.js";
 import { clear, el, externalLink, LABELS, statusClass, statusLabel } from "./ui.js";
 
 const ROLE_LABELS = { original: "机构原文", reporting: "新闻报道", commentary: "评论文章", unknown: "来源类型未知" };
+const FACET_LABELS = { rule_change: "规则调整", service_change: "服务变化", billing_remedy: "计费补救",
+                       investigation_correction: "调查纠正", general: "通用" };
 const RELATION_LABELS = { duplicate: "与已有版本正文重复", same_text: "与已有版本正文一致", repost: "转载/转述关系", excerpt: "摘录/引用关系", followup: "后续跟进材料", unverified: "来源关系未核实" };
 const MODULE_STATE_LABELS = { ready: "可查看", provisional: "待核查", insufficient: "材料不足", unavailable: "无法查看", not_applicable: "不适用" };
 const REVIEW_HINT = { supported: "引用支持", partial: "证据部分支持", contradicted: "与引用矛盾", insufficient: "证据不足", unreviewed: "尚未完成核查" };
@@ -25,12 +27,12 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     view: initial.view, date: initial.date, issue: initial.issue, role: initial.role,
     expanded: false, selected: initial.selected, selectedExplicit: initial.selectedExplicit,
     selectedMaterial: initial.selectedMaterial, invalidEvidence: initial.invalidEvidence,
-    snapshot: initial.snapshot, warning: initial.warning,
+    snapshot: initial.snapshot, warning: initial.warning, inspectorOpen: false,
   };
 
   clear(root);
   // The workbench needs the full page width; other routes reset this in app.js.
-  document.body.classList.add("wide");
+  document.body.classList.add("wide", "workbench");
   const connectionBox = el("span", { class: "badge", hidden: true });
   if (handlers.onConnectionState) {
     handlers.onConnectionState((status) => {
@@ -42,6 +44,9 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
   const navBox = el("nav", { class: "os-nav", "aria-label": "调查视图" });
   const contentBox = el("div", { class: "os-content" });
   const inspectorBox = el("aside", { class: "os-inspector", "aria-label": "证据与核查详情", "aria-live": "polite" });
+  const summaryBox = el("div", { class: "os-summary-host" });
+  const mainGrid = el("div", { class: "os-main-grid" }, [contentBox, inspectorBox]);
+  const inspectorToggles = [];
   root.append(el("div", { class: "os-page" }, [
     el("header", { class: "os-top" }, [
       el("div", { class: "os-brand" }, [el("span", { text: "Opinion" }), "Search", el("small", { text: " / 事件工作台" })]),
@@ -57,13 +62,14 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     previousCompleteNote(),
     el("div", { class: "os-frame" }, [navBox, el("main", {}, [
       heading(),
-      summary(),
-      el("div", { class: "os-main-grid" }, [contentBox, inspectorBox]),
+      summaryBox,
+      mainGrid,
       footer(),
     ])]),
   ]));
 
   paintNav();
+  paintSummary();
   paintContent();
   paintInspector();
 
@@ -83,9 +89,40 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
 
   function commitRoute() {
     paintNav();
+    paintSummary();
     paintContent();
     paintInspector();
     if (handlers.onRouteState) handlers.onRouteState(routeState());
+  }
+
+  function openInspector() {
+    state.inspectorOpen = true;
+    mainGrid.classList.add("inspector-open");
+    inspectorToggles.forEach((node) => node.setAttribute("aria-expanded", "true"));
+    paintInspector();
+    const closeButton = inspectorBox.querySelector(".os-inspector-close");
+    if (closeButton) closeButton.focus();
+  }
+
+  function closeInspector() {
+    state.inspectorOpen = false;
+    mainGrid.classList.remove("inspector-open");
+    inspectorToggles.forEach((node) => node.setAttribute("aria-expanded", "false"));
+    const toggle = inspectorToggles.find((node) => node.isConnected);
+    if (toggle) toggle.focus();
+  }
+
+  function toggleInspector() {
+    if (state.inspectorOpen) {
+      closeInspector();
+      return;
+    }
+    openInspector();
+  }
+
+  function paintSummary() {
+    clear(summaryBox);
+    if (state.view === "overview") summaryBox.append(summary());
   }
 
   function go(next) {
@@ -113,6 +150,7 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     state.invalidEvidence = false;
     if (options.view) state.view = options.view;
     commitRoute();
+    if (window.matchMedia && window.matchMedia("(max-width: 850px)").matches) openInspector();
   }
 
   function citationButtons(ids, options = {}) {
@@ -139,27 +177,39 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     const days = materials.filter((item) => item.published_at).map((item) => String(item.published_at).slice(0, 10)).sort();
     const meta = (label, value) => el("span", { class: "os-meta-item" }, [el("span", { text: label }), el("b", { text: value })]);
     const window = days.length ? (days[0] === days[days.length - 1] ? days[0] : `${days[0]} — ${days[days.length - 1]}`) : "";
+    const pageCount = new Set(materials.map((item) => item.document_key || item.version_id)).size;
+    const facets = (profile.facets || ["general"]).map((facet) => FACET_LABELS[facet] || facet).join("、");
+    const generatedAt = String(workbench.generated_at || "").slice(0, 16).replace("T", " ");
+    const lookupCutoff = String(workbench.lookup_cutoff || "").slice(0, 16).replace("T", " ");
+    const assumption = String((workbench.limitations || {}).scope_limitation || "").includes("最合理的理解");
+    const inspectorToggle = el("button", { class: "os-text-button os-inspector-toggle",
+      "aria-expanded": String(state.inspectorOpen), text: "查看证据核查", onClick: toggleInspector });
+    inspectorToggles.push(inspectorToggle);
     return el("div", { class: "os-heading" }, [
       el("div", { class: "os-eyebrow" }, [
         el("span", { text: "事件侧重点" }),
-        el("b", { text: (profile.facets || ["general"]).join("、") }),
-        el("span", { class: "os-sep", text: "·" }),
-        el("span", { text: `快照 ${String(workbench.snapshot_id).slice(-8)}` }),
-        el("span", { class: "os-sep", text: "·" }),
-        el("span", { text: `生成于 ${String(workbench.generated_at || "").slice(0, 16).replace("T", " ")}` }),
+        el("b", { text: facets }),
+        generatedAt ? el("span", { class: "os-sep", text: "·" }) : null,
+        generatedAt ? el("span", { text: `报告生成 ${generatedAt}` }) : null,
+        lookupCutoff ? el("span", { class: "os-sep", text: "·" }) : null,
+        lookupCutoff ? el("span", { text: `查找截止 ${lookupCutoff}` }) : null,
         el("span", { class: statusClass(workbench.publication_state), text: statusLabel(workbench.publication_state) }),
         views.overview.mode === "offline" ? el("span", { class: "os-tag warn", text: "虚构材料演示" }) : null,
       ]),
       el("div", { class: "os-title-row" }, [
         el("h2", { text: views.overview.subject }),
-        report ? el("button", { class: "os-primary", text: "补查新进展", onClick: () => handlers.onUpdate && handlers.onUpdate() })
-               : el("button", { class: "os-secondary", text: "返回调查进度", onClick: () => handlers.onBack && handlers.onBack() }),
+        el("div", { class: "os-title-actions" }, [
+          assumption ? el("button", { class: "os-text-button", text: "更正调查对象", onClick: () => handlers.onUpdate && handlers.onUpdate() }) : null,
+          report ? el("button", { class: "os-primary", text: "补查新进展", onClick: () => handlers.onUpdate && handlers.onUpdate() })
+                 : el("button", { class: "os-secondary", text: "返回调查进度", onClick: () => handlers.onBack && handlers.onBack() }),
+          inspectorToggle,
+        ]),
       ]),
       el("div", { class: "os-scope-row" }, [
         meta("排查问题", views.overview.question),
-        meta("收录材料", `${materials.length} 篇`),
+        meta("收录材料", `${pageCount} 个页面 / ${materials.length} 个正文版本`),
         window ? meta("材料发布窗口", window) : null,
-        meta("发布时未知", `${materials.filter((item) => !item.published_at).length} 篇`),
+        meta("发布时未知", `${materials.filter((item) => item.published_at === null || item.published_at === undefined).length} 篇`),
       ]),
       (views.coverage.search_coverage || []).length ? el("details", { class: "os-scope-panel" }, [
         el("summary", { text: "查看检索范围（本次已查范围，非全网召回率）" }),
@@ -351,12 +401,19 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     const issues = views.issues.issues || [];
     const roles = [...new Set((coverage.materials || []).map((material) => material.role))];
     const materials = filteredMaterials();
-    const shown = state.expanded ? materials : materials.slice(0, 4);
+    const groups = new Map();
+    for (const material of materials) {
+      const key = material.document_key || material.version_id;
+      if (groups.has(key) === false) groups.set(key, []);
+      groups.get(key).push(material);
+    }
+    const documents = [...groups.values()];
+    const shown = state.expanded ? documents : documents.slice(0, 4);
     return el("div", {}, [
       el("section", {}, [
         el("div", { class: "os-section-head" }, [
           el("h3", { text: "同一事件，不同报道角度" }),
-          el("span", { class: "os-note", text: `${materials.length} 篇匹配材料` }),
+          el("span", { class: "os-note", text: `${documents.length} 个页面 / ${materials.length} 个正文版本` }),
         ]),
         el("div", { class: "os-filter-line" }, [
           el("label", {}, [el("span", { class: "os-note", text: "议题 " }), filterSelect(
@@ -367,14 +424,14 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
             state.role, (value) => { state.role = value; state.expanded = false; commitRoute(); })]),
           state.date ? el("button", { class: "os-text-button", text: `清除 ${state.date} 筛选`, onClick: () => { state.date = null; commitRoute(); } }) : null,
         ]),
-        el("p", { class: "os-note", text: "比较同一问题下的报道；被采访者观点保留主体，转载与重复内容不作为独立证据。" }),
-        ...shown.map((material) => story(material)),
-        materials.length > 4 ? el("button", {
+        el("p", { class: "os-note", text: "比较同一问题下的报道；同一页面的多个正文版本归在一个文档内展开；转载与重复内容不作为独立证据。" }),
+        ...shown.map((versions) => story(versions[0], versions)),
+        documents.length > 4 ? el("button", {
           class: "os-text-button",
-          text: state.expanded ? "收起材料列表" : `展开全部 ${materials.length} 篇`,
-          onClick: () => { state.expanded = !state.expanded; paintContent(); },
+          text: state.expanded ? "收起材料列表" : `展开全部 ${documents.length} 个页面`,
+          onClick: () => { state.expanded = state.expanded === false; commitRoute(); },
         }) : null,
-        materials.length ? null : el("p", { class: "os-note", text: "当前浏览条件下没有材料。可调整筛选，不代表本次调查没有发现。" }),
+        documents.length ? null : el("p", { class: "os-note", text: "当前浏览条件下没有材料。可调整筛选，不代表本次调查没有发现。" }),
       ]),
     ]);
   }
@@ -386,7 +443,9 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     return node;
   }
 
-  function story(material) {
+  function story(material, versions = []) {
+    const allVersions = versions || [];
+    const extraVersions = allVersions.slice(1);
     const choose = () => {
       if (material.citation_ids.length) {
         select(material.citation_ids[0]);
@@ -415,6 +474,7 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
         el("span", { text: `发布 ${String(material.published_at || "未知").slice(0, 10)}` }),
         el("span", { text: `获取 ${String(material.fetched_at || "").slice(0, 10)}` }),
         el("span", { class: "os-origin", text: RELATION_LABELS[material.relation] || material.relation }),
+        extraVersions.length ? el("span", { class: "os-note", text: `共 ${allVersions.length} 个正文版本` }) : null,
         material.relation_status === "model_proposed" ? el("span", { class: "os-note", text: "模型基于原文提出，待人工复核" }) : null,
       ]),
       el("strong", {}, [externalLink(material.title, material.final_url)]),
@@ -447,9 +507,15 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
             } }),
           ])))
         : citationButtons(material.citation_ids) ? el("p", {}, [citationButtons(material.citation_ids)]) : null,
+      extraVersions.length ? el("details", { class: "os-version-detail" }, [
+        el("summary", { text: `本页面另有 ${extraVersions.length} 个正文版本` }),
+        ...extraVersions.map((version) => el("div", { class: "os-version-row" }, [
+          el("span", { class: "os-note", text: `${ROLE_LABELS[version.role] || version.role}｜获取 ${String(version.fetched_at || "").slice(0, 10)}` }),
+          citationButtons(version.citation_ids) || el("span", { class: "os-note", text: "无对应引用" }),
+        ])),
+      ]) : null,
     ]);
   }
-
 
   function issuesView() {
     const issues = views.issues.issues || [];
@@ -550,6 +616,7 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
 
   async function paintInspector() {
     clear(inspectorBox);
+    inspectorBox.append(el("button", { class: "os-text-button os-inspector-close", text: "关闭证据核查", onClick: closeInspector }));
     if (state.warning) {
       inspectorBox.append(el("p", { class: "os-open-question", text: state.warning }));
     }

@@ -2547,3 +2547,36 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 - `pytest -q -m "not live"`：720 passed, 2 deselected。
 - 真实 Chromium CDP：F01/F02/F10 既有主路径继续通过；新增检查结构化模块字段（bus 的新值/未知旧值、最多 3 个重点）、议题子项处置、材料摘要/主体/议题/定位判断；输出 `BROWSER_CHECKS_OK`。
 - 未实施：F08 信息层次重排、F11 快照版本语义、F12 的澄清兜底/对象纠正交互；真实模型质量、10 案例回放与人工 90%/95% 门槛仍 blocked。本节点不构成 P5 通过。
+
+## 32. 2026-09-12 审查第三轮实现（F08/F11/F12）
+
+> 阶段状态：verified（离线 non-live 回归 726 passed, 2 deselected；定向/Web 测试 132 passed；真实 Chromium CDP 检查既有主路径、F08 窄屏信息层次与下载入口）。真实联网质量门槛仍为 NOT_CLAIMED。
+
+### 32.1 F08：信息层次与窄屏证据成本
+
+- 事件头部改为中文侧重点标签（规则调整/服务变化/计费补救/调查纠正），不再把 facet 英文枚举和内部 snapshot hash 放在用户眉标；同时显示“报告生成”和“查找截止”两个不同时间。
+- `body.workbench` 隐藏外层重复品牌栏；`body.wide > main` 只约束外层容器，避免嵌套 main 叠加 padding。
+- 当前研判摘要只在“事件总览”渲染；切换到报道对照、议题与核查、引用与原文时直接进入目标内容，不再每个视图先经过同一段长摘要。
+- ≤850px 下右侧证据栏默认隐藏，标题行“查看证据核查”按钮按需展开；打开后焦点进入关闭按钮，关闭后焦点回到触发按钮；窄屏点击引用会自动展开证据栏。390px 视口 CDP 验证：摘要不再阻塞其他视图，证据栏默认隐藏且可开关。
+- 标题行的“补查新进展/返回调查进度”和“查看证据核查”分组排列，窄屏可换行。
+
+### 32.2 F11：快照内容版本、投影版本和时间语义
+
+- 新增 `PROJECTION_VERSION = "workbench-projection-2"`；`workbench_revision()` 现在绑定 run_id、cutoff、state_revision、status、投影策略版本和 report 内容哈希。同一 report 的 status 变化或投影策略变化都会产生不同 snapshot_id。
+- `_publish` 在写 report 后固化 `workbench.json`；`Manager.workbench()` 与 `snapshot()` 优先读取该不可变投影，不再每次 GET 用当前代码重算终态。旧 run 没有该文件时回退重建并标记 `projection_source="rebuilt_from_report"`。
+- report 增加 `started_at`、`lookup_cutoff`、`generated_at` 三个独立字段；Manager 发布时写入真实开始时间和生成时间，State.cutoff 保持查找截止语义。Workbench、Markdown、report.js 与静态导出分别展示这三个时间。
+- materials 新增 `document_key` / `document_version_count`；workbench 与静态导出按页面归组，同 URL 的多个正文版本在文档内折叠展开；页面计数改为“N 个页面 / M 个正文版本”，与发布日期分布图的“同 URL 多版本按一个文档计”一致，同时保留正文版本下钻。
+
+### 32.3 F12：兜底假设的对象纠正入口与确定性继续
+
+- 新增 `_assumption_fallback_plan()`：当 `plan_hint=proceed_on_assumption` 且 planner 仍返回 clarification 时，程序用 subject 和三个有界问题替换本次 clarification，保证“用户回答不知道/澄清轮数耗尽”后一定继续，不能靠提示词自觉。
+- 进度页在 `plan_hint` 为假设继续时显示醒目说明：“系统按某某对象继续调查，可能不同”，并提供“更正调查对象（取消本轮）”入口；已提交材料仍保留在历史记录。
+- completed/partial 工作台在 scope_limitation 标记假设时显示“更正调查对象”入口，可进入补查表单描述正确对象。
+- 离线测试 `test_deferred_clarification_replaces_a_persistent_planner_question` 覆盖 planner 持续反问时的程序级 fallback。
+
+### 32.4 验证与边界
+
+- `pytest tests/investigation tests/e2e/test_investigation_web.py -q`：132 passed。
+- `pytest -q -m "not live"`：726 passed, 2 deselected。
+- 真实 Chromium CDP：既有 F01/F02/F10/F03/F06/F09 检查继续输出 `BROWSER_CHECKS_OK`；新增 `F08_CHECKS_OK`（外层头部隐藏、总览摘要存在、其他视图摘要为 0、390px 证据栏默认隐藏并可开关）；下载检查 `DOWNLOAD_CHECKS_OK`。
+- 未覆盖：真实大量材料的 320/768/1024 全页视觉走查、live 质量与 10 案例回放、人工 90%/95% 门槛；本节点不构成 P5 通过。

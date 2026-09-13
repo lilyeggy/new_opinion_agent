@@ -267,9 +267,11 @@ a.os-text-button:hover { background: var(--panel); text-decoration: none; }
     border-color: var(--line); }
   .os-nav button[aria-pressed="true"] { box-shadow: none; }
   .os-main-grid { grid-template-columns: minmax(0, 1fr); }
-  /* evidence travels with the reader: it leads the single column instead of
-     trailing after every section */
-  .os-inspector { position: static; max-height: none; order: -1; }
+  .os-page .os-inspector-toggle { display: inline-block; }
+  .os-page .os-inspector-close { display: inline-block; float: right; }
+  /* evidence is opened on demand instead of pushing every section down */
+  .os-main-grid .os-inspector { display: none; position: static; max-height: none; order: 0; }
+  .os-main-grid.inspector-open .os-inspector { display: block; }
 }
 @media (max-width: 620px) {
   .os-page { --os-pad-x: var(--os-gap-md); }
@@ -310,3 +312,13 @@ a.os-text-button:hover { background: var(--panel); text-decoration: none; }
 .os-story p.os-story-summary { margin: var(--os-gap-sm) 0 2px; color: var(--ink); font-size: 14px; line-height: 1.65; }
 .os-story-judgments { display: grid; gap: 4px; margin-top: 4px; }
 .os-story-judgments .os-note { margin: 0; line-height: 1.6; }
+
+/* ---------- information hierarchy ---------- */
+.os-summary-host:empty { display: none; }
+.os-title-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.os-inspector-toggle, .os-inspector-close { display: none; }
+
+/* ---------- document version grouping (F11) ---------- */
+.os-version-detail { margin-top: var(--os-gap-sm); border-top: 1px dashed var(--line); padding-top: var(--os-gap-sm); }
+.os-version-detail summary { cursor: pointer; color: var(--accent); font-size: 12.5px; }
+.os-version-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; margin-top: 6px; }

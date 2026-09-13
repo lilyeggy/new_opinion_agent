@@ -19,7 +19,7 @@ function navigate(hash) { window.location.hash = hash; }
 
 async function route() {
   stopStream();
-  document.body.classList.remove("wide");
+  document.body.classList.remove("wide", "workbench");
   const token = ++routeToken;
   const raw = window.location.hash.replace(/^#/, "") || "/";
   const [path, query] = raw.split("?");
@@ -319,6 +319,14 @@ function paintProgress(root, runId, snapshot) {
     ]),
     el("h2", { text: snapshot.subject || snapshot.request.question }),
     snapshot.mode === "offline" ? el("p", { class: "badge warn", text: "虚构材料演示" }) : null,
+    snapshot.plan_hint === "proceed_on_assumption" ? el("div", { class: "notice" }, [
+      el("p", { text: `用户未能明确调查对象，系统按“${snapshot.subject || snapshot.request.question}”继续调查；这个理解可能与实际所指不同。` }),
+      el("p", { class: "muted", text: "如对象不对，可取消本轮后返回首页重新发起；已提交材料会保留在历史记录中。" }),
+      el("button", { class: "secondary", text: "更正调查对象（取消本轮）", onClick: async () => {
+        try { await api.cancel(runId); } catch (exception) { errorBox.textContent = exception.message; errorBox.hidden = false; return; }
+        navigate("/");
+      } }),
+    ]) : null,
     el("p", { class: "muted", text: "调查正在进行；这里展示阶段、已提交的问题与材料，不显示精确进度百分比。" }),
     el("ul", {}, issues.map((issue) => el("li", { text: `${LABELS[issue.status] || issue.status}：${issue.question}` }))),
     el("p", { class: "muted", text: `已保存材料 ${progress.source_count || 0} 个｜当前有效判断 ${progress.finding_count || 0} 条｜读取失败 ${progress.read_errors || 0}｜搜索失败 ${progress.search_errors || 0}` }),

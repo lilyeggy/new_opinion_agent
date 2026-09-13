@@ -39,7 +39,8 @@ header.top a:hover { color: var(--accent); }
 header.top span.muted { font-size: 12px; }
 main { max-width: 1040px; margin: 0 auto; padding: 22px; }
 /* the event workbench needs the full width; other pages stay narrow */
-body.wide main { max-width: 1440px; padding: 22px 22px 28px; }
+body.wide > main { max-width: 1440px; padding: 22px 22px 28px; }
+body.workbench > header.top { display: none; }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
 label { display: block; font-weight: 600; margin: 12px 0 4px; }
 input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid var(--line);
@@ -148,7 +149,7 @@ mark { background: #ffe08a; color: #1d2129; }
   .home-mode select { width: 100%; flex: none; }
 }
 @media (max-width: 768px) {
-  main { padding: 14px; }
+  body > main { padding: 14px; }
   header.top { padding: 10px 14px; flex-wrap: wrap; }
   .drawer { width: 100vw; }
 }
