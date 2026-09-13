@@ -81,16 +81,34 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
             from datetime import datetime
             classification = "new_publication" if source.published_at.replace(tzinfo=source.published_at.tzinfo or state.cutoff.tzinfo) > datetime.fromisoformat(old_cutoff) else "newly_found_old_material"
         # ``relation`` keeps duplication observable without claiming independence:
-        # a saved source with no duplicate marker is "unverified", never proven
+        # a saved source with no dependency marker is "unverified", never proven
         # independent, so raw saved counts must not back independence statistics.
-        relation = "duplicate" if source.duplicate_of else "unverified"
+        # A model-proposed relation is shown as proposed, not as verified truth.
+        proposal = next((relation for relation in state.relations
+                         if relation.source_version_id == source.version_id), None)
+        if proposal is not None:
+            relation = proposal.relation
+            relation_status = "model_proposed"
+        elif source.duplicate_of:
+            relation = "duplicate"
+            relation_status = "program_hash_duplicate"
+        else:
+            relation = "unverified"
+            relation_status = "unverified"
         sources.append({**source.model_dump(mode="json"), "discovery": classification, "relation": relation,
-                        "independent": source.duplicate_of is None})
+                        "relation_status": relation_status,
+                        "relation_evidence_ids": list(proposal.basis_evidence_ids) if proposal else [],
+                        "relation_explanation": proposal.explanation if proposal else "",
+                        "independent": source.duplicate_of is None and proposal is None})
     relation_counts = {
         "document_count": len({s["url"] for s in sources}),
         "version_count": len(sources),
-        "identified_duplicate_count": sum(1 for s in sources if s["relation"] == "duplicate"),
+        "identified_duplicate_count": sum(1 for s in sources if s["relation"] in {"duplicate", "same_text"}),
         "unverified_relation_count": sum(1 for s in sources if s["relation"] == "unverified"),
+        "repost_count": sum(1 for s in sources if s["relation"] == "repost"),
+        "excerpt_count": sum(1 for s in sources if s["relation"] == "excerpt"),
+        "followup_count": sum(1 for s in sources if s["relation"] == "followup"),
+        "model_relation_count": sum(1 for s in sources if s["relation_status"] == "model_proposed"),
     }
     changes = []
     retired_ids = {r.finding_id for r in state.retired}
@@ -117,6 +135,7 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "conclusions": [f for f in findings if f["finding_id"] in state.conclusion_ids and f["support"] == "supported"],
         "sources": sources, "independent_source_count": sum(1 for s in sources if s["independent"]),
         "source_relation_counts": relation_counts,
+        "relations": [relation.model_dump(mode="json") for relation in state.relations],
         "evidence": [e.model_dump(mode="json") for e in state.evidence],
         "searches": [s.model_dump(mode="json") for s in state.searches], "read_errors": state.read_errors,
         "checks": [c.model_dump(mode="json") for c in state.checks],

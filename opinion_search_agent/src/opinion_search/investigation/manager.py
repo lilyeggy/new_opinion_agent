@@ -12,7 +12,10 @@ import threading
 from uuid import uuid4
 
 from opinion_search.app.config import LiveConfig
-from opinion_search.domain.investigation.models import InvestigationRequest, Issue, PlanProposal, QuestionProposal, State, uid, utcnow
+from opinion_search.domain.investigation.models import (
+    InvestigationRequest, Issue, PlanProposal, QuestionComponent, QuestionProposal, State,
+    UpdateIntent, UpdateTarget, uid, utcnow,
+)
 from opinion_search.domain.investigation.engine import allowed_url
 from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.investigation.context import structured_context
@@ -28,6 +31,7 @@ from opinion_search.runtime.checkpoint import JsonCheckpointStore
 TERMINAL = {"completed", "partial", "failed", "cancelled"}
 ID_RE = re.compile(r"^[a-f0-9]{32}$")
 _QUESTION_SPLIT = re.compile(r"[\n\r；;]+|(?<=[。！!？?])")
+_COMPONENT_SPLIT = re.compile(r"[、；;]|以及")
 UPDATE_FIELDS = {"focus", "issue_ids", "finding_ids", "client_request_id"}
 # Low-barrier clarification: the user can always move forward. A pure defer
 # answer ("不知道") or repeated planner rounds force the plan to proceed on
@@ -155,6 +159,20 @@ def required_questions(request: InvestigationRequest) -> tuple[str, ...]:
     return tuple(dict.fromkeys(found))
 
 
+def _component_texts(question: str) -> tuple[str, ...]:
+    """Extract declared parts of an explicitly enumerated compound question.
+
+    The program owns this deterministic split so a model cannot hide an
+    unresolved component behind one answered issue. Prose-only questions keep
+    no components and rely on ordinary issue-level disposition.
+    """
+
+    trailing = " \t　。；;？?" + chr(33)
+    parts = [part.strip(trailing) for part in _COMPONENT_SPLIT.split(question)]
+    parts = [part for part in parts if len(part) >= 2]
+    return tuple(dict.fromkeys(parts)) if len(parts) >= 2 else ()
+
+
 def _cover_required(issues: tuple[Issue, ...], required: tuple[str, ...]) -> tuple[Issue, ...]:
     """Add one grouped issue for any explicit user question the plan left uncovered."""
 
@@ -162,10 +180,20 @@ def _cover_required(issues: tuple[Issue, ...], required: tuple[str, ...]) -> tup
     missing = [text for text in required if text not in covered]
     if missing:
         question = "；".join(missing)
-        issues = (*issues, Issue(issue_id=uid("issue", question), question=question, required=True, origin_questions=tuple(missing)))
+        components = tuple(QuestionComponent(text=part) for text in missing for part in _component_texts(text))
+        issues = (*issues, Issue(issue_id=uid("issue", question), question=question, required=True,
+                                 origin_questions=tuple(missing), components=components))
     if len(issues) > 8:
         raise ValueError("the investigation plan exceeds the supported question count")
     return issues
+
+
+def _reopen_issue(issue: Issue) -> Issue:
+    return issue.model_copy(update={
+        "status": "open", "note": "", "evidence_ids": (),
+        "components": tuple(component.model_copy(update={"status": "open", "evidence_ids": (), "note": ""})
+                            for component in issue.components),
+    })
 
 
 @dataclass
@@ -224,6 +252,13 @@ class Manager:
         request = InvestigationRequest.model_validate(payload)
         if mode == "live":
             self.config_loader()
+        offline_fixture = None
+        if mode == "offline":
+            if parent and parent.get("fixture"):
+                offline_fixture = parent["fixture"]
+            else:
+                from opinion_search.investigation.offline import fixture_for_request
+                offline_fixture = fixture_for_request(request)
         identifier = uuid4().hex
         case_id = parent["case_id"] if parent else uuid4().hex
         case_root = self.root / "cases" / case_id
@@ -233,7 +268,8 @@ class Manager:
                 if item["case_id"] == case_id and item["status"] not in TERMINAL:
                     raise CaseBusy("This event already has an unfinished investigation.")
             data = {"run_id": identifier, "case_id": case_id, "parent_id": parent_id, "mode": mode,
-                    "request": request.model_dump(mode="json"), "status": "planning", "phase": "明确事件与问题",
+                    "request": request.model_dump(mode="json"), "fixture": offline_fixture,
+                    "status": "planning", "phase": "明确事件与问题",
                     "created_at": utcnow().isoformat(), "clarification_questions": [], "clarify_rounds": 0,
                     "progress": {}, "plan": None, "followup": followup or None}
             self.save(data)
@@ -426,7 +462,12 @@ class Manager:
         return report
 
     def evidence(self, identifier, evidence_id):
-        """Locate one reviewed excerpt inside its immutable source version."""
+        """Locate one excerpt and state whether it still matches saved text.
+
+        A failed verification is not a replacement evidence: the endpoint keeps
+        the report excerpt available for provenance but marks it unverified so
+        the reader never sees a highlighted passage as if it were confirmed.
+        """
 
         import asyncio
 
@@ -438,20 +479,36 @@ class Manager:
         source = next((s for s in state.sources if s.version_id == item.version_id), None)
         if source is None:
             raise ValueError("evidence references an unknown source version")
+        issue_questions = {issue.issue_id: issue.question for issue in state.issues}
         relations = [{"finding_id": f.finding_id, "issue_id": f.issue_id,
+                      "issue_question": issue_questions.get(f.issue_id, ""),
+                      "finding_text": f.text, "kind": f.kind, "stakeholder": f.stakeholder,
+                      "active": f.active,
                       "relation": "contradict" if item.evidence_id in f.contradicting_ids else "support"}
                      for f in state.findings
                      if item.evidence_id in f.evidence_ids or item.evidence_id in f.contradicting_ids]
+        before = after = ""
+        verification = {"status": "pending", "reason": "调查仍在进行，归档正文将在发布后复核。"}
         if data.get("status") in TERMINAL:
-            content = asyncio.run(Corpus(self.root / "cases" / data["case_id"]).artifacts.get_text(source.artifact_ref))
-            verify_evidence(item, content)
-            before = content[max(0, item.start - 240):item.start]
-            after = content[item.end:item.end + 240]
-        else:
-            before = after = ""
+            try:
+                content = asyncio.run(Corpus(self.root / "cases" / data["case_id"]).artifacts.get_text(source.artifact_ref))
+            except (OSError, RuntimeError, ValueError):
+                verification = {"status": "unavailable",
+                                "reason": "保存的归档正文当前不可读取，无法核对此引用。"}
+            else:
+                try:
+                    verify_evidence(item, content)
+                except ValueError:
+                    verification = {"status": "unverified",
+                                    "reason": "保存正文中未找到与该摘录及字符区间一致的内容；摘录仅用于追溯，不代表已核对原文。"}
+                else:
+                    verification = {"status": "verified", "reason": ""}
+                    before = content[max(0, item.start - 240):item.start]
+                    after = content[item.end:item.end + 240]
         return {
             "evidence_id": item.evidence_id, "excerpt": item.excerpt, "start": item.start, "end": item.end,
             "locator": item.locator, "before": before, "after": after, "relations": relations,
+            "verification": verification,
             "source": {"version_id": source.version_id, "title": source.title, "url": source.url,
                        "final_url": source.final_url, "fetched_at": source.fetched_at.isoformat(),
                        "published_at": source.published_at.isoformat() if source.published_at else None,
@@ -478,7 +535,12 @@ class Manager:
         return render_page(projection, report=report, evidence_context=self._evidence_context(identifier))
 
     def _evidence_context(self, identifier):
-        """Bounded before/after context for each saved excerpt, read once."""
+        """Verification status and bounded context for each saved excerpt.
+
+        Missing artifacts, out-of-range locators and excerpt mismatches each get
+        an explicit status. The export may still show the report's saved
+        excerpt, but never as a highlighted match against the current archive.
+        """
 
         try:
             state = self._domain_state(identifier)
@@ -492,20 +554,30 @@ class Manager:
         for source in state.sources:
             try:
                 contents[source.version_id] = asyncio.run(corpus.artifacts.get_text(source.artifact_ref))
-            except (OSError, ValueError):
+            except (OSError, RuntimeError, ValueError):
                 continue
         contexts = {}
         for item in state.evidence:
             content = contents.get(item.version_id)
             if content is None:
+                contexts[item.evidence_id] = {
+                    "status": "unavailable",
+                    "reason": "保存的归档正文当前不可读取，无法核对此引用。",
+                }
                 continue
             try:
                 verify_evidence(item, content)
             except ValueError:
-                # Unverifiable excerpts are never faked into the export.
+                contexts[item.evidence_id] = {
+                    "status": "unverified",
+                    "reason": "保存正文中未找到与该摘录及字符区间一致的内容；摘录仅用于追溯。",
+                }
                 continue
-            contexts[item.evidence_id] = {"before": content[max(0, item.start - 240):item.start],
-                                          "after": content[item.end:item.end + 240]}
+            contexts[item.evidence_id] = {
+                "status": "verified", "reason": "",
+                "before": content[max(0, item.start - 240):item.start],
+                "after": content[item.end:item.end + 240],
+            }
         return contexts
 
     def materials(self, identifier, issue_id=None, snapshot_id=None, offset=0, limit=50):
@@ -638,7 +710,7 @@ class Manager:
         self.save(self.load(identifier), status="cancelled", phase="已取消", published=True)
 
     async def _investigate(self, identifier, worker):
-        from opinion_search.investigation.offline import offline_plan
+        from opinion_search.investigation.offline import fixture_for_request, offline_plan
         data = self.load(identifier)
         run_root = self.path(identifier)
         case_root = self.root / "cases" / data["case_id"]
@@ -651,6 +723,8 @@ class Manager:
         request = InvestigationRequest.model_validate(data["request"])
         checkpoint = JsonCheckpointStore(run_root / "run.json", InvestigationRun, execution_profile=PROFILE)
         parent = read_json(self.path(data["parent_id"]) / "report.json") if data["parent_id"] else None
+        offline_fixture = ("bus" if data["mode"] == "live"
+                           else data.get("fixture") or fixture_for_request(request))
         if not (run_root / "run.json").exists():
             budget.start()
             frame = build_task_frame(request, anchor_date=date.today())
@@ -682,21 +756,59 @@ class Manager:
             required_set = set(required)
             issues = _cover_required(tuple(
                 Issue(issue_id=uid("issue", q.question), question=q.question, required=q.required,
-                      origin_questions=tuple(text for text in q.covers if text in required_set))
+                      origin_questions=tuple(text for text in q.covers if text in required_set),
+                      components=tuple(QuestionComponent(text=text)
+                                       for text in (q.components or _component_texts(q.question))))
                 for q in plan.questions), required)
             old_state = None
+            update_intent = None
+            history_notes = ()
             if parent:
                 old_checkpoint = JsonCheckpointStore(self.path(data["parent_id"]) / "run.json", InvestigationRun, execution_profile=PROFILE)
                 old_state = (await old_checkpoint.load()).domain_state
-                reopened = tuple(q.model_copy(update={"status": "open", "note": "", "evidence_ids": ()}) for q in old_state.issues)
-                issues = _cover_required(reopened, required)
-            state = State(request=request, subject=plan.subject, aliases=plan.aliases, cutoff=utcnow(), required_questions=required, issues=issues,
+                required = old_state.required_questions or required
+                followup = data.get("followup") or {}
+                selected_issue_ids = list(dict.fromkeys(followup.get("issue_ids") or ()))
+                selected_finding_ids = list(dict.fromkeys(followup.get("finding_ids") or ()))
+                for finding in old_state.findings:
+                    if finding.finding_id in selected_finding_ids and finding.issue_id not in selected_issue_ids:
+                        selected_issue_ids.append(finding.issue_id)
+                if selected_issue_ids or selected_finding_ids:
+                    selected = set(selected_issue_ids)
+                    target_issues = tuple(_reopen_issue(q)
+                        for issue_id in selected_issue_ids for q in old_state.issues if q.issue_id == issue_id)
+                    if len(target_issues) != len(selected_issue_ids):
+                        raise ValueError("An update issue reference no longer exists in the parent state.")
+                    other_issues = tuple(q for q in old_state.issues if q.issue_id not in selected)
+                    issues = _cover_required((*target_issues, *other_issues), required)
+                    findings = tuple(f.model_copy(update={"active": False})
+                                     if f.active and f.issue_id in selected else f
+                                     for f in old_state.findings)
+                    targets = tuple(
+                        UpdateTarget(finding_id=f.finding_id, issue_id=f.issue_id, text=f.text,
+                                     evidence_ids=tuple(f.evidence_ids))
+                        for finding_id in selected_finding_ids for f in old_state.findings
+                        if f.finding_id == finding_id)
+                    update_intent = UpdateIntent(parent_run_id=parent["run_id"],
+                                                 original_request=request.question,
+                                                 issue_ids=tuple(selected_issue_ids),
+                                                 finding_ids=tuple(selected_finding_ids), targets=targets)
+                    history_notes = ("用户指定了定向补查目标；未选中的旧问题保留原状态与旧判断，优先核查选中间题。",)
+                else:
+                    reopened = tuple(_reopen_issue(q) for q in old_state.issues)
+                    issues = _cover_required(reopened, required)
+                    findings = tuple(f.model_copy(update={"active": False}) for f in old_state.findings)
+                    history_notes = ("用户请求按需更新，旧判断待重新取证和审查。",)
+            state = State(request=request, subject=plan.subject,
+                aliases=old_state.aliases if old_state else plan.aliases,
+                cutoff=utcnow(), required_questions=required, issues=issues,
                 sources=old_state.sources if old_state else (), evidence=old_state.evidence if old_state else (),
-                findings=tuple(f.model_copy(update={"active": False}) for f in old_state.findings) if old_state else (),
+                findings=findings if old_state else (), reviews=old_state.reviews if old_state else (),
                 # An on-demand update keeps the event's confirmed emphasis: the
                 # event type does not change just because we re-investigate it.
                 profile=old_state.profile if old_state else confirmed_profile(plan, issues),
-                history=_assumption_note(data) + (("用户请求按需更新，旧判断待重新取证和审查。",) if parent else ()))
+                update_intent=update_intent,
+                history=_assumption_note(data) + history_notes)
             references = []
             for url in request.reference_urls:
                 if not allowed_url(url, state):
@@ -730,7 +842,8 @@ class Manager:
                     progress={"questions": [q.model_dump(mode="json") for q in state.issues], "source_count": len(state.sources), "finding_count": sum(f.active for f in state.findings), "read_errors": len(state.read_errors), "search_errors": sum(s.outcome == "error" for s in state.searches)})
                 manager._write_provisional_workbench(identifier, data, state)
 
-        loop = build_loop(run_root, case_root, data["mode"], budget, Hook(), worker.signal, config, bool(parent))
+        loop = build_loop(run_root, case_root, data["mode"], budget, Hook(), worker.signal, config,
+                          bool(parent), fixture=offline_fixture)
         result = await loop.resume()
         await self._publish(identifier, data, result, parent, run_root, case_root, budget)
 

@@ -1,7 +1,7 @@
 import { api, TERMINAL, stream } from "./api.js";
 import { createEvidencePanel } from "./evidence.js";
 import { renderReport } from "./report.js";
-import { renderWorkbench } from "./workbench.js";
+import { renderWorkbench, workbenchRouteHash } from "./workbench.js";
 import { clear, el, externalLink, LABELS, statusClass, statusLabel } from "./ui.js";
 
 const view = document.getElementById("view");
@@ -28,7 +28,7 @@ async function route() {
     if (parts[0] === "i" && parts[1]) {
       if (parts[2] === "compare") return renderCompare(parts[1], new URLSearchParams(query || ""));
       if (parts[2] === "update") return renderUpdateForm(parts[1], new URLSearchParams(query || "").get("issue"));
-      return renderDetail(parts[1], token);
+      return renderDetail(parts[1], token, new URLSearchParams(query || ""));
     }
     return renderHome();
   } catch (error) {
@@ -49,6 +49,7 @@ function renderHome() {
 // instead of requiring a complete query up front.
 const GUIDE_EXAMPLES = [
   "某市公交夜班车时间调整，上班族吐槽通勤不便",
+  "某市水费上涨与阶梯水价计费争议",
   "某高校食堂被学生反映饭菜有问题",
 ];
 
@@ -79,7 +80,7 @@ function createForm() {
   const region = el("input", { placeholder: "可选：地区" });
   const references = el("input", { placeholder: "可选：参考链接，多个用逗号分隔" });
   const mode = el("select", {}, [
-    el("option", { value: "offline", text: "离线演示（固定虚构材料，不代表真实搜索）" }),
+    el("option", { value: "offline", text: "离线演示（固定虚构材料：公交或水费案例；其他输入默认公交案例）" }),
     el("option", { value: "live", text: "真实联网（Brave / Jina / 模型）" }),
   ]);
   const error = el("p", { class: "error" });
@@ -155,21 +156,22 @@ async function refreshHistory() {
   }
 }
 
-async function renderDetail(runId, token = routeToken) {
+async function renderDetail(runId, token = routeToken, params = new URLSearchParams()) {
   const snapshot = await api.snapshot(runId);
   if (token !== routeToken) return;
   if (snapshot.status === "needs_clarification") return renderClarify(runId, snapshot);
   if (!TERMINAL.has(snapshot.status)) return renderProgress(runId, snapshot, token);
   if (!snapshot.report) return renderPending(runId, snapshot);
-  return renderWorkbenchView(runId, snapshot, token);
+  return renderWorkbenchView(runId, snapshot, token, params);
 }
 
 // Terminal reports are rendered through the workbench projection so the page,
 // the report download and the versions all come from the same committed view.
-async function renderWorkbenchView(runId, snapshot, token = routeToken) {
+async function renderWorkbenchView(runId, snapshot, token = routeToken, params = new URLSearchParams()) {
+  const requestedSnapshot = params.get("snapshot") || snapshot.workbench_revision;
   let workbench;
   try {
-    workbench = await api.workbench(runId, snapshot.workbench_revision);
+    workbench = await api.workbench(runId, requestedSnapshot);
   } catch (error) {
     if (token !== routeToken) return;
     if (snapshot.workbench_revision && !/不匹配|match/.test(error.message || "")) {
@@ -194,6 +196,17 @@ async function renderWorkbenchView(runId, snapshot, token = routeToken) {
     citations: workbench.citations,
   };
   renderWorkbench(view, runId, workbench, snapshot, {
+    initialState: {
+      snapshot: requestedSnapshot,
+      view: params.get("view") || null,
+      issue: params.get("issue") || null,
+      date: params.get("date") || null,
+      role: params.get("role") || null,
+      evidence: params.get("evidence") || null,
+      material: params.get("material") || null,
+      invalidEvidence: params.get("invalidEvidence") === "1",
+    },
+    onRouteState: (next) => navigate(workbenchRouteHash(runId, workbench, next)),
     onEvidence: reportHandlers.onEvidence,
     onUpdate: (issueId) => navigate(`/i/${runId}/update` + (issueId ? `?issue=${encodeURIComponent(issueId)}` : "")),
     onCompare: reportHandlers.onCompare,
@@ -358,15 +371,24 @@ async function renderUpdateForm(runId, preselect) {
     if (preselect && preselect === issue.issue_id) box.checked = true;
     return el("div", { class: "row" }, [box, el("span", { text: issue.question })]);
   });
+  let intentKey = null;
+  let intentSignature = null;
+  const newIntentKey = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random();
   submit.addEventListener("click", async () => {
     error.textContent = "";
     submit.disabled = true;
     try {
       const selected = boxes.map((row) => row.querySelector("input")).filter((box) => box.checked).map((box) => box.value);
-      // One submission intent, one idempotency key: a network retry cannot
-      // create a second run for the same follow-up.
-      const payload = { client_request_id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random()) };
-      if (focus.value.trim()) payload.focus = focus.value.trim();
+      const focusText = focus.value.trim();
+      const signature = JSON.stringify({ focus: focusText, issue_ids: selected });
+      // One submission intent, one idempotency key. A retry after a lost
+      // response keeps the key; editing the intent starts a new request.
+      if (intentKey === null || intentSignature !== signature) {
+        intentKey = newIntentKey();
+        intentSignature = signature;
+      }
+      const payload = { client_request_id: intentKey };
+      if (focusText) payload.focus = focusText;
       if (selected.length) payload.issue_ids = selected;
       const snapshot = await api.update(runId, payload);
       navigate(`/i/${snapshot.run_id}`);

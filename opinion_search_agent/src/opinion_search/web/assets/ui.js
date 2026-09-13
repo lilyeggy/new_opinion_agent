@@ -32,7 +32,7 @@ export function el(tag, props = {}, children = []) {
     if (key === "class") node.className = value;
     else if (key === "text") node.textContent = value;
     else if (key.startsWith("on") && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-    else if (key === "href") { if (safeUrl(value) || safeHashLink(value)) node.setAttribute("href", value); }
+    else if (key === "href") { if (safeUrl(value) || safeHashLink(value) || safeSameOriginPath(value)) node.setAttribute("href", value); }
     else node.setAttribute(key, value === true ? "" : String(value));
   }
   for (const child of [].concat(children)) {
@@ -42,10 +42,24 @@ export function el(tag, props = {}, children = []) {
   return node;
 }
 
-// In-page hash routes are safe; anything else must be an http(s) URL.
+// In-page hash routes are safe; same-origin API paths are safe too. Anything
+// else must be an absolute http(s) URL, so javascript:, data: and
+// protocol-relative links still cannot become href attributes.
 export function safeHashLink(value) {
   const text = String(value);
-  return text.startsWith("#") && !text.startsWith("#//");
+  return text.startsWith("#") && text.startsWith("#" + "/" + "/") === false;
+}
+
+export function safeSameOriginPath(value) {
+  const text = String(value);
+  if (text.startsWith("/") === false || text.startsWith("/" + "/")) return false;
+  if (/[\u0000-\u001f\u007f]/.test(text)) return false;
+  try {
+    const base = globalThis.location && globalThis.location.origin;
+    if (base === undefined || base === null) return false;
+    const url = new URL(text, base);
+    return url.origin === base && (url.protocol === "http:" || url.protocol === "https:");
+  } catch { return false; }
 }
 
 export function safeUrl(value) {
@@ -60,6 +74,6 @@ export function clear(node) {
 }
 
 export function externalLink(label, href) {
-  if (!safeUrl(href)) return el("span", { text: label });
+  if (safeUrl(href) === false) return el("span", { text: label });
   return el("a", { href, target: "_blank", rel: "noopener noreferrer", text: label });
 }

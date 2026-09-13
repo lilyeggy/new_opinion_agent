@@ -96,3 +96,45 @@ def test_export_renders_facet_module_cards_instead_of_template_literals():
 def test_export_shows_per_issue_material_counts_from_the_snapshot():
     page = _page()
     assert "涉及材料：1 篇" in page
+
+
+def test_export_marks_unverified_archive_context_without_highlighting():
+    page = _page(contexts={"evidence-secret-id": {"status": "unverified",
+                                                   "reason": "保存正文中未找到与该摘录一致的内容。"}})
+    start = page.find('id="cite-1"')
+    end = page.find("</li>", start)
+    entry = page[start:end]
+    assert "未找到与该摘录一致的内容" in entry
+    assert "未与归档正文比对" in entry
+    assert "<mark>" not in entry
+
+
+def test_export_treats_a_missing_context_as_unverified_instead_of_highlighted():
+    page = _page(contexts={})
+    start = page.find('id="cite-1"')
+    end = page.find("</li>", start)
+    entry = page[start:end]
+    assert "未与归档正文比对" in entry
+    assert "<mark>" not in entry
+
+
+def test_export_keeps_highlight_only_for_a_verified_context():
+    page = _page(contexts={"evidence-secret-id": {"status": "verified", "before": "前文。", "after": "后文。"}})
+    start = page.find('id="cite-1"')
+    end = page.find("</li>", start)
+    entry = page[start:end]
+    assert "<mark>" in entry and EXCERPT in entry
+
+
+def test_export_renders_material_summary_subject_and_relation_context():
+    page = _page()
+    assert "os-story-summary" in page
+    assert "表达主体：交通部门" in page
+    assert "相关议题：问题0" in page
+
+
+def test_export_renders_structured_facet_fields_with_explicit_unknowns():
+    page = _page()
+    assert "os-facet-field" in page
+    assert "旧值" in page and "新值" in page
+    assert "未知" in page, "missing module fields stay unknown instead of being filled"

@@ -139,6 +139,14 @@ def test_workbench_endpoint_serves_a_consistent_projection(base_url: str) -> Non
         assert all(label.startswith("引") for label in
                    [citation["label"] for citation in body["citations"].values()])
         assert body["views"]["overview"]["source_relation_counts"]["version_count"] > 0
+        coverage = body["views"]["coverage"]["search_coverage"]
+        assert coverage and all("purposes" in entry and "unattempted_directions" in entry
+                                for entry in coverage)
+        assert any("positions" in entry["unattempted_directions"] for entry in coverage)
+        issues_view = body["views"]["issues"]["issues"]
+        assert all("components" in issue for issue in issues_view)
+        materials = body["views"]["coverage"]["materials"]
+        assert all("summary" in material and "judgments" in material for material in materials)
 
         assert body["snapshot_id"] == client.get(
             f"/api/investigations/{run_id}/workbench").json()["snapshot_id"]

@@ -35,6 +35,7 @@ class QuestionProposal(Record):
     question: Text
     required: bool = True
     covers: tuple[Text, ...] = ()
+    components: tuple[Text, ...] = ()
 
 
 FACET_NAMES = ("rule_change", "service_change", "billing_remedy", "investigation_correction", "general")
@@ -71,6 +72,15 @@ class PlanProposal(Record):
         return self
 
 
+class QuestionComponent(Record):
+    """One required part of a compound issue, disposed independently."""
+
+    text: Text
+    status: Literal["open", "answered", "disputed", "not_found", "unavailable"] = "open"
+    evidence_ids: tuple[str, ...] = ()
+    note: str = ""
+
+
 class Issue(Record):
     issue_id: Text
     question: Text
@@ -79,6 +89,14 @@ class Issue(Record):
     note: str = ""
     evidence_ids: tuple[str, ...] = ()
     origin_questions: tuple[Text, ...] = ()
+    components: tuple[QuestionComponent, ...] = ()
+
+    @model_validator(mode="after")
+    def unique_components(self):
+        texts = [component.text for component in self.components]
+        if len(texts) != len(set(texts)):
+            raise ValueError("duplicate issue component")
+        return self
 
 
 class SourceVersion(Record):
@@ -105,6 +123,69 @@ class Evidence(Record):
     locator: Text
 
 
+MODULE_FACET_FIELDS: dict[str, dict[str, str]] = {
+    "rule-comparison": {
+        "old_value": "旧值",
+        "new_value": "新值",
+        "applies_to": "适用对象",
+        "effective_time": "生效时间",
+        "transition": "过渡安排",
+    },
+    "service-availability": {
+        "affected_service": "受影响服务",
+        "time_window": "时间段",
+        "alternative": "替代安排",
+        "recovery_status": "恢复进展",
+    },
+    "billing-remedy": {
+        "billing_basis": "计费口径",
+        "scope": "适用范围",
+        "handling_path": "办理路径",
+        "deadline": "办理时限",
+        "remedy_commitment": "退还/整改安排",
+        "execution_status": "实际执行证据",
+    },
+    "investigation-progress": {
+        "actions_taken": "已采取行动",
+        "results_and_commitments": "结果与承诺",
+        "judgment_changes": "判断变化",
+    },
+}
+
+REQUIRED_MODULE_FIELDS: dict[str, tuple[str, ...]] = {
+    "rule-comparison": ("new_value", "applies_to", "effective_time"),
+    "service-availability": ("affected_service", "time_window"),
+    "billing-remedy": ("billing_basis", "scope", "handling_path"),
+    "investigation-progress": ("actions_taken", "results_and_commitments"),
+}
+
+FACET_MODULE_TYPES: dict[str, str] = {
+    "rule_change": "rule-comparison",
+    "service_change": "service-availability",
+    "billing_remedy": "billing-remedy",
+    "investigation_correction": "investigation-progress",
+}
+
+
+class ModuleField(Record):
+    """One structured field attached to an evidence-bound finding.
+
+    The model may only emit fields from the whitelist for a confirmed facet
+    module. Presentation groups these values without inventing missing slots.
+    """
+
+    module: Literal["rule-comparison", "service-availability", "billing-remedy", "investigation-progress"]
+    field: Text
+    value: Text
+
+    @model_validator(mode="after")
+    def known_field(self):
+        fields = MODULE_FACET_FIELDS.get(self.module)
+        if fields is None or self.field not in fields:
+            raise ValueError("unknown module field")
+        return self
+
+
 class FindingProposal(Record):
     issue_id: Text
     text: Text
@@ -120,6 +201,14 @@ class FindingProposal(Record):
     covered: tuple[Text, ...] = ()
     uncovered: tuple[Text, ...] = ()
     coverage_reason: str = ""
+    module_fields: tuple[ModuleField, ...] = ()
+
+    @model_validator(mode="after")
+    def unique_module_fields(self):
+        keys = [(field.module, field.field) for field in self.module_fields]
+        if len(keys) != len(set(keys)):
+            raise ValueError("duplicate module field")
+        return self
 
 
 class Finding(FindingProposal):
@@ -132,11 +221,46 @@ class Retirement(Record):
     reason: Text
 
 
+class ComponentAssessment(Record):
+    """Model-proposed disposition of one compound-issue component."""
+
+    text: Text
+    status: Literal["answered", "disputed", "not_found", "unavailable"]
+    evidence_ids: tuple[str, ...] = ()
+    note: str = ""
+
+
 class IssueAssessment(Record):
     issue_id: Text
     status: Literal["open", "answered", "disputed", "not_found", "unavailable"]
     reason: Text
     evidence_ids: tuple[str, ...] = ()
+    components: tuple[ComponentAssessment, ...] = ()
+
+    @model_validator(mode="after")
+    def unique_components(self):
+        texts = [component.text for component in self.components]
+        if len(texts) != len(set(texts)):
+            raise ValueError("duplicate assessment component")
+        return self
+
+
+class SourceRelationProposal(Record):
+    """Model-proposed relation between two saved source versions.
+
+    The proposal is only accepted when every basis evidence id belongs to one
+    of the two versions; the program still does not turn it into a truth claim.
+    """
+
+    source_version_id: Text
+    related_version_id: Text
+    relation: Literal["same_text", "repost", "excerpt", "followup"]
+    basis_evidence_ids: tuple[Text, ...] = Field(min_length=1)
+    explanation: Text
+
+
+class SourceRelation(SourceRelationProposal):
+    relation_id: Text
 
 
 class SearchDecision(Record):
@@ -171,6 +295,7 @@ class ReflectDecision(Record):
     assessments: tuple[IssueAssessment, ...] = ()
     add_questions: tuple[QuestionProposal, ...] = ()
     retirements: tuple[Retirement, ...] = ()
+    source_relations: tuple[SourceRelationProposal, ...] = ()
     reason: Text
 
 
@@ -218,6 +343,9 @@ class SourceCheck(Record):
     changed: bool = False
 
 
+SEARCH_DIRECTIONS = ("original", "positions", "independent", "official_response", "event_response", "followup")
+
+
 class SearchAttempt(Record):
     issue_id: Text
     query: Text
@@ -230,6 +358,30 @@ class SearchAttempt(Record):
     task_id: Text = ""
     target_gap: str = ""
     discovery_mode: Literal["discovery", "targeted", "user_provided"] = "discovery"
+
+
+class UpdateTarget(Record):
+    """One user-selected finding and the question/evidence it belongs to.
+
+    The update intent is user input, not an inference: the compiler exposes it
+    so the first actions close the selected gap instead of re-running the whole
+    parent event. References are still validated against the parent report.
+    """
+
+    finding_id: Text
+    issue_id: Text
+    text: Text
+    evidence_ids: tuple[Text, ...] = ()
+
+
+class UpdateIntent(Record):
+    """Explicit targeted-follow-up intent carried from a child draft to State."""
+
+    parent_run_id: Text
+    original_request: Text
+    issue_ids: tuple[Text, ...] = ()
+    finding_ids: tuple[Text, ...] = ()
+    targets: tuple[UpdateTarget, ...] = ()
 
 
 class State(Record):
@@ -248,11 +400,13 @@ class State(Record):
     checks: tuple[SourceCheck, ...] = ()
     reviews: tuple[ReviewRecord, ...] = ()
     searches: tuple[SearchAttempt, ...] = ()
+    relations: tuple[SourceRelation, ...] = ()
     read_attempts: tuple[str, ...] = ()
     read_errors: tuple[str, ...] = ()
     history: tuple[str, ...] = ()
     conclusion_ids: tuple[str, ...] = ()
     profile: EventProfile | None = None
+    update_intent: UpdateIntent | None = None
     revision: int = 0
 
     @model_validator(mode="after")
@@ -272,10 +426,31 @@ class State(Record):
                 raise ValueError("finding references unknown issue or evidence")
         if any(not set(x.evidence_ids) <= evidence for x in self.issues):
             raise ValueError("issue references unknown evidence")
+        if any(not set(component.evidence_ids) <= evidence
+               for x in self.issues for component in x.components):
+            raise ValueError("issue component references unknown evidence")
         if any(x.finding_id not in findings for x in self.reviews) or not set(self.conclusion_ids) <= findings:
             raise ValueError("unknown reviewed or concluded finding")
         if any(x.finding_id not in findings for x in self.retired):
             raise ValueError("unknown retired finding")
+        relation_ids = [relation.relation_id for relation in self.relations]
+        if len(relation_ids) != len(set(relation_ids)):
+            raise ValueError("duplicate source relation")
+        for relation in self.relations:
+            endpoints = {relation.source_version_id, relation.related_version_id}
+            if len(endpoints) != 2 or not endpoints <= sources:
+                raise ValueError("source relation references unknown or identical versions")
+            basis_versions = {e.version_id for e in self.evidence
+                              if e.evidence_id in relation.basis_evidence_ids}
+            if not set(relation.basis_evidence_ids) <= evidence or not basis_versions <= endpoints:
+                raise ValueError("source relation basis must come from its two versions")
+        if self.update_intent is not None:
+            intent = self.update_intent
+            if not set(intent.issue_ids) <= issues or not set(intent.finding_ids) <= findings:
+                raise ValueError("update intent references unknown state objects")
+            if any(target.issue_id not in issues or target.finding_id not in findings
+                   for target in intent.targets):
+                raise ValueError("update target references unknown state objects")
         covered = {text for issue in self.issues for text in issue.origin_questions}
         if not set(self.required_questions) <= covered:
             raise ValueError("a user question was dropped from the investigation plan")

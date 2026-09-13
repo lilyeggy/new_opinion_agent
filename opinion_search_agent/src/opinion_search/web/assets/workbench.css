@@ -286,3 +286,27 @@ a.os-text-button:hover { background: var(--panel); text-decoration: none; }
   .os-nav button, .os-nav a, .os-day, .os-story { min-height: 44px; }
   .os-inline { min-width: 24px; }
 }
+
+/* ---------- structured facet fields ---------- */
+.os-facet-fields { display: grid; gap: 8px; margin-top: var(--os-gap-md); }
+.os-facet-field {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; align-items: start;
+  padding: 9px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+}
+.os-facet-label { color: var(--muted); font-size: 12.5px; padding-top: 1px; }
+.os-facet-value { font-size: 14px; line-height: 1.6; }
+.os-facet-value .os-inline { margin-left: 4px; }
+.os-module-provenance { margin-top: var(--os-gap-sm); }
+.os-module-provenance summary { cursor: pointer; color: var(--accent); font-size: 12.5px; }
+@media (max-width: 620px) {
+  .os-facet-field { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ---------- compound issue components ---------- */
+.os-components { display: grid; gap: 6px; margin: var(--os-gap-sm) 0; }
+.os-component { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; font-size: 13px; }
+
+/* ---------- material provenance ---------- */
+.os-story p.os-story-summary { margin: var(--os-gap-sm) 0 2px; color: var(--ink); font-size: 14px; line-height: 1.65; }
+.os-story-judgments { display: grid; gap: 4px; margin-top: 4px; }
+.os-story-judgments .os-note { margin: 0; line-height: 1.6; }

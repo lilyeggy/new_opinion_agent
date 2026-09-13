@@ -174,3 +174,31 @@ def test_issue_involvement_counts_match_the_drilldown_membership():
                           {eid for f in entry["findings"]
                            for eid in f["citations"]["support"] + f["citations"]["contradict"]}}
         assert len(cited_versions) == entry["involved_materials"]["count"]
+
+
+def test_materials_expose_constrained_summary_subjects_and_judgment_links():
+    finding = _finding("issue-0", ("e1",))
+    review = ReviewRecord(finding_id=finding.finding_id, verdict="supported", reason="原文支持",
+                          finding_hash=finding_hash(finding), model="test", reviewed_at=utcnow())
+    state = _state(sources=(_source("v1"),), evidence=(_evidence("e1", "v1"),),
+                   findings=(finding,), reviews=(review,))
+    report = build_report(state, "completed", "完成", case_id="c", run_id="material-provenance")
+    material = build_workbench(report)["views"]["coverage"]["materials"][0]
+
+    assert material["summary"] == finding.text
+    assert material["summary_source"] == "judgment"
+    assert material["summary_kind"] == "attributed"
+    assert material["subjects"] == ["交通部门"]
+    assert material["issue_questions"] == ["问题0"]
+    assert material["judgments"][0]["relation"] == "support"
+    assert material["judgments"][0]["finding_id"] == finding.finding_id
+    assert material["judgments"][0]["citation_ids"] == ["e1"]
+
+
+def test_material_without_a_linked_judgment_falls_back_to_the_excerpt():
+    state = _state(sources=(_source("v1"),), evidence=(_evidence("e1", "v1"),))
+    report = build_report(state, "partial", "无判断", case_id="c", run_id="material-excerpt")
+    material = build_workbench(report)["views"]["coverage"]["materials"][0]
+    assert material["summary"] == "末班提前至22时"
+    assert material["summary_source"] == "excerpt"
+    assert material["judgments"] == []

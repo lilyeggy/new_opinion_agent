@@ -5,9 +5,9 @@ from urllib.parse import urlsplit
 import json
 
 from opinion_search.domain.investigation.models import (
-    Action, Delta, Evidence, Finding, FinishDecision, Issue, Observation,
-    ReadDecision, ReflectDecision, RetiredFinding, RetrieveDecision, ReviewDecision,
-    SearchAttempt, SearchDecision, State, accepted_review, uid, utcnow,
+    Action, Delta, Evidence, FACET_MODULE_TYPES, Finding, FinishDecision, Issue, Observation,
+    QuestionComponent, ReadDecision, ReflectDecision, RetiredFinding, RetrieveDecision, ReviewDecision,
+    SearchAttempt, SearchDecision, SourceRelation, State, accepted_review, uid, utcnow,
 )
 from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.runtime.completion import CompletionDisposition as Disposition, CompletionVerdict
@@ -87,6 +87,21 @@ class Validator:
             retired_ids = [x.finding_id for x in decision.retirements]
             if len(set(retired_ids)) != len(retired_ids) or not set(retired_ids) <= set(findings):
                 raise ValueError("unknown or duplicate retired finding")
+            known_sources = {x.version_id for x in state.sources}
+            relation_pairs = set()
+            for relation in decision.source_relations:
+                endpoints = {relation.source_version_id, relation.related_version_id}
+                if len(endpoints) != 2 or not endpoints <= known_sources:
+                    raise ValueError("source relation must reference two known source versions")
+                basis = [item for item in state.evidence if item.evidence_id in relation.basis_evidence_ids]
+                if not set(relation.basis_evidence_ids) <= evidence:
+                    raise ValueError("source relation references unknown evidence")
+                if not {item.version_id for item in basis} <= endpoints:
+                    raise ValueError("source relation basis must come from its two versions")
+                pair = frozenset(endpoints)
+                if pair in relation_pairs:
+                    raise ValueError("duplicate source relation pair in one reflection")
+                relation_pairs.add(pair)
             if len({x.issue_id for x in decision.assessments}) != len(decision.assessments):
                 raise ValueError("duplicate question assessments")
             for item in (*decision.findings, *decision.assessments):
@@ -99,6 +114,10 @@ class Validator:
                     raise ValueError("attributed claims require an identified speaker")
                 if item.stance != "unclear" and not item.stance_target:
                     raise ValueError("stance requires a specific target")
+                allowed_modules = {FACET_MODULE_TYPES[f] for f in (state.profile.facets if state.profile else ())
+                                   if f in FACET_MODULE_TYPES}
+                if any(field.module not in allowed_modules for field in item.module_fields):
+                    raise ValueError("module fields require a confirmed facet module")
                 if item.response == "not_found" and not response_search_complete(state, item.issue_id):
                     raise ValueError("missing-response assessment requires successful scoped response searches")
                 if item.response in {"direct", "partial", "non_substantive"} and not item.coverage_reason:
@@ -115,6 +134,21 @@ class Validator:
                     raise ValueError("answered questions require evidence")
                 if assessment.status == "not_found" and not response_search_complete(state, assessment.issue_id):
                     raise ValueError("not_found requires a completed scoped search; use unavailable")
+                if any(not set(component.evidence_ids) <= evidence for component in assessment.components):
+                    raise ValueError("component assessment references unknown evidence")
+                for component in assessment.components:
+                    if component.status in {"answered", "disputed"} and not component.evidence_ids:
+                        raise ValueError("answered or disputed components require evidence")
+                    if component.status in {"not_found", "unavailable"} and not component.note.strip():
+                        raise ValueError("not_found or unavailable components require a bounded note")
+                declared = issues[assessment.issue_id].components
+                provided = {component.text: component for component in assessment.components}
+                missing_components = [component.text for component in declared if component.text not in provided]
+                if declared and assessment.status in {"answered", "disputed"} and missing_components:
+                    raise ValueError("compound issue assessment must dispose of every component")
+                if assessment.status == "answered" and any(
+                        component.status != "answered" for component in assessment.components):
+                    raise ValueError("an answered issue cannot keep a non-answered component")
         elif isinstance(decision, ReviewDecision):
             if len(set(decision.finding_ids)) != len(decision.finding_ids) or not set(decision.finding_ids) <= set(findings):
                 raise ValueError("review requires distinct known finding IDs")
@@ -133,9 +167,13 @@ def completion(state: State):
         return CompletionVerdict(disposition=Disposition.REJECT_AND_CONTINUE, reason="Required investigation questions remain open.")
     active = [x for x in state.findings if x.active]
     problems = [x for x in state.issues if x.required and x.status == "unavailable"]
+    component_problems = [component for issue in state.issues if issue.required
+                          for component in issue.components
+                          if component.status == "open"
+                          or issue.status == "answered" and component.status != "answered"]
     unreviewed = [x for x in active if (r := accepted_review(state, x)) is None or r.verdict != "supported"]
     answered_without_findings = [q for q in state.issues if q.status in {"answered", "disputed"} and not any(f.issue_id == q.issue_id for f in active)]
-    if not active or not state.evidence or problems or unreviewed or answered_without_findings:
+    if not active or not state.evidence or problems or component_problems or unreviewed or answered_without_findings:
         return CompletionVerdict(disposition=Disposition.ACCEPT_PARTIAL, reason="Material or review limitations remain; inspect the issue-level caveats.")
     return CompletionVerdict(disposition=Disposition.ACCEPT_COMPLETE, reason="Required questions have explicit dispositions and active findings passed evidence review; this is not a truth guarantee.")
 
@@ -230,11 +268,26 @@ def reduce_state(state: State, delta: Delta):
             findings = [f for f in findings if f.finding_id != identifier] + [item]
         issues = {x.issue_id: x for x in state.issues}
         for item in d.assessments:
-            issues[item.issue_id] = issues[item.issue_id].model_copy(update={"status": item.status, "note": item.reason, "evidence_ids": item.evidence_ids})
+            current = issues[item.issue_id]
+            components = {component.text: component for component in current.components}
+            for component in item.components:
+                components[component.text] = QuestionComponent(
+                    text=component.text, status=component.status,
+                    evidence_ids=component.evidence_ids, note=component.note)
+            issues[item.issue_id] = current.model_copy(update={
+                "status": item.status, "note": item.reason, "evidence_ids": item.evidence_ids,
+                "components": tuple(components.values())})
         for item in d.add_questions:
             identifier = uid("issue", item.question)
             if identifier not in issues:
                 issues[identifier] = Issue(issue_id=identifier, question=item.question, required=item.required, origin_questions=item.covers)
+        if d.source_relations:
+            additions = []
+            for proposal in d.source_relations:
+                relation_id = uid("relation", proposal.source_version_id,
+                                  proposal.related_version_id, proposal.relation)
+                additions.append(SourceRelation(**proposal.model_dump(), relation_id=relation_id))
+            changes["relations"] = merge(state.relations, additions, "relation_id")
         retired = state.retired
         for item in d.retirements:
             if not any(x.finding_id == item.finding_id for x in retired):

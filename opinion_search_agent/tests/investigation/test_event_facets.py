@@ -98,3 +98,80 @@ def test_update_run_inherits_the_parent_event_emphasis(manager, run_offline, wai
     assert child["report"]["profile"]["facets"] == ["rule_change"], "an update must not drop the event emphasis"
     workbench = manager.workbench(child["run_id"])
     assert any(module["module_type"] == "rule-comparison" for module in workbench["modules"])
+
+
+def _facet_state(profile_facets, *, text="公告称工作日末班时间调整至22时。", question="某市公交夜班调整争议",
+                 module_fields=(), review=None):
+    from opinion_search.domain.investigation.models import ModuleField, ReviewRecord, finding_hash
+
+    evidence = Evidence(evidence_id="e1", version_id="v1", excerpt=text, start=0, end=len(text),
+                        locator=f"Reader text chars 0:{len(text)}")
+    source = SourceVersion(version_id="v1", url="https://a.example/1", final_url="https://a.example/1",
+                           title="来源v1", fetched_at=utcnow(), artifact_ref="artifacts/x", content_hash="h1")
+    proposal = FindingProposal(issue_id="issue-0", text=text, kind="attributed", stakeholder="机构",
+                               evidence_ids=("e1",),
+                               module_fields=tuple(ModuleField(module=module, field=key, value=value)
+                                                   for module, key, value in module_fields))
+    finding = Finding(**proposal.model_dump(), finding_id=uid("finding", text, str(module_fields)))
+    reviews = ()
+    if review is not None:
+        reviews = (ReviewRecord(finding_id=finding.finding_id, verdict=review, reason="测试核查",
+                                finding_hash=finding_hash(finding), model="test", reviewed_at=utcnow()),)
+    issues = (Issue(issue_id="issue-0", question=question, status="answered"),
+              Issue(issue_id="issue-1", question="公开材料有哪些回应", status="answered"),
+              Issue(issue_id="issue-2", question="后续进展如何", status="answered"))
+    return State(request=InvestigationRequest(question=question), subject="测试事件", cutoff=utcnow(),
+                 issues=issues, sources=(source,), evidence=(evidence,), findings=(finding,), reviews=reviews,
+                 profile=EventProfile(facets=profile_facets, rationale="测试侧重"))
+
+
+def test_two_facets_do_not_share_generic_findings():
+    state = _facet_state(("rule_change", "billing_remedy"), review="supported")
+    report = build_report(state, "completed", "完成", case_id="c", run_id="facet-shared")
+    modules = {module["module_type"]: module for module in build_workbench(report)["modules"]}
+
+    rule = modules["rule-comparison"]
+    billing = modules["billing-remedy"]
+    assert rule["items"], "the rule module may show its relevant fact as provenance"
+    assert billing["items"] == [], "a bus fact must never fill the billing module"
+    assert billing["state"] == "insufficient"
+    assert any(field["state"] == "unknown" for field in billing["fields"])
+    assert rule["fields"] != billing["fields"], "modules must not differ only by title"
+
+
+def test_billing_stays_insufficient_without_billing_fields_even_when_rule_fields_exist():
+    state = _facet_state(("rule_change", "billing_remedy"), review="supported",
+                         module_fields=(("rule-comparison", "new_value", "工作日末班提前至22时"),
+                                        ("rule-comparison", "applies_to", "工作日夜间公交"),
+                                        ("rule-comparison", "effective_time", "2026-01-10")))
+    report = build_report(state, "completed", "完成", case_id="c", run_id="facet-mixed")
+    modules = {module["module_type"]: module for module in build_workbench(report)["modules"]}
+    assert modules["rule-comparison"]["state"] == "ready"
+    assert modules["billing-remedy"]["state"] == "insufficient"
+    assert modules["billing-remedy"]["fields"], "unknown slots stay visible instead of being filled"
+
+
+def test_module_fields_without_review_are_provisional_not_ready():
+    state = _facet_state(("rule_change",), review=None,
+                         module_fields=(("rule-comparison", "new_value", "工作日末班提前至22时"),
+                                        ("rule-comparison", "applies_to", "工作日夜间公交"),
+                                        ("rule-comparison", "effective_time", "2026-01-10")))
+    completed = build_workbench(build_report(state, "completed", "完成", case_id="c", run_id="facet-unreviewed"))
+    rule = next(module for module in completed["modules"] if module["module_type"] == "rule-comparison")
+    assert rule["state"] == "provisional"
+    assert rule["state"] != "ready"
+
+    partial_state = state.model_copy(update={"reviews": ()})
+    partial = build_workbench(build_report(partial_state, "partial", "材料有限", case_id="c", run_id="facet-partial"))
+    rule = next(module for module in partial["modules"] if module["module_type"] == "rule-comparison")
+    assert rule["state"] == "provisional"
+
+
+def test_missing_required_field_keeps_module_insufficient():
+    state = _facet_state(("rule_change",), review="supported",
+                         module_fields=(("rule-comparison", "new_value", "工作日末班提前至22时"),))
+    report = build_report(state, "completed", "完成", case_id="c", run_id="facet-missing")
+    rule = next(module for module in build_workbench(report)["modules"] if module["module_type"] == "rule-comparison")
+    assert rule["state"] == "insufficient"
+    assert "缺少专项字段" in rule["gap"]
+    assert "适用对象" in rule["gap"]

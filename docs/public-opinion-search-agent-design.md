@@ -925,6 +925,28 @@ opinion_search_agent/
 
 仍为待实施：观点构成图表（需归因/去重/分类评估通过，当前保留观点对照并标 pending）；旧格式 workbench 兼容视图的历史样本验证；真实联网调查与人工质量评分。
 
+### 19.6 2026-09-12 审查第一轮修复契约
+
+以下契约已进入仓库并经测试（实现记录 §30），对应审查 F01/F02/F04/F05/F10 与演示案例错配：
+
+- **同源导出入口**：前端 `el()` 的 href 白名单扩展为绝对 http(s)、页内 hash、以及解析后 origin 一致的同源路径；`/api/investigations/{id}/page|report` 等相对入口可在真实页面点击，危险协议与 `//host` 仍被拒绝。
+- **引用选择无回退**：文章卡与内部引用按钮分离；引用按钮选择自身并阻止冒泡；证据栏在无效/缺失选中时显示状态，不自动回退到 `citations[0]`；材料卡可用键盘激活。
+- **定向补查语义**：`UpdateIntent` / `UpdateTarget` 随子版 State 提交；选中 issue/finding 映射到目标问题与旧证据，未选中问题与未过期旧判断保留；父版 aliases 与 reviews 继承；Compiler 以 `memory.update_intent` 将目标显式传给模型。补查表单内容签名不变时复用同一 `client_request_id`。
+- **正文核验状态**：evidence 端点在 `verified` 之外新增 `unverified` / `unavailable` / `pending`；静态导出只有 verified 上下文输出原文 `<mark>`，其余在引用位置说明不可核验并保留报告摘录；在线引用附录消费同一状态。
+- **阅读状态路由**：workbench hash 保存 `snapshot` / `view` / `issue` / `date` / `role` / `evidence` / `material`；刷新恢复同 run/snapshot 视图；无效引用/问题/日期/类型显示提示，不静默替换为其他内容。
+- **人工演示材料隔离**：离线模式使用 bus 与 water 两套完整 fixture，任务文本在规划前确定性选 kit，搜索、读取、模型输出不再混用两套材料。
+
+### 19.7 2026-09-12 审查第二轮修复契约
+
+以下契约已进入仓库并经测试（实现记录 §31），对应审查 F03/F06/F07/F09：
+
+- **专项结构化字段**：`ModuleField` 仅允许白名单键值（规则/服务/计费/调查四类模块）；模型必须在 finding 上声明 `module_fields`，程序按 `EventProfile.question_refs` 与模块主题过滤相关判断。终态 `ready` 要求必需字段齐备、无冲突且来源判断全部 review supported；缺失字段保留“未知”，不得用无关事实填充；未审查或 partial 判断只能进入 `provisional`。
+- **复合问题组件**：`QuestionComponent` / `ComponentAssessment` 贯穿 Issue、PlanProposal、ReflectDecision 与 State；枚举式问题由程序派生 component，answered/disputed 处置必须逐项覆盖，answered 整题不得保留非 answered component；未处置或关键未知在 completion 中触发 partial 并在页面/导出显式上浮。
+- **复合 finding 数字护栏**：reviewer 给出 supported 时，程序核对 finding 中数字/日期/百分比是否出现在其支持摘录；缺失则自动降为 partial。审查 prompt 同步要求 concrete measure 逐项有原文支持。
+- **搜索覆盖解释**：Compiler 与 workbench 按问题暴露已尝试 purpose、未尝试方向、失败未出候选方向、近期 target_gap；这些是覆盖说明，不是固定搜索配额或召回率。
+- **来源关系契约**：`SourceRelationProposal` / `SourceRelation` 支持 same_text / repost / excerpt / followup；basis evidence 必须属于关系两端版本，由 Validator 与 State 双层校验；report 给出 `relation_status`（program_hash_duplicate / model_proposed / unverified）与关系依据，页面标注“模型提出、待人工复核”，依赖关系来源不进入独立来源统计。
+- **材料主张关系**：workbench materials 从已审查判断派生 summary / subjects / issue_questions / judgments（支持/反驳、kind、引用）；evidence relations 标记 active 与历史判断；材料卡支持“定位判断”，不再只是来源列表。
+
 ### 19.3 浏览器主路径验收（2026-09-11）
 
 实际浏览器主路径验收已完成（实现记录 §23）：Playwright + 真实 Chromium 驱动本地服务器页面，17/17 步通过（创建→阶段投影→三视图→证据抽屉→定向补查→版本比较→两类事件差异→历史→刷新恢复），并据此修复三个纯 API 验收无法暴露的前端缺陷。未覆盖：真实断网注入的 SSE 恢复、320px 窄屏与全键盘走查。

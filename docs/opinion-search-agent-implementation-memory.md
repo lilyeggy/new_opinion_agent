@@ -2448,3 +2448,102 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 
 - `test_clarify_proceed.py`：纯退让正则不误伤含内容回答；"不知道"→ 跳过追问直接 completed 且 scope_limitation 含假设；两轮正常回答后第 2 轮强制继续（monkeypatch scripted planner）。
 - PROCEED 指令对 planner 的实际遵从度属 live 行为，未在本次验证（live 额度预算保留）；机制层面（提示注入、hint 持久化、注记落报告）为离线可验证事实。
+
+
+## 30. 2026-09-12 审查第一轮修复（F01/F02/F04/F05/F10 与演示案例错配）
+
+> 阶段状态：verified（离线 non-live 回归 702 passed, 2 deselected；新增定向补查、证据核验、演示双 kit 测试；真实 Chromium + CDP 检查 F01/F02/F10 主路径通过）。本节点对应 [2026-09-12 审查](./opinionsearch-workbench-review-2026-09-12.md) 第一轮范围，未实施 F03/F06/F07/F08/F09/F11。
+
+### 30.1 F01：导出入口契约修复
+
+- `web/assets/ui.js` 的 `el()` 不再只接受绝对 http(s) URL 或 hash；新增 `safeSameOriginPath()`，仅允许以单个 `/` 开头且解析后 origin 与当前页面一致的同源路径，仍拒绝 `javascript:`、`data:`、`//host` 与控制字符。
+- 真实页面中“打开静态页 / 下载 HTML / 下载 Markdown”的 href 现分别为 `/api/investigations/{id}/page?snapshot_id=...`、`/page?download=1...`、`/report`。
+- 浏览器真实点击验收：打开静态页在新标签渲染；HTML 附件包含当前 workbench snapshot_id；Markdown 附件包含当前报告 subject；三者均从真实用户点击触发，不以直接请求接口代替。
+
+### 30.2 F02：引用独立选择与无回退证据栏
+
+- `workbench.js` 的文章卡不再把整个 article 绑定到首条引用；引用按钮和文章卡键盘操作分别处理，引用点击使用 `stopPropagation()` 选择自身。
+- 证据栏选中逻辑不再 `find(selected) || citations[0]`。无效选中、未选择、无引用材料或缺失引用各自显示明确状态，绝不回退到另一条原文；材料卡增加 `tabindex` 与 Enter/Space 键盘激活。
+- 浏览器检查：同一篇文章点击第二条引用后，证据栏显示 `[2]` 而非 `[1]`；对材料卡派发 Enter 后能选择引用。
+
+### 30.3 F04：定向补查进入 State 与编译上下文
+
+- 领域模型新增 `UpdateIntent` / `UpdateTarget`，State 新增可选 `update_intent`。
+- `Manager._investigate` 在父版更新时区分两类行为：
+  - 用户勾选 `issue_ids` / `finding_ids` 时，只重开选中问题（selected finding 会自动映射到其 issue），未选中问题保留原状态与未过期旧判断；旧 `reviews` 随 State 复制，使未重开判断仍可参与完成判定。
+  - 未提供定向目标时才沿用全量重做语义。
+  - 子版 `aliases` 改为继承父版 State，而非来自默认 PlanProposal。
+- `Compiler` 新增 `memory.update_intent` 受信区段（parent_run_id、issue_ids、finding_ids、finding→issue/evidence targets），模型在首轮动作前即可看到用户指定目标；`INSTRUCTIONS` 明确“先处理 update_intent，不重开无关问题”。
+- `app.js` 的补查表单在内容签名不变时复用同一个 `client_request_id`，网络响应丢失后再次提交可命中服务端幂等；编辑关注点或勾选内容后生成新 key。
+
+### 30.4 F05：正文核验状态进入在线与静态导出
+
+- `Manager.evidence()` 返回 `verification`：`verified` / `unverified`（摘录与归档正文不一致或越界）/ `unavailable`（artifact 不可读）/ `pending`（运行中）。验证失败仍保留报告摘录供追溯，但不再伪装成已定位原文。
+- `Manager._evidence_context()` 对每条证据显式给出状态与理由；`export.py` 新增 `_excerpt_block()`，只有 `verified` 才输出 `<mark>`，否则在引用位置输出“未与归档正文比对”的说明并展示保存摘录。
+- 在线“引用与原文”视图改为逐条读取 evidence API 的核验状态后再渲染高亮，和证据栏保持一致。
+- 回归：`test_evidence_endpoint_and_export_report_a_verification_failure` 篡改 artifact 后在线端点、workbench 上下文与静态页引用位置均标记不可核验；导出单测覆盖 verified / missing / unverified 三种上下文。
+
+### 30.5 F10：工作台阅读状态进入 URL 路由
+
+- `workbench.js` 新增路由状态归一化与 `workbenchRouteHash()`；`view` / `issue` / `date` / `role` / `evidence` / `material` 与 `snapshot` 写入 hash，app.js 在渲染终态工作台时读取并传给组件。
+- 刷新恢复同一 run/snapshot 的视图、筛选、选中引用；无效 issue/date/role/evidence 显示明确提示，不套用其他筛选或回退首条证据。
+- 浏览器检查：切到“报道对照”并选择第二条引用后刷新，仍停留在报道对照且证据栏保持 `[2]`。
+
+### 30.6 F12（演示错配部分）：两套互不混用的离线材料
+
+- `offline.py` 拆分 bus 与 water 两套完整 fixture，`fixture_for_request()` 依据任务文本在规划前确定性选择；SearchAdapter / ReaderAdapter / OfflineModel 使用同一 kit。
+- 水费 kit 的计费、复核、退费材料与对应 facet/finding 互不复用；更新时仍使用水费 kit 的补充说明。
+- 回归：`test_bus_and_water_offline_kits_stay_separate`、`test_water_update_uses_water_fixture_response`；首页离线模式文案说明两套案例按输入切换。
+
+### 30.7 验证证据与边界
+
+- `pytest tests/investigation tests/e2e/test_investigation_web.py -q`：108 passed。
+- `pytest -q -m "not live"`：702 passed, 2 deselected（命令均在 `opinion_search_agent/` 下，虚拟环境 Python，`PYTHONPATH=src`）。
+- 真实 Chromium `--headless=new` + 本机 CDP 手工检查脚本：确认 F01 三个导出入口（含真实点击打开静态页与两个附件下载，内容分别绑定 snapshot_id / subject）、F02 第二引用选择与材料键盘激活、F10 刷新恢复；输出 `BROWSER_CHECKS_OK` 与 `DOWNLOAD_CHECKS_OK`。
+- 未验证 / 未实施：F03 内容适配、F06 复合问题逐项完成约束、F07 覆盖分配与来源关系、F08 信息层次、F09 材料对照关系、F11 快照版本语义，以及 F12 的澄清兜底/对象纠正入口部分；真实联网调查与人工质量门槛仍待 P5。本节点不得被引用为这些项的通过证据。
+
+## 31. 2026-09-12 审查第二轮实现（F03/F06/F07/F09）
+
+> 阶段状态：verified（离线 non-live 回归 720 passed, 2 deselected；定向/Web 测试 126 passed；真实 Chromium CDP 主路径含结构化模块字段、复合问题组件、材料摘要与证据关系）。真实联网质量门槛仍为 NOT_CLAIMED。
+
+### 31.1 F03：专项模块内容适配
+
+- `domain/investigation/models.py` 新增 `ModuleField` 白名单与 `MODULE_FACET_FIELDS` / `REQUIRED_MODULE_FIELDS` / `FACET_MODULE_TYPES`；`FindingProposal.module_fields` 只允许模型为已确认 facet 模块填写合法字段，未知字段在模型校验阶段拒绝。
+- `confirmed_profile()` 现在利用 `issues` 按问题措辞建立 `EventProfile.question_refs`；专项 relevance 不再默认读取全部问题。`facet_modules()` 只收集与模块主题相关（或携带该模块结构化字段）的 active finding，并按字段白名单组装：
+  - 规则：旧值、新值、适用对象、生效时间、过渡安排；
+  - 服务：受影响服务、时间段、替代安排、恢复进展；
+  - 计费：计费口径、适用范围、办理路径、办理时限、退还/整改安排、实际执行证据；
+  - 调查：已采取行动、结果与承诺、判断变化。
+- 发布状态收紧：终态仅当必需字段齐备、无字段冲突且来源判断全部 `supported` 才 `ready`；字段缺失/冲突/未形成字段为 `insufficient`；判断未 review 为 `provisional`，partial 中的未审查判断不能获得可发布含义。未知字段保留“未知”槽位，不挪用无关事实。
+- 前端与静态导出渲染结构化字段；总览消费 `overview.highlights`，实际最多 3 个重点模块。
+- 离线 bus/water fixture 分别携带规则/计费模块字段，保证两类事件在同一套页面中长出不同内容。
+
+### 31.2 F06：复合问题逐项处置
+
+- 新增 `QuestionComponent` / `ComponentAssessment`；`Issue.components` 保存复合问题子项，`QuestionProposal.components` 允许计划阶段显式拆分。
+- `Manager` 在生成 issue 时对顿号/分号/“以及”枚举的问题自动派生 components；定向重开时子项状态重置为 open。
+- `Validator` 要求：复合问题标记 answered/disputed 时必须逐项处置；components 引用必须属于当前证据；answered/disputed 子项必须有依据；not_found/unavailable 子项必须有边界说明；answered 整题不得保留非 answered 子项。
+- Reducer 合并子项处置；Completion 对未处置子项、或 answered 问题中非 answered 子项返回 partial。
+- Workbench/export 议题区显示每个子项的状态、文字、依据与说明。
+- 审查降级护栏：`unbacked_specifics()` 对 finding 中的数字/日期/百分比做确定性核对，未在支持摘录中出现时，reviewer 的 `supported` 自动降为 `partial`；审查 prompt 同步要求 concrete number/date/percentage/named measure 逐项有摘录支持。这针对长复合 finding 被“大意正确”整体放行的问题。
+
+### 31.3 F07：可解释覆盖分配与来源关系
+
+- Compiler 的 `memory.coverage` 与 workbench 的 search coverage 现按问题列出：已尝试 purpose 及候选/失败计数、未尝试方向、失败未出候选方向、本轮 target_gap。方向计数只解释查过什么，不作为固定配额或召回率。
+- 前端“查看检索范围”和静态导出显示已查/未尝试/失败方向及补查缺口。
+- 新增 `SourceRelationProposal` / `SourceRelation`：类型限 same_text / repost / excerpt / followup；basis evidence 必须属于关系两端版本，否则校验拒绝；reflect 可一次提交，Reducer 持久化。
+- report 来源新增 `relation` / `relation_status`（`program_hash_duplicate` / `model_proposed` / `unverified`）/ `relation_evidence_ids` / `relation_explanation`；`source_relation_counts` 增加 repost/excerpt/followup/model_relation_count。模型关系页面上明确标注为“提出、待人工复核”，不包装成已验证独立。
+- 内容哈希重复仍为 duplicate；提出依赖关系的来源 `independent=False`，重复通报不作为多个独立支持。
+
+### 31.4 F09：报道对照中的主张与判断关系
+
+- workbench materials 新增程序派生字段：`summary`（优先第一条相关已审查判断，否则引用摘录）、`summary_source`、`summary_kind`、`subjects`、`issue_questions`、`judgments`（active finding 的支持/反驳关系、引用与 kind）。
+- 材料卡展示受约束摘要、表达主体、相关议题、支持/反驳判断与“定位判断”入口；不再只是标题和引用列表。
+- evidence API 的 relations 增加 `issue_question`、`finding_text`、`kind`、`stakeholder`、`active`；前端将 inactive 关系标为“历史判断”；静态导出同步输出材料摘要、主体、议题与判断关系。
+
+### 31.5 验证与边界
+
+- `pytest tests/investigation tests/e2e/test_investigation_web.py -q`：126 passed。
+- `pytest -q -m "not live"`：720 passed, 2 deselected。
+- 真实 Chromium CDP：F01/F02/F10 既有主路径继续通过；新增检查结构化模块字段（bus 的新值/未知旧值、最多 3 个重点）、议题子项处置、材料摘要/主体/议题/定位判断；输出 `BROWSER_CHECKS_OK`。
+- 未实施：F08 信息层次重排、F11 快照版本语义、F12 的澄清兜底/对象纠正交互；真实模型质量、10 案例回放与人工 90%/95% 门槛仍 blocked。本节点不构成 P5 通过。

@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import re
 
-from opinion_search.domain.investigation.models import uid
+from opinion_search.domain.investigation.models import SEARCH_DIRECTIONS, uid
 from opinion_search.investigation import metrics
 from opinion_search.investigation.presentation import facet_modules, highlights
 
@@ -100,7 +100,7 @@ def build_workbench(report) -> dict:
         "views": {
             "overview": overview,
             "coverage": {
-                "materials": _materials(sources, evidence),
+                "materials": _materials(sources, evidence, report.get("findings", []), issues),
                 "known_date_count": sum(1 for s in sources if s.get("published_at")),
                 "unknown_date_count": sum(1 for s in sources if not s.get("published_at")),
                 "search_coverage": _search_coverage(report.get("searches", []), issues),
@@ -110,6 +110,7 @@ def build_workbench(report) -> dict:
                     {"issue_id": issue["issue_id"], "question": issue["question"],
                      "status": issue["status"], "note": issue.get("note", ""),
                      "origin_questions": list(issue.get("origin_questions", [])),
+                     "components": [dict(component) for component in issue.get("components", [])],
                      "involved_materials": _involvement(involvement, issue["issue_id"]),
                      "findings": [
                          {"finding_id": f["finding_id"], "text": f["text"], "kind": f["kind"],
@@ -185,34 +186,100 @@ def _involvement(involvement, issue_id):
 
 
 def _search_coverage(searches, issues):
-    """Per-question coverage of attempted searches — scope, not recall."""
+    """Per-question coverage of attempted searches — scope, not recall.
 
-    coverage = {}
+    The projection names which search directions were attempted, which were
+    never attempted, and which failed without producing a candidate. It does
+    not treat direction counts as a completion quota.
+    """
+
+    coverage = {
+        issue["issue_id"]: {"attempts": 0, "errors": 0, "targeted": 0, "purposes": {},
+                            "target_gaps": [], "unattempted_directions": list(SEARCH_DIRECTIONS),
+                            "failed_directions": []}
+        for issue in issues
+    }
     for attempt in searches:
-        entry = coverage.setdefault(attempt["issue_id"], {"attempts": 0, "errors": 0, "targeted": 0})
+        entry = coverage.setdefault(attempt["issue_id"], {
+            "attempts": 0, "errors": 0, "targeted": 0, "purposes": {}, "target_gaps": [],
+            "unattempted_directions": list(SEARCH_DIRECTIONS), "failed_directions": []})
         entry["attempts"] += 1
         entry["errors"] += 1 if attempt["outcome"] == "error" else 0
         entry["targeted"] += 1 if attempt.get("discovery_mode") == "targeted" else 0
+        purpose = entry["purposes"].setdefault(attempt["purpose"], {"attempts": 0, "errors": 0, "candidates": 0})
+        purpose["attempts"] += 1
+        purpose["errors"] += 1 if attempt["outcome"] == "error" else 0
+        purpose["candidates"] += 1 if attempt["outcome"] == "candidates" else 0
+        if attempt.get("target_gap") and attempt["target_gap"] not in entry["target_gaps"]:
+            entry["target_gaps"].append(attempt["target_gap"])
     questions = {issue["issue_id"]: issue["question"] for issue in issues}
-    return [{"issue_id": issue_id, "question": questions.get(issue_id, issue_id), **entry}
-            for issue_id, entry in sorted(coverage.items())]
+    result = []
+    for issue_id, entry in coverage.items():
+        entry["unattempted_directions"] = [p for p in SEARCH_DIRECTIONS if p not in entry["purposes"]]
+        entry["failed_directions"] = [p for p, stats in entry["purposes"].items()
+                                      if stats["errors"] and not stats["candidates"]]
+        result.append({"issue_id": issue_id, "question": questions.get(issue_id, issue_id), **entry})
+    return result
 
 
-def _materials(sources, evidence):
-    """Coverage view: materials ordered by publication date, unknown last."""
+def _materials(sources, evidence, findings, issues):
+    """Coverage view: materials ordered by publication date, unknown last.
+
+    Material cards carry only program-derived links to committed judgments and
+    the cited excerpt as a fallback summary. No new model-authored claim is
+    created for the list.
+    """
 
     by_version: dict[str, list[str]] = {}
+    by_evidence: dict[str, str] = {}
     for item in evidence:
         by_version.setdefault(item["version_id"], []).append(item["evidence_id"])
+        by_evidence[item["evidence_id"]] = item["version_id"]
+    issue_questions = {issue["issue_id"]: issue["question"] for issue in issues}
     known = [s for s in sources if s.get("published_at")]
     unknown = [s for s in sources if not s.get("published_at")]
     ordered = sorted(known, key=lambda s: str(s["published_at"])) + unknown
-    return [
-        {"version_id": s["version_id"], "title": s["title"], "url": s["url"], "final_url": s["final_url"],
-         "published_at": s.get("published_at"), "updated_at": s.get("updated_at"),
-         "fetched_at": s.get("fetched_at"), "role": s.get("role", "unknown"),
-         "discovery": s.get("discovery", ""), "relation": s.get("relation", "unverified"),
-         "duplicate_of": s.get("duplicate_of"),
-         "citation_ids": by_version.get(s["version_id"], [])}
-        for s in ordered
-    ]
+    material_evidence = {item["evidence_id"]: item for item in evidence}
+    result = []
+    for source in ordered:
+        version_id = source["version_id"]
+        citation_ids = by_version.get(version_id, [])
+        linked = []
+        citation_set = set(citation_ids)
+        for finding in findings:
+            linked_relations = []
+            if set(finding.get("evidence_ids", [])) & citation_set:
+                linked_relations.append("support")
+            if set(finding.get("contradicting_ids", [])) & citation_set:
+                linked_relations.append("contradict")
+            for relation in linked_relations:
+                linked.append({
+                    "finding_id": finding["finding_id"], "text": finding["text"],
+                    "kind": finding.get("kind", ""), "stakeholder": finding.get("stakeholder", ""),
+                    "issue_id": finding.get("issue_id", ""),
+                    "issue_question": issue_questions.get(finding.get("issue_id", ""), ""),
+                    "review": finding.get("support", "unreviewed"), "relation": relation,
+                    "citation_ids": list(finding.get("evidence_ids", [])),
+                })
+        unique_linked = list({(item["finding_id"], item["relation"]): item for item in linked}.values())
+        summary = unique_linked[0]["text"] if unique_linked else ""
+        summary_source = "judgment" if unique_linked else "excerpt"
+        if not summary and citation_ids:
+            summary = material_evidence.get(citation_ids[0], {}).get("excerpt", "")
+        result.append({
+            "version_id": version_id, "title": source["title"], "url": source["url"],
+            "final_url": source["final_url"], "published_at": source.get("published_at"),
+            "updated_at": source.get("updated_at"), "fetched_at": source.get("fetched_at"),
+            "role": source.get("role", "unknown"), "discovery": source.get("discovery", ""),
+            "relation": source.get("relation", "unverified"),
+            "relation_status": source.get("relation_status", "unverified"),
+            "relation_evidence_ids": list(source.get("relation_evidence_ids", [])),
+            "relation_explanation": source.get("relation_explanation", ""),
+            "duplicate_of": source.get("duplicate_of"), "citation_ids": citation_ids,
+            "summary": summary, "summary_source": summary_source,
+            "summary_kind": unique_linked[0].get("kind", "") if unique_linked else "",
+            "subjects": list(dict.fromkeys(item["stakeholder"] for item in unique_linked if item["stakeholder"])),
+            "issue_questions": list(dict.fromkeys(item["issue_question"] for item in unique_linked if item["issue_question"])),
+            "judgments": unique_linked,
+        })
+    return result

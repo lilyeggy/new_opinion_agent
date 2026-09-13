@@ -129,3 +129,34 @@ def test_evidence_positioning_survives_emoji_and_combining_marks():
     mangled = content.replace("🙂", "")
     with pytest.raises(ValueError):
         verify_evidence(item, mangled)
+
+
+def test_evidence_endpoint_and_export_report_a_verification_failure(manager, run_offline):
+    snapshot = run_offline(manager, {"question": "某市公交夜班车调整的争议与回应"})
+    run_id = snapshot["run_id"]
+    item = snapshot["report"]["evidence"][0]
+    evidence_id = item["evidence_id"]
+    source = next(source for source in snapshot["report"]["sources"]
+                  if source["version_id"] == item["version_id"])
+
+    located = manager.evidence(run_id, evidence_id)
+    assert located["verification"]["status"] == "verified"
+
+    case_root = manager.root / "cases" / manager.load(run_id)["case_id"]
+    digest = source["artifact_ref"].rsplit("/", 1)[-1]
+    artifact = case_root / "artifacts" / f"{digest}.txt"
+    artifact.write_text("被替换的归档正文", encoding="utf-8")
+
+    located = manager.evidence(run_id, evidence_id)
+    assert located["verification"]["status"] == "unverified"
+    assert located["verification"]["reason"]
+    assert located["excerpt"] == item["excerpt"], "the saved report excerpt stays available for provenance"
+
+    contexts = manager._evidence_context(run_id)  # noqa: SLF001 - export contract
+    assert contexts[evidence_id]["status"] == "unverified"
+    page = manager.page(run_id)
+    start = page.find('id="cite-1"')
+    end = page.find("</li>", start)
+    entry = page[start:end]
+    assert "未与归档正文比对" in entry
+    assert "<mark>" not in entry

@@ -9,7 +9,9 @@ from opinion_search.context.models import (
     ContextPlan, ContextSection, ContextSectionMeasure, CompactionMode, HeuristicTokenEstimator,
     TrustBoundary, render_sections,
 )
-from opinion_search.domain.investigation.models import Decision, accepted_review
+from opinion_search.domain.investigation.models import (
+    SEARCH_DIRECTIONS, Decision, MODULE_FACET_FIELDS, accepted_review,
+)
 from opinion_search.runtime.errors import ContextOverflowError
 
 
@@ -29,16 +31,34 @@ explicit coverage: response='direct' answers every part and leaves 'uncovered' e
 response='partial' must list the unanswered parts in 'uncovered', and both need a
 concrete 'coverage_reason'. Distinguish fact, attribution,
 interpretation, requests, stance targets, dates, source dependencies and uncertainty.
-Reflect creates atomic findings and explicit issue dispositions. Preserve all user
-questions; the investigation may never hold more than eight questions in total.
-Reopen questions when new evidence changes the assessment, retaining a reason.
+Reflect creates atomic findings and explicit issue dispositions. It may also
+propose source_relations (same_text, repost, excerpt, followup) only when every
+basis_evidence_id belongs to one of the two saved source versions; leave unknown
+relations absent instead of using a fixed quota. Preserve all user questions; the
+investigation may never hold more than eight questions in total. Reopen questions
+when new evidence changes the assessment, retaining a reason.
 Before finish, review ALL active findings in batches of at most eight. A separate reviewer
 checks evidence, not truth. Repair partial/contradicted/insufficient findings: retire old
 wording and submit appropriately qualified findings, then review those again.
+On an on-demand update, memory.update_intent names the user-selected questions and findings.
+Investigate those targets first; do not reopen, retire or overwrite unrelated parent issues
+unless the new evidence actually changes them.
 finish selects only reviewed, supported findings for the core conclusion; do not invent a
 new free-text synthesis. If material is missing use unavailable, not false certainty.
 Write analytical content and user-facing explanations in Chinese. Make focused decisions.
+For a confirmed facet module, attach only its whitelisted structured fields to the finding whose
+evidence supports that value. Allowed fields per module: {MODULE_FIELD_GUIDE}. Leave a field absent
+when the material does not state it; never copy an unrelated fact or infer a missing value. A module
+becomes publishable only when the program sees its required fields backed by reviewed findings.
 """
+
+
+MODULE_FIELD_GUIDE = " | ".join(
+    module + ": " + ", ".join(f"{key} ({label})" for key, label in fields.items())
+    for module, fields in MODULE_FACET_FIELDS.items()
+)
+
+INSTRUCTIONS = INSTRUCTIONS.format(MODULE_FIELD_GUIDE=MODULE_FIELD_GUIDE)
 
 
 def section(identifier, content, origin=Origin.MODEL, required=False, priority=80, protected=False):
@@ -88,23 +108,39 @@ class Compiler:
              "review": (r.verdict if (r := self._review(state, f)) else "unreviewed")}
             for f in state.findings
         ]
-        progress = state.model_dump(mode="json", exclude={"request", "evidence", "sources", "candidates", "findings"})
+        progress = state.model_dump(mode="json", exclude={"request", "evidence", "sources", "candidates", "findings", "update_intent"})
         progress.pop("issues", None)
         progress.pop("subject", None)
         progress.pop("aliases", None)
         progress.pop("cutoff", None)
         progress.pop("required_questions", None)
-        coverage = {}
+        coverage = {
+            issue.issue_id: {"attempts": 0, "errors": 0, "outcomes": {}, "purposes": {},
+                             "unattempted_directions": list(SEARCH_DIRECTIONS), "failed_directions": []}
+            for issue in state.issues
+        }
         for attempt in state.searches:
-            entry = coverage.setdefault(attempt.issue_id, {"attempts": 0, "errors": 0, "outcomes": {}})
+            entry = coverage.setdefault(attempt.issue_id, {
+                "attempts": 0, "errors": 0, "outcomes": {}, "purposes": {},
+                "unattempted_directions": list(SEARCH_DIRECTIONS), "failed_directions": []})
             entry["attempts"] += 1
             entry["errors"] += 1 if attempt.outcome == "error" else 0
             entry["outcomes"][attempt.outcome] = entry["outcomes"].get(attempt.outcome, 0) + 1
+            purpose = entry["purposes"].setdefault(attempt.purpose, {"attempts": 0, "errors": 0, "candidates": 0})
+            purpose["attempts"] += 1
+            purpose["errors"] += 1 if attempt.outcome == "error" else 0
+            purpose["candidates"] += 1 if attempt.outcome == "candidates" else 0
+        for entry in coverage.values():
+            entry["unattempted_directions"] = [p for p in SEARCH_DIRECTIONS if p not in entry["purposes"]]
+            entry["failed_directions"] = [p for p, stats in entry["purposes"].items()
+                                          if stats["errors"] and not stats["candidates"]]
         sections = [
             section("task.instructions", INSTRUCTIONS, Origin.APP_CONFIG, True),
             section("task.request", state.request.model_dump_json(), Origin.USER_TASK, True),
             section("task.schema", json.dumps(TypeAdapter(Decision).json_schema(), ensure_ascii=False), Origin.APP_CONFIG, True),
             section("memory.questions", json.dumps(questions, ensure_ascii=False), Origin.MODEL, priority=100, protected=True),
+            *([section("memory.update_intent", state.update_intent.model_dump_json(), Origin.USER_TASK,
+                       required=True, priority=100, protected=True)] if state.update_intent else []),
             section("memory.findings", json.dumps(findings, ensure_ascii=False), Origin.MODEL, priority=100, protected=True),
             section("memory.progress", json.dumps(progress, ensure_ascii=False), Origin.MODEL, priority=100),
             section("memory.budget", json.dumps(self.budget.snapshot()), Origin.RUNTIME, priority=100),

@@ -31,9 +31,12 @@ mark { background: #ffe08a; color: #1d2129; }
 STATUS_LABELS = {"completed": "调查完成", "partial": "部分完成", "failed": "调查失败",
                  "cancelled": "已取消", "running": "调查进行中"}
 ROLE_LABELS = {"original": "机构原文", "reporting": "新闻报道", "commentary": "评论文章", "unknown": "来源类型未知"}
-RELATION_LABELS = {"duplicate": "与已有版本正文重复", "unverified": "来源关系未核实"}
+RELATION_LABELS = {"duplicate": "与已有版本正文重复", "same_text": "与已有版本正文一致",
+                   "repost": "转载/转述关系", "excerpt": "摘录/引用关系",
+                   "followup": "后续跟进材料", "unverified": "来源关系未核实"}
 REVIEW_LABELS = {"supported": "引用支持", "partial": "证据部分支持", "contradicted": "与引用矛盾",
                  "insufficient": "证据不足", "unreviewed": "尚未完成核查"}
+KIND_LABELS = {"fact": "事实", "attributed": "归因转述", "interpretation": "解释", "request": "诉求"}
 RESPONSE_LABELS = {"direct": "直接回答", "partial": "部分回答", "non_substantive": "涉及但未实质回答",
                    "not_found": "范围内未发现回应", "unknown": "无法判断"}
 MODULE_STATE_LABELS = {"ready": "可查看", "provisional": "待核查", "insufficient": "材料不足",
@@ -229,7 +232,9 @@ def _bars(distribution) -> str:
 
 
 def _overview_section(workbench, overview, citations) -> str:
-    modules = [m for m in workbench.get("modules", []) if m.get("facet")]
+    highlighted = [m for m in overview.get("highlights", []) if m.get("facet")]
+    all_facets = [m for m in workbench.get("modules", []) if m.get("facet")]
+    modules = highlighted or all_facets
     cards = "".join(_module_card(module, citations) for module in modules)
     timeline = overview.get("timeline", {})
     events = timeline.get("events", []) + timeline.get("unparsed", [])
@@ -244,7 +249,7 @@ def _overview_section(workbench, overview, citations) -> str:
     return (
         '<section class="os-section" id="sec-overview">'
         + (f'<div class="os-section-head"><h3>本事件重点模块</h3>'
-           f'<span class="os-note">由事件侧重点与已有证据决定；材料不足时显示缺口</span></div>{cards}'
+           f'<span class="os-note">由事件侧重点与已有证据决定，最多显示三个重点；材料不足时显示缺口</span></div>{cards}'
            if cards else "")
         + '<div class="os-section-head"><h3>事件进程与材料分布</h3><span class="os-note">按发布日期 · 篇</span></div>'
         + _bars(overview.get("publication_distribution"))
@@ -253,6 +258,19 @@ def _overview_section(workbench, overview, citations) -> str:
         + failure_note
         + f'<p class="os-note">{_esc(limitations.get("scope_limitation", ""))}</p>'
         + "</section>")
+
+
+def _module_field_html(field, citations) -> str:
+    label = _esc(field.get("label", ""))
+    state = field.get("state", "")
+    if state == "known":
+        value = f'{_esc(field.get("value", ""))} {_cite_links(citations, field.get("citations"))}'
+        return f'<div class="os-facet-field"><span class="os-facet-label">{label}</span><span class="os-facet-value">{value}</span></div>'
+    if state == "conflict":
+        values = " / ".join(_esc(value) for value in field.get("values", []))
+        return (f'<div class="os-facet-field"><span class="os-facet-label">{label}</span>'
+                f'<span class="os-open-question">字段冲突：{values}；待核查。</span></div>')
+    return f'<div class="os-facet-field"><span class="os-facet-label">{label}</span><span class="os-note">未知</span></div>'
 
 
 def _module_card(module, citations) -> str:
@@ -264,10 +282,17 @@ def _module_card(module, citations) -> str:
             f'<span class="os-note">（核查：{_esc(REVIEW_LABELS.get(finding.get("review", ""), finding.get("review", "")))}）</span></p>'
             for finding in item.get("findings", []))
         items += f'<div class="os-note">{_esc(item["question"])}</div>{findings}'
+    fields = module.get("fields", [])
+    fields_html = ('<div class="os-facet-fields">'
+                   + "".join(_module_field_html(field, citations) for field in fields) + "</div>") if fields else ""
+    if fields:
+        items_html = f'<details class="os-module-provenance"><summary>查看支撑判断</summary>{items}</details>' if items else ""
+    else:
+        items_html = items
     gap = f'<p class="os-open-question">{_esc(module["gap"])}</p>' if module.get("gap") else ""
     return ('<div class="os-module-card"><div class="os-module-head">'
             f'<h4>{_esc(module.get("title", ""))}</h4><span class="os-tag">{_esc(state)}</span></div>'
-            f'<p class="os-note">{_esc(module.get("selection_rationale", ""))}</p>{gap}{items}</div>')
+            f'<p class="os-note">{_esc(module.get("selection_rationale", ""))}</p>{gap}{fields_html}{items_html}</div>')
 
 
 def _coverage_section(coverage, citations) -> str:
@@ -277,16 +302,34 @@ def _coverage_section(coverage, citations) -> str:
         url = _safe_url(material.get("final_url") or material.get("url"))
         title = (f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{_esc(material["title"])}</a>'
                  if url else _esc(material["title"]))
-        relation = RELATION_LABELS.get(material.get("relation", ""), "")
-        relation_tag = (f'<span class="os-origin">{_esc(relation)}</span>'
-                        if material.get("relation") == "duplicate"
-                        else f'<span class="os-origin">{_esc(RELATION_LABELS["unverified"])}</span>')
+        relation = RELATION_LABELS.get(material.get("relation", ""), RELATION_LABELS["unverified"])
+        relation_tag = f'<span class="os-origin">{_esc(relation)}</span>'
+        if material.get("relation_status") == "model_proposed":
+            relation_tag += '<span class="os-note">（模型基于原文提出，待人工复核）</span>'
+        summary = material.get("summary", "")
+        summary_html = f'<p class="os-story-summary">{_esc(summary)}</p>' if summary else ""
+        relation_basis = ""
+        if material.get("relation_status") == "model_proposed" and material.get("relation_explanation"):
+            relation_basis = (f'<p class="os-note">关系依据（模型提出，待人工复核）：'
+                              f'{_esc(material["relation_explanation"])} '
+                              f'{_cite_links(citations, material.get("relation_evidence_ids"))}</p>')
+        context_parts = []
+        if material.get("subjects"):
+            context_parts.append("表达主体：" + "、".join(material["subjects"]))
+        if material.get("issue_questions"):
+            context_parts.append("相关议题：" + "；".join(material["issue_questions"]))
+        context_html = f'<p class="os-note">{_esc("；".join(context_parts))}</p>' if context_parts else ""
+        judgment_links = "".join(
+            f'<div class="os-note">{_esc(KIND_LABELS.get(judgment.get("kind", ""), judgment.get("kind", "材料")))}'
+            f'｜{_esc("反驳" if judgment.get("relation") == "contradict" else "支持")}：{_esc(judgment.get("text", ""))} '
+            f'{_cite_links(citations, judgment.get("citation_ids"))}</div>'
+            for judgment in material.get("judgments", []) or [])
         stories.append(
             '<article class="os-story">'
             f'<small><span>{_esc(material.get("role_label") or ROLE_LABELS.get(material.get("role", ""), ""))}</span>'
             f'<span>发布 {_esc(str(material.get("published_at") or "未知")[:10])}</span>'
             f'<span>获取 {_esc(str(material.get("fetched_at") or "")[:10])}</span>{relation_tag}</small>'
-            f'<strong>{title}</strong>'
+            f'<strong>{title}</strong>{relation_basis}{summary_html}{context_html}{judgment_links}'
             f'<p>{_cite_links(citations, material.get("citation_ids"))}</p></article>')
     counts = coverage.get("search_coverage", [])
     coverage_note = ""
@@ -295,6 +338,10 @@ def _coverage_section(coverage, citations) -> str:
                          '<span class="os-note">本次已查范围，非全网召回率</span></div><ul class="os-note">'
                          + "".join(f'<li>{_esc(entry["question"])}：尝试 {entry["attempts"]} 次'
                                    + (f'，失败 {entry["errors"]} 次' if entry.get("errors") else "")
+                                   + (f'；已查方向：{_esc("、".join(entry.get("purposes", {})))}' if entry.get("purposes") else "；已查方向：无")
+                                   + (f'；未尝试：{_esc("、".join(entry.get("unattempted_directions", [])))}' if entry.get("unattempted_directions") else "")
+                                   + (f'；失败未出候选：{_esc("、".join(entry.get("failed_directions", [])))}' if entry.get("failed_directions") else "")
+                                   + (f'；本轮补查缺口：{_esc("；".join(entry.get("target_gaps", [])))}' if entry.get("target_gaps") else "")
                                    + "</li>" for entry in counts) + "</ul>")
     return (
         '<section class="os-section" id="sec-coverage">'
@@ -334,17 +381,51 @@ def _issues_section(issues, citations) -> str:
                             + ("；反驳：" + _cite_links(citations, finding.get("citations", {}).get("contradict"))
                                if finding.get("citations", {}).get("contradict") else "")
                             + "</p></div>")
+        components_html = ""
+        if issue.get("components"):
+            rows = []
+            for component in issue["components"]:
+                rows.append(
+                    '<div class="os-component">'
+                    f'<span class="os-tag">{_esc(RESPONSE_LABELS.get(component.get("status", ""), component.get("status", "")))}</span>'
+                    f'<span>{_esc(component.get("text", ""))}</span>'
+                    f'{_cite_links(citations, component.get("evidence_ids"))}'
+                    + (f'<span class="os-note">{_esc(component.get("note", ""))}</span>' if component.get("note") else "")
+                    + "</div>")
+            components_html = '<div class="os-components">' + "".join(rows) + "</div>"
         blocks.append(
             '<article class="os-issue">'
             f'<span class="os-tag">{_esc(issue.get("status", ""))}</span>'
             f'<h3>{_esc(issue["question"])}</h3>'
             + involved_note
             + (f'<p class="os-note">{_esc(issue.get("note", ""))}</p>' if issue.get("note") else "")
+            + components_html
             + "".join(findings) + "</article>")
     return ('<section class="os-section" id="sec-issues">'
             '<div class="os-section-head"><h3>议题与回应对应</h3>'
             '<span class="os-note">按具体问题核查；渠道开通不等于问题解决</span></div>'
             + ("".join(blocks) or '<p class="os-note">尚未形成可展示的调查问题。</p>') + "</section>")
+
+
+def _excerpt_block(evidence: dict, context: dict | None) -> str:
+    """Render a saved excerpt together with its archive-verification status.
+
+    Only a verified context gets the ``mark`` highlight. Missing or mismatched
+    archive text keeps the report excerpt visible as provenance, but says so at
+    the citation position instead of implying it was checked against the source text.
+    """
+
+    excerpt = _esc(evidence.get("excerpt", ""))
+    locator = _esc(evidence.get("locator", ""))
+    if context is not None and context.get("status", "verified") == "verified":
+        before = _esc(context.get("before", ""))
+        after = _esc(context.get("after", ""))
+        return (f'<blockquote>{before}<mark>{excerpt}</mark>{after}</blockquote>'
+                f'<div class="os-note">{locator}；请求地址与最终地址不同时以最终地址为准</div>')
+    reason = (context or {}).get("reason") or "当前无法核对保存的归档正文。"
+    return (f'<div class="os-open-question">{_esc(reason)}'
+            "以下为报告保存的摘录，未与归档正文比对，不作为已定位原文。</div>"
+            f'<blockquote>{excerpt}</blockquote><div class="os-note">{locator}</div>')
 
 
 def _citations_section(citations, evidence_index, sources, contexts) -> str:
@@ -355,15 +436,9 @@ def _citations_section(citations, evidence_index, sources, contexts) -> str:
         url = _safe_url(source.get("final_url") or source.get("url"))
         link = (f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{_esc(url)}</a>'
                 if url else "来源地址不可用")
-        context = contexts.get(evidence_id, {})
-        excerpt = ""
-        if evidence:
-            before = _esc(context.get("before", ""))
-            after = _esc(context.get("after", ""))
-            excerpt = (f'<blockquote>{before}<mark>{_esc(evidence.get("excerpt", ""))}</mark>{after}</blockquote>'
-                       f'<div class="os-note">{_esc(evidence.get("locator", ""))}；请求地址与最终地址不同时以最终地址为准</div>')
-        else:
-            excerpt = '<div class="os-open-question">该引用缺少可核对的保存正文，保持未知。</div>'
+        context = contexts.get(evidence_id)
+        excerpt = (_excerpt_block(evidence, context) if evidence
+                   else '<div class="os-open-question">该引用缺少可核对的保存正文，保持未知。</div>')
         entries.append(
             f'<li class="os-cite-target" id="cite-{citation["index"]}">'
             f'<strong>{_esc(citation["label"])}｜{_esc(citation.get("source_title", ""))}</strong>'
@@ -392,14 +467,10 @@ def _inspector(workbench, overview, citations, evidence_index, sources, contexts
     citation = citations[first]
     evidence = evidence_index.get(first)
     source = sources.get(citation.get("version_id", ""), {})
-    context = contexts.get(first, {})
+    context = contexts.get(first)
     url = _safe_url(source.get("final_url") or source.get("url"))
     link = f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{_esc(url)}</a>' if url else "来源地址不可用"
-    excerpt = ""
-    if evidence:
-        excerpt = (f'<blockquote>{_esc(context.get("before", ""))}<mark>{_esc(evidence.get("excerpt", ""))}</mark>'
-                   f'{_esc(context.get("after", ""))}</blockquote>'
-                   f'<div class="os-note">{_esc(evidence.get("locator", ""))}</div>')
+    excerpt = _excerpt_block(evidence, context) if evidence else ""
     gaps = [module["gap"] for module in workbench.get("modules", [])
             if module.get("facet") and module.get("state") == "insufficient" and module.get("gap")]
     gap_html = "".join(f'<div class="os-open-question">仍缺：{_esc(gap)}</div>' for gap in gaps[:2])
