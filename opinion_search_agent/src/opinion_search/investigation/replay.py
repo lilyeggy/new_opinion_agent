@@ -137,6 +137,7 @@ def replay_loop_builder(case: ReplayCase):
 
 
 def run_replay_case(root: Path, case_path: Path, *, config: LiveConfig | None = None,
+                    env_file: Path | None = None,
                     poll_seconds: float = 0.1, timeout_seconds: float = 2400) -> dict:
     """Run one frozen-material case with the configured live model.
 
@@ -147,7 +148,11 @@ def run_replay_case(root: Path, case_path: Path, *, config: LiveConfig | None = 
     """
 
     case = load_replay_case(Path(case_path))
-    config = config or LiveConfig.from_env()
+    if config is None:
+        if env_file is not None:
+            from opinion_search.web.server import load_env_file
+            load_env_file(Path(env_file))
+        config = LiveConfig.from_env()
     manager = Manager(Path(root), config_loader=lambda: config, loop_builder=replay_loop_builder(case))
     payload = {"mode": "live", "question": case.request_question}
     if case.focus:

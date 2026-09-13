@@ -55,6 +55,7 @@ from opinion_search.investigation.replay import run_replay_case
 snapshot = run_replay_case(
     root=...,             # run directory
     case_path=...,        # manifest path
+    env_file=Path(".env"),  # optional dotenv for model credentials
     timeout_seconds=2400,
 )
 ```
