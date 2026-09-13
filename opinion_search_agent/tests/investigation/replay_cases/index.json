@@ -1,0 +1,122 @@
+{
+  "schema": "opinion-investigation-replay/1",
+  "note": "冻结材料的机制回放案例，使用离线合成 fixture；只验证机制与语义契约，不构成 live 质量证据。",
+  "cases": [
+    {
+      "case_id": "night-bus-rule",
+      "fixture": "bus",
+      "quality_claim": "mechanism_only",
+      "request": {
+        "question": "某市公交夜班车调整的争议与回应"
+      },
+      "expect": {
+        "subject_contains": [
+          "公交",
+          "夜班"
+        ],
+        "facets": [
+          "rule_change"
+        ],
+        "module_states": {
+          "rule-comparison": "ready"
+        },
+        "module_fields": {
+          "rule-comparison": {
+            "new_value": "工作日末班时间提前至22时",
+            "applies_to": "工作日夜间公交",
+            "effective_time": "2026-01-10"
+          }
+        },
+        "source_titles": [
+          "夜间公交调整公告（虚构演示）",
+          "夜班人员出行诉求（虚构演示）"
+        ],
+        "finding_keywords": [
+          "末班",
+          "夜班人员"
+        ],
+        "forbidden_terms": [
+          "阶梯水价",
+          "居民用户",
+          "按原渠道退回"
+        ],
+        "component_texts": [
+          "核心事实与变化",
+          "适用范围或对象",
+          "执行或生效安排",
+          "受影响主体",
+          "具体诉求与争议",
+          "机构已回应内容",
+          "仍未回答事项"
+        ],
+        "search_purposes": [
+          "original"
+        ]
+      },
+      "update": {
+        "question_marker": "机构回应",
+        "module_type": "rule-comparison",
+        "field_key": "transition",
+        "field_contains": "接驳"
+      }
+    },
+    {
+      "case_id": "water-billing-remedy",
+      "fixture": "water",
+      "quality_claim": "mechanism_only",
+      "request": {
+        "question": "某市水费计费争议与回应"
+      },
+      "expect": {
+        "subject_contains": [
+          "水费"
+        ],
+        "facets": [
+          "billing_remedy"
+        ],
+        "module_states": {
+          "billing-remedy": "ready"
+        },
+        "module_fields": {
+          "billing-remedy": {
+            "billing_basis": "阶梯水价",
+            "scope": "居民用户",
+            "handling_path": "复核",
+            "deadline": "5个工作日"
+          }
+        },
+        "source_titles": [
+          "居民阶梯水价计费说明（虚构演示）",
+          "居民反映水费上涨与退费诉求（虚构演示）"
+        ],
+        "finding_keywords": [
+          "阶梯水价",
+          "复核"
+        ],
+        "forbidden_terms": [
+          "末班",
+          "夜班",
+          "接驳"
+        ],
+        "component_texts": [
+          "核心事实与变化",
+          "适用范围或对象",
+          "执行或生效安排",
+          "受影响主体",
+          "具体诉求与争议",
+          "机构已回应内容",
+          "仍未回答事项"
+        ],
+        "search_purposes": [
+          "original"
+        ]
+      },
+      "update": {
+        "question_marker": "机构回应",
+        "module_type": "billing-remedy",
+        "field_key": "remedy_commitment",
+        "field_contains": "按原渠道退回"
+      }
+    }
+  ]
+}

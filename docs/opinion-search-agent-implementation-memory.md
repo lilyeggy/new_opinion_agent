@@ -2580,3 +2580,20 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 - `pytest -q -m "not live"`：726 passed, 2 deselected。
 - 真实 Chromium CDP：既有 F01/F02/F10/F03/F06/F09 检查继续输出 `BROWSER_CHECKS_OK`；新增 `F08_CHECKS_OK`（外层头部隐藏、总览摘要存在、其他视图摘要为 0、390px 证据栏默认隐藏并可开关）；下载检查 `DOWNLOAD_CHECKS_OK`。
 - 未覆盖：真实大量材料的 320/768/1024 全页视觉走查、live 质量与 10 案例回放、人工 90%/95% 门槛；本节点不构成 P5 通过。
+
+## 33. 固定材料机制回放案例（2026-09-12/13）
+
+> 阶段状态：verified（机制回放 3 项通过；定向/Web 测试 135 passed；non-live 729 passed, 2 deselected）。真实材料与人工质量仍为 blocked。
+
+### 33.1 两套完整回放案例
+
+- `tests/investigation/replay_cases/index.json` 新增 `night-bus-rule` 与 `water-billing-remedy` 两个 case，分别冻结请求、来源标题、facet、模块状态、必需结构化字段、finding 关键词、禁止串入词、复合问题组件、搜索 purpose，以及定向补查后的字段变化。
+- `tests/investigation/test_replay_cases.py` 通过真实 Manager 离线运行完整链路：
+  - 父版：材料、问题、判断、facet 模块字段、组件、搜索方向与禁止项；
+  - 子版：problem 定向补查后目标字段出现预期变化，fixture 不串案。
+- 两个 case 明确标记 `quality_claim=mechanism_only`，并断言 `cases/registry.json` 的十个真实材料槽位仍保持 `blocked`。
+
+### 33.2 边界
+
+- synthetic fixture 覆盖的是机制与语义契约，不是 live 搜索质量，也不是人工 90%/95% 断言支持率。
+- 下一阶段如需推进 P5，必须先冻结真实公开原文快照并获得人工标注；届时可复用本回放案例结构，替换 materials/expected 并保留同样的隔离断言。

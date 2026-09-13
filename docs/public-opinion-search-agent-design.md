@@ -958,6 +958,12 @@ opinion_search_agent/
 - **计数单位**：materials 暴露 document_key / document_version_count，workbench 与静态导出按页面归组，同 URL 多正文版本在文档内展开；页面显示页面数与正文版本数两个口径。
 - **确定性澄清兜底**：`_assumption_fallback_plan()` 在 假设继续 hint 下替换持续 clarification；进度页与工作台提供对象纠正入口并把假设写进限制说明。
 
+### 19.9 机制回放案例契约（2026-09-12/13）
+
+- `tests/investigation/replay_cases/index.json`：冻结两套合成事件的 request、来源、facet、模块状态、结构化字段、finding 关键词、禁止串入词、组件、搜索 purpose 与定向补查字段变化。
+- `test_replay_cases.py` 通过真实 Manager 端到端执行，验证父版隔离、模块内容、复合组件、搜索方向和子版定向更新；所有 case 标记 `quality_claim=mechanism_only`。
+- 真实材料十个 registry 槽位仍 blocked；机制回放通过不等于 live 搜索或人工质量验收通过。
+
 ### 19.3 浏览器主路径验收（2026-09-11）
 
 实际浏览器主路径验收已完成（实现记录 §23）：Playwright + 真实 Chromium 驱动本地服务器页面，17/17 步通过（创建→阶段投影→三视图→证据抽屉→定向补查→版本比较→两类事件差异→历史→刷新恢复），并据此修复三个纯 API 验收无法暴露的前端缺陷。未覆盖：真实断网注入的 SSE 恢复、320px 窄屏与全键盘走查。
