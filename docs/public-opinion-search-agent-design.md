@@ -60,6 +60,8 @@ OpinionSearch Agent 是一个面向长程公开 Web 舆情调查的单 Agent Har
 
 Checkpoint、StepRecord 和最小开发日志服务于单次 Runtime 的正确恢复，不包装成 Trace/Observability 产品。
 
+> 2026-10-13 边界决策（D14）：深度范围为第①层与第②层；产品层（investigation、report_contract、web）冻结新功能。评测只允许以离线脚本形式存在于 `scripts/`，不构成 Evaluation 平台。
+
 ### 2.3 外部依赖的地位
 
 - 模型是 `ModelClient` 背后的外部服务；

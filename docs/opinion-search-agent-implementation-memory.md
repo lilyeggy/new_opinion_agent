@@ -2635,3 +2635,48 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 
 - 这只是固定材料模型回放的能力入口，不是本次已执行的真实模型结果；真正运行需要模型 API 预算与案例材料决定。
 - 不调用 Brave/Jina，不改变 web 产品模式，不把 synthetic replay 与真实材料 registry 混同。
+
+---
+
+## 2026-10-13 边界收敛与搜索约束透传
+
+### 实现范围
+
+1. **边界决策**：项目边界收敛为第①层 Runtime 与第②层 Tool/Context 的深度实现；`investigation/`、`report_contract/`、`web/`、`app/` 冻结新功能，只做缺陷修复。
+2. **旧 opinion 路径的搜索约束透传**：`OpinionSearchActionResolver` 从持久化的 `TaskFrame` 投影 `freshness`（有界时间窗口）与 `search_lang`（由 TaskFrame 语言映射）。`country` 与 `offset` 不下发。域名约束仍在候选入库时后过滤。
+3. **时间范围解析修复**：`parse_temporal_scope` 接受 `YYYY-MM-DD/YYYY-MM-DD`。该格式是 README 与 CLI 示例承诺的写法，修复前会被静默降级为 UNSPECIFIED，即用户的显式时间约束被丢弃。
+4. **执行 profile 升级**：旧 opinion 路径的 action payload 变化，因此 offline `v2→v3`、offline fallback `v1→v2`、live `v5→v6`。旧 checkpoint 按 D6 只读保留，恢复时报 `execution profile does not match`。
+5. **测试卫生**：`tests/investigation/test_update_versions.py` 的子进程测试补齐管道关闭，消除 `-W error` 下的 ResourceWarning。
+
+### 核心流程与不变量
+
+- Brave 请求参数只来自 Tool 层的 `SearchArguments` 校验结果，resolver 不拼接 provider 语义。
+- `freshness` 只在 `TemporalScope.is_bounded` 为真时出现。无时间约束的 run 不产生该字段。
+- `TaskFrame` 在 run 创建时用 `anchor_date` 锚定一次，resume 不重新推导，因此同一 run 的 freshness 在恢复后保持一致。
+
+### 设计取舍
+
+- 旧路径保留"两字段稳定 payload"的注释语义被放弃，取而代之的是 profile 升级。代价是旧 run 不能续跑；收益是搜索约束可审计地进入 action identity 与缓存键。
+- 域名约束没有前置到 Brave 请求。原因是旧路径的 `site:` 前置会改变查询语义并占用查询长度，当前由后过滤保证正确性；前置化留作后续实验。
+
+### 验证证据
+
+```text
+tests/unit + contract + integration + security + e2e: 615 passed, 2 skipped（需真实 provider 的 live 门控）
+tests/investigation (-W error):                      179 passed
+离线 demo（--time-range 2026-08-01/2026-08-20）:     退出码 0；checkpoint 中出现 freshness=2026-08-01to2026-08-20、search_lang=zh-hans
+旧 offline checkpoint 执行 resume:                   报 execution profile does not match，未重放
+```
+
+真实 Brave 的 `freshness=YYYY-MM-DDtoYYYY-MM-DD` 参数格式未用 live 调用验证，本节点未消耗 API 配额。该项列为未覆盖风险。
+
+### 已知限制
+
+- 域名约束仍为后过滤，搜索结果数量仍会因域名过滤而减少。
+- `country` 未使用。
+- 时间解析只接受 ISO 区间与少数相对表达；无法识别的显式 `time_range` 当前被静默降级为 UNSPECIFIED，尚未决定是否改为请求校验失败。
+
+### 对下一节点的影响
+
+- excerpt 选择的语义（召回瓶颈）仍待用户决定，本节点未改动。
+- 评测集与离线评测脚本尚未建设；按边界决策，评测只能是 `scripts/` 下的离线脚本，不进入 Evaluation 平台。
