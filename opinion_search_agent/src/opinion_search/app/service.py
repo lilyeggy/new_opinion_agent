@@ -246,7 +246,7 @@ def build_offline_service(
             max_decision_attempts=2,
             max_context_tokens=16_000,
             output_headroom_tokens=2_000,
-            execution_profile=_execution_profile_id("opinion-search-offline-v2"),
+            execution_profile=_execution_profile_id("opinion-search-offline-v3"),
             hook=hook,
             result_cache=result_cache,
         )
@@ -321,7 +321,7 @@ def build_offline_fallback_service(
             max_context_tokens=16_000,
             output_headroom_tokens=2_000,
             execution_profile=_execution_profile_id(
-                "opinion-search-offline-fallback-v1",
+                "opinion-search-offline-fallback-v2",
                 "primary-search",
                 "secondary-search",
                 "primary-read",
@@ -384,7 +384,7 @@ def build_live_service(
             output_headroom_tokens=config.output_headroom_tokens,
             tool_timeout_seconds=config.tool_timeout_seconds,
             execution_profile=_execution_profile_id(
-                "opinion-search-live-v5",
+                "opinion-search-live-v6",
                 config.model_base_url,
                 config.model_name,
                 "brave-search",

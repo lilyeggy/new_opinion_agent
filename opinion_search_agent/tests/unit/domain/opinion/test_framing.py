@@ -48,3 +48,13 @@ def test_unsupported_time_language_remains_explicitly_unspecified() -> None:
     assert frame.temporal_scope.provenance is TemporalScopeProvenance.UNSPECIFIED
     assert frame.temporal_scope.start_date is None
     assert frame.temporal_scope.end_date is None
+
+
+def test_slash_separated_iso_range_from_cli_documentation_is_bounded() -> None:
+    frame = build_task_frame(
+        SearchRequest(question="q", time_range="2026-08-01/2026-08-20"),
+        anchor_date=date(2026, 8, 25),
+    )
+
+    assert frame.temporal_scope.start_date == date(2026, 8, 1)
+    assert frame.temporal_scope.end_date == date(2026, 8, 20)

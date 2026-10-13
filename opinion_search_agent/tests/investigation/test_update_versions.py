@@ -90,6 +90,8 @@ def test_case_lock_excludes_a_second_process(manager, run_offline):
         process.stdin.write("\n")
         process.stdin.flush()
         process.wait(timeout=10)
+        process.stdin.close()
+        process.stdout.close()
 
 
 def test_resume_does_not_replay_committed_tool_actions(manager, run_offline, monkeypatch):

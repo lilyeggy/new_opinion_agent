@@ -161,3 +161,68 @@ def test_resolver_accepts_finish_after_gap_and_source_are_complete() -> None:
     assert (
         action.completion_verdict.disposition is CompletionDisposition.ACCEPT_COMPLETE
     )
+
+
+def test_resolver_projects_bounded_task_frame_onto_search_options() -> None:
+    from datetime import date
+
+    from opinion_search.domain.opinion.framing import build_task_frame
+
+    request = SearchRequest(
+        question="What happened?",
+        time_range="2026-08-01/2026-08-20",
+        language="en",
+    )
+    state = _state().model_copy(
+        update={
+            "request": request,
+            "task_frame": build_task_frame(request, anchor_date=date(2026, 8, 25)),
+        }
+    )
+    action = _resolver().resolve(
+        state,
+        SearchDecision(
+            action="search",
+            query="official announcement",
+            target_gap_id="gap-primary",
+            purpose="Find the primary source.",
+        ),
+    )
+
+    assert isinstance(action, ToolAction)
+    assert action.arguments == {
+        "query": "official announcement",
+        "max_results": 5,
+        "freshness": "2026-08-01to2026-08-20",
+        "search_lang": "en",
+    }
+
+
+def test_resolver_omits_freshness_when_task_frame_is_unbounded() -> None:
+    from datetime import date
+
+    from opinion_search.domain.opinion.framing import build_task_frame
+
+    request = SearchRequest(question="What happened?", language="zh")
+    state = _state().model_copy(
+        update={
+            "request": request,
+            "task_frame": build_task_frame(request, anchor_date=date(2026, 8, 25)),
+        }
+    )
+    action = _resolver().resolve(
+        state,
+        SearchDecision(
+            action="search",
+            query="官方通报",
+            target_gap_id="gap-primary",
+            purpose="Find the primary source.",
+        ),
+    )
+
+    assert isinstance(action, ToolAction)
+    assert action.arguments == {
+        "query": "官方通报",
+        "max_results": 5,
+        "search_lang": "zh-hans",
+    }

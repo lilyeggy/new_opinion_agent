@@ -95,7 +95,7 @@ def parse_temporal_scope(
             provenance=TemporalScopeProvenance.UNSPECIFIED,
         )
     normalized = re.sub(r"\s+", "", expression)
-    iso_range = re.fullmatch(r"(\d{4}-\d{2}-\d{2})\s*(?:至|to|~)\s*(\d{4}-\d{2}-\d{2})", normalized, re.I)
+    iso_range = re.fullmatch(r"(\d{4}-\d{2}-\d{2})\s*(?:至|to|~|/)\s*(\d{4}-\d{2}-\d{2})", normalized, re.I)
     if iso_range:
         return TemporalScope(
             anchor_date=anchor_date,
