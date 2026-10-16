@@ -1,0 +1,663 @@
+{
+  "schema": "opinion-search-quality-gate/1",
+  "generated_at": "2026-10-17T02:54:23+08:00",
+  "corpus": "evaluation/corpus.json",
+  "code": {
+    "head": "d6d47ef",
+    "dirty": false
+  },
+  "boundaries": [
+    "检索召回与忠实性判定依赖 evaluation/annotations/ 下的冻结人工标注；门禁只保证同一标注下结果可重算，不保证标注本身正确。",
+    "s5-b 的 11 个已读来源中 4 个（m.163.com、news.china.com 评论、www.163.com、www.sohu.com 广告翻车）没有冻结快照，其 25 条证据只能标记为不可核，不计入引用可核率分母。",
+    "对抗案例的错误数字在判断层（时间线 / 已核查判断 / 争议与回应）不存在，但在报告末“来源与证据”附录中作为原始摘录出现；该通过项只代表这一轮没有把它写进判断，不代表系统具备数字可信度拦截。",
+    "两条 OpinionSearch 轻路径案例只覆盖 opinion 域（无 findings / review 层），主要作用是冻结今日两次真实运行的回归指纹。",
+    "门禁不调用模型、不访问网络，因此它证明的是“给定这些冻结运行，数字可重算且可回归”，不证明“换一个模型或搜索引擎仍然成立”。"
+  ],
+  "cases": [
+    {
+      "case_id": "sanjiu-s5b",
+      "domain": "investigation",
+      "label": "三九胃泰中秋广告争议 · s5-b 真实运行（60 个提交步骤）",
+      "run_dir": "artifacts/live-runs/investigations/runs/9b1bf7d631804cffbfc85a00086aef52",
+      "fingerprint": "46aad71e09479c0e",
+      "counts": {
+        "sources": 11,
+        "evidence": 64,
+        "claims": 14,
+        "candidates": 61,
+        "read": 17
+      },
+      "metrics": {
+        "provenance_closure": {
+          "checked": 95,
+          "resolved": 95,
+          "dangling": [],
+          "closure_rate": 1.0
+        },
+        "excerpt_grounding": {
+          "verified": 39,
+          "mismatch": 0,
+          "unverifiable": 25,
+          "checkable": 39,
+          "grounding_rate": 1.0,
+          "unverifiable_sources": [
+            "source-0db5a2dc5a4ae9e64d90",
+            "source-3752a7b4d688cccbe5d5",
+            "source-77da4a7465ec67ad96e2",
+            "source-fe567b5842ddf9824e10"
+          ],
+          "failures": []
+        },
+        "claim_grounding": {
+          "grounded": 14,
+          "ungrounded": 0,
+          "total": 14,
+          "grounding_rate": 1.0,
+          "ungrounded_ids": []
+        },
+        "source_diversity": {
+          "read": {
+            "urls": 11,
+            "domains": 9,
+            "top_domain": "news.china.com",
+            "top_domain_share": 0.18181818181818182,
+            "domain_counts": {
+              "news.china.com": 2,
+              "www.sohu.com": 2,
+              "i.ifeng.com": 1,
+              "m.163.com": 1,
+              "www.163.com": 1,
+              "www.36kr.com": 1,
+              "www.stheadline.com": 1,
+              "k.sina.cn": 1
+            }
+          },
+          "discovered": {
+            "urls": 61,
+            "domains": 15,
+            "top_domain": "news.qq.com",
+            "top_domain_share": 0.6557377049180327,
+            "domain_counts": {
+              "news.qq.com": 40,
+              "www.sohu.com": 4,
+              "news.china.com": 3,
+              "www.163.com": 2,
+              "k.sina.cn": 2,
+              "www.wenxuecity.com": 1,
+              "www.stheadline.com": 1,
+              "www.huxiu.com": 1
+            }
+          }
+        },
+        "retrieval_recall": {
+          "available": true,
+          "total": 10,
+          "discovery_hits": 7,
+          "discovery_rate": 0.7,
+          "read_hits": 6,
+          "read_rate": 0.6,
+          "reported_discovery_hits": 6,
+          "reported_read_hits": 6,
+          "agreement": {
+            "comparable": 10,
+            "agree": 9,
+            "rate": 0.9
+          },
+          "items": [
+            {
+              "item_id": 1,
+              "content": "新京报 9·15 首发回应（“正在安排撤下”的原始出处，网易转载）",
+              "discovered": true,
+              "read": true,
+              "published_discovery": true,
+              "published_read": true
+            },
+            {
+              "item_id": 2,
+              "content": "新京报快评《三九胃泰营销莫挑拨朴素价值观》",
+              "discovered": false,
+              "read": false,
+              "published_discovery": false,
+              "published_read": false
+            },
+            {
+              "item_id": 3,
+              "content": "央广网记者报道（雷妍）",
+              "discovered": false,
+              "read": false,
+              "published_discovery": false,
+              "published_read": false
+            },
+            {
+              "item_id": 4,
+              "content": "央广网《看丹观察》评论（21 经济网转载）",
+              "discovered": true,
+              "read": true,
+              "published_discovery": true,
+              "published_read": true
+            },
+            {
+              "item_id": 5,
+              "content": "中新网评《三九胃泰的营销病，比胃病更该治》（搜狐转载）",
+              "discovered": true,
+              "read": true,
+              "published_discovery": true,
+              "published_read": true
+            },
+            {
+              "item_id": 6,
+              "content": "中国新闻周刊深度稿",
+              "discovered": false,
+              "read": false,
+              "published_discovery": false,
+              "published_read": false
+            },
+            {
+              "item_id": 7,
+              "content": "大河网“河声”评论《一句“别团圆”为何惹众怒》",
+              "discovered": true,
+              "read": true,
+              "published_discovery": false,
+              "published_read": false
+            },
+            {
+              "item_id": 8,
+              "content": "新黄河·大鱼财经报道（凤凰网转载）",
+              "discovered": true,
+              "read": true,
+              "published_discovery": true,
+              "published_read": true
+            },
+            {
+              "item_id": 9,
+              "content": "36 氪评论《情人节劝分手，中秋节不让团圆》",
+              "discovered": true,
+              "read": true,
+              "published_discovery": true,
+              "published_read": true
+            },
+            {
+              "item_id": 10,
+              "content": "星岛头条报道（华润三九急撤下宣传）",
+              "discovered": true,
+              "read": false,
+              "published_discovery": true,
+              "published_read": true
+            }
+          ]
+        },
+        "faithfulness": {
+          "system": {
+            "total": 14,
+            "reviewed": 14,
+            "verdicts": {
+              "supported": 6,
+              "partial": 8
+            },
+            "supported_rate": 0.42857142857142855
+          },
+          "human": {
+            "available": true,
+            "method": "逐条人工核对 finding 文本与其绑定 evidence 摘录：完全支持 = 文本中的事实、引语与归属都能在绑定摘录里找到；部分支持 = 事实成立但摘录未覆盖全部引语或关键归属；无中生有 = 摘录完全不支持。只看摘录，不看系统 review 结论。",
+            "total": 14,
+            "counts": {
+              "fully_supported": 10,
+              "partial": 4
+            },
+            "fully_supported_rate": 0.7142857142857143,
+            "fabricated": 0,
+            "labels": [
+              {
+                "index": 1,
+                "claim_id": "finding-e8b3a4e0090c4f05bafe",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 2,
+                "claim_id": "finding-7cd838969f8b7205a686",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 3,
+                "claim_id": "finding-17767afddc20e2b50f99",
+                "judgement": "partial",
+                "note": "被引用的号名“药识局”与其概括性判断“存在多方面问题”不在绑定摘录的字符区间内，摘录只覆盖了部分论点。"
+              },
+              {
+                "index": 4,
+                "claim_id": "finding-d0777ee9abc90044bc87",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 5,
+                "claim_id": "finding-361712fd5d3c98cb83a5",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 6,
+                "claim_id": "finding-57e7d66462ee78744626",
+                "judgement": "partial",
+                "note": "“别团圆”“和平分手”等引语与七夕投放细节未完整落在绑定摘录区间内，属于摘录不足而非编造。"
+              },
+              {
+                "index": 7,
+                "claim_id": "finding-69e9e953868416e6752a",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 8,
+                "claim_id": "finding-74b109fb3188124b5d25",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 9,
+                "claim_id": "finding-1b3ccc4bf6ae491af582",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 10,
+                "claim_id": "finding-1ffd5e75b7ce435fb737",
+                "judgement": "partial",
+                "note": "36 氪评论的原载出处“超聚焦foci”、作者“白墨”以及“可以反节日套路，不能反文化共识……”等直接引语不在绑定摘录内。"
+              },
+              {
+                "index": 11,
+                "claim_id": "finding-4cb970691bae3a1d94b9",
+                "judgement": "partial",
+                "note": "“守护单身狗的胃”“我在重庆”“养胃饺饺者”等引语不在绑定摘录内（原文存在，摘录未覆盖）。"
+              },
+              {
+                "index": 12,
+                "claim_id": "finding-b78265f75f290659f20b",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 13,
+                "claim_id": "finding-3eed15e0fe47e42c685b",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 14,
+                "claim_id": "finding-006bb06bd5c313b85dcd",
+                "judgement": "fully_supported",
+                "note": ""
+              }
+            ],
+            "quote_coverage": {
+              "finding-e8b3a4e0090c4f05bafe": 0.6666666666666666,
+              "finding-7cd838969f8b7205a686": 1.0,
+              "finding-17767afddc20e2b50f99": 1.0,
+              "finding-d0777ee9abc90044bc87": null,
+              "finding-361712fd5d3c98cb83a5": 0.0,
+              "finding-57e7d66462ee78744626": 1.0,
+              "finding-69e9e953868416e6752a": 0.6666666666666666,
+              "finding-74b109fb3188124b5d25": 1.0,
+              "finding-1b3ccc4bf6ae491af582": null,
+              "finding-1ffd5e75b7ce435fb737": 0.0,
+              "finding-4cb970691bae3a1d94b9": 0.0,
+              "finding-b78265f75f290659f20b": 1.0,
+              "finding-3eed15e0fe47e42c685b": 0.8,
+              "finding-006bb06bd5c313b85dcd": 0.5
+            }
+          }
+        },
+        "adversarial": {
+          "available": false
+        }
+      }
+    },
+    {
+      "case_id": "sanjiu-adversarial",
+      "domain": "investigation",
+      "label": "对抗埋点三连：更正 / 反方稿 / 错误数字 · 真实模型生产回放链路",
+      "run_dir": "artifacts/adversarial-cases/sanjiu-2026-09/runs-root/runs/452e0b05aca84ad39fb0f9d4427cfb81",
+      "fingerprint": "4a1e19e9b1dcfb56",
+      "counts": {
+        "sources": 10,
+        "evidence": 50,
+        "claims": 4,
+        "candidates": 10,
+        "read": 10
+      },
+      "metrics": {
+        "provenance_closure": {
+          "checked": 59,
+          "resolved": 59,
+          "dangling": [],
+          "closure_rate": 1.0
+        },
+        "excerpt_grounding": {
+          "verified": 50,
+          "mismatch": 0,
+          "unverifiable": 0,
+          "checkable": 50,
+          "grounding_rate": 1.0,
+          "unverifiable_sources": [],
+          "failures": []
+        },
+        "claim_grounding": {
+          "grounded": 4,
+          "ungrounded": 0,
+          "total": 4,
+          "grounding_rate": 1.0,
+          "ungrounded_ids": []
+        },
+        "source_diversity": {
+          "read": {
+            "urls": 10,
+            "domains": 10,
+            "top_domain": "i.ifeng.com",
+            "top_domain_share": 0.1,
+            "domain_counts": {
+              "i.ifeng.com": 1,
+              "www.21jingji.com": 1,
+              "www.36kr.com": 1,
+              "dahe-app.example.com": 1,
+              "www.stheadline.com": 1,
+              "www.sohu.com": 1,
+              "news.china.com": 1,
+              "k.sina.cn": 1
+            }
+          },
+          "discovered": {
+            "urls": 10,
+            "domains": 10,
+            "top_domain": "i.ifeng.com",
+            "top_domain_share": 0.1,
+            "domain_counts": {
+              "i.ifeng.com": 1,
+              "news.china.com": 1,
+              "www.stheadline.com": 1,
+              "www.21jingji.com": 1,
+              "www.sohu.com": 1,
+              "www.36kr.com": 1,
+              "k.sina.cn": 1,
+              "brandwatch-review.example.com": 1
+            }
+          }
+        },
+        "retrieval_recall": {
+          "available": false
+        },
+        "faithfulness": {
+          "system": {
+            "total": 4,
+            "reviewed": 4,
+            "verdicts": {
+              "partial": 3,
+              "supported": 1
+            },
+            "supported_rate": 0.25
+          },
+          "human": {
+            "available": false
+          }
+        },
+        "adversarial": {
+          "available": true,
+          "passed": 2,
+          "total": 3,
+          "rate": 0.6666666666666666,
+          "checks": [
+            {
+              "check_id": "correction-adopted",
+              "question": "更正说明是否进入判断层",
+              "expect": true,
+              "passed": true,
+              "note": "更正事实成为报告唯一的“已核查阶段性判断”，四段引用全部指向更正稿。",
+              "observed": {
+                "与实际情况不符": true,
+                "9月20日": true
+              }
+            },
+            {
+              "check_id": "counter-voice-cited",
+              "question": "反方稿（专栏：为三九胃泰“别团圆”广告说句话）的证据是否被任何判断引用（期望：应被引用）",
+              "expect": true,
+              "passed": false,
+              "note": "反方稿被读取并摘录，但没有一条判断引用它；系统在覆盖说明里标注了缺口，仍未回填。",
+              "observed": {
+                "url_contains": "brandwatch-review.example.com",
+                "evidence_count": 5,
+                "cited_count": 0,
+                "was_cited": false
+              }
+            },
+            {
+              "check_id": "wrong-numbers-isolated",
+              "question": "被放大 10 倍的数字是否进入判断层",
+              "expect": true,
+              "passed": true,
+              "note": "判断层没有这两个数字，但它们确实以原始摘录形式出现在报告末尾的“来源与证据”附录里；这是“没轮到综合”，不是数字校验收拦截。",
+              "observed": {
+                "scope": "narrative",
+                "found_in_scope": [],
+                "found_in_appendix": [
+                  "3160.3",
+                  "908.9"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case_id": "live-deepseek-20261017",
+      "domain": "opinion",
+      "label": "OpinionSearch 轻路径 · 真实模型 + Brave/Jina · 第 1 次",
+      "run_dir": "artifacts/live-run-deepseek-20261017",
+      "fingerprint": "2f88f2fda57f78ed",
+      "counts": {
+        "sources": 3,
+        "evidence": 9,
+        "claims": 12,
+        "candidates": 10,
+        "read": 3
+      },
+      "metrics": {
+        "provenance_closure": {
+          "checked": 59,
+          "resolved": 59,
+          "dangling": [],
+          "closure_rate": 1.0
+        },
+        "excerpt_grounding": {
+          "verified": 9,
+          "mismatch": 0,
+          "unverifiable": 0,
+          "checkable": 9,
+          "grounding_rate": 1.0,
+          "unverifiable_sources": [],
+          "failures": []
+        },
+        "claim_grounding": {
+          "grounded": 12,
+          "ungrounded": 0,
+          "total": 12,
+          "grounding_rate": 1.0,
+          "ungrounded_ids": []
+        },
+        "source_diversity": {
+          "read": {
+            "urls": 3,
+            "domains": 2,
+            "top_domain": "www.sohu.com",
+            "top_domain_share": 0.6666666666666666,
+            "domain_counts": {
+              "www.sohu.com": 2,
+              "www.mct.gov.cn": 1
+            }
+          },
+          "discovered": {
+            "urls": 10,
+            "domains": 8,
+            "top_domain": "www.sohu.com",
+            "top_domain_share": 0.3,
+            "domain_counts": {
+              "www.sohu.com": 3,
+              "www.mct.gov.cn": 1,
+              "cpc.people.com.cn": 1,
+              "jjckb.xinhuanet.com": 1,
+              "www.sfccn.com": 1,
+              "travel.ifeng.com": 1,
+              "www.sina.cn": 1,
+              "www.news.cn": 1
+            }
+          }
+        },
+        "retrieval_recall": {
+          "available": false
+        },
+        "faithfulness": {
+          "system": {
+            "total": 12,
+            "reviewed": 0,
+            "verdicts": {},
+            "supported_rate": null
+          },
+          "human": {
+            "available": false
+          }
+        },
+        "adversarial": {
+          "available": false
+        }
+      }
+    },
+    {
+      "case_id": "live-deepseek-envcheck-20261017",
+      "domain": "opinion",
+      "label": "OpinionSearch 轻路径 · 真实模型 + Brave/Jina · 第 2 次",
+      "run_dir": "artifacts/live-run-deepseek-envcheck-20261017",
+      "fingerprint": "3e2fe1b58ce2e415",
+      "counts": {
+        "sources": 4,
+        "evidence": 12,
+        "claims": 8,
+        "candidates": 10,
+        "read": 4
+      },
+      "metrics": {
+        "provenance_closure": {
+          "checked": 51,
+          "resolved": 51,
+          "dangling": [],
+          "closure_rate": 1.0
+        },
+        "excerpt_grounding": {
+          "verified": 12,
+          "mismatch": 0,
+          "unverifiable": 0,
+          "checkable": 12,
+          "grounding_rate": 1.0,
+          "unverifiable_sources": [],
+          "failures": []
+        },
+        "claim_grounding": {
+          "grounded": 8,
+          "ungrounded": 0,
+          "total": 8,
+          "grounding_rate": 1.0,
+          "ungrounded_ids": []
+        },
+        "source_diversity": {
+          "read": {
+            "urls": 4,
+            "domains": 4,
+            "top_domain": "news.gmw.cn",
+            "top_domain_share": 0.25,
+            "domain_counts": {
+              "news.gmw.cn": 1,
+              "finance.eastmoney.com": 1,
+              "www.huxiu.com": 1,
+              "www.news.cn": 1
+            }
+          },
+          "discovered": {
+            "urls": 10,
+            "domains": 9,
+            "top_domain": "www.news.cn",
+            "top_domain_share": 0.2,
+            "domain_counts": {
+              "www.news.cn": 2,
+              "news.gmw.cn": 1,
+              "finance.sina.com.cn": 1,
+              "www.chinafilm.gov.cn": 1,
+              "k.sina.com.cn": 1,
+              "xinwen.bjd.com.cn": 1,
+              "finance.eastmoney.com": 1,
+              "www.huxiu.com": 1
+            }
+          }
+        },
+        "retrieval_recall": {
+          "available": false
+        },
+        "faithfulness": {
+          "system": {
+            "total": 8,
+            "reviewed": 0,
+            "verdicts": {},
+            "supported_rate": null
+          },
+          "human": {
+            "available": false
+          }
+        },
+        "adversarial": {
+          "available": false
+        }
+      }
+    }
+  ],
+  "headline": {
+    "retrieval_recall": {
+      "case_id": "sanjiu-s5b",
+      "discovery": "7/10",
+      "read": "6/10",
+      "published_discovery": "6/10",
+      "published_read": "6/10",
+      "human_machine_agreement": 0.9
+    },
+    "faithfulness": {
+      "case_id": "sanjiu-s5b",
+      "human_fully_supported": "10/14",
+      "human_rate": 0.7142857142857143,
+      "fabricated": 0,
+      "system_supported": "6/14",
+      "excerpt_grounding": "110/110",
+      "excerpt_grounding_rate": 1.0
+    },
+    "adversarial_points": {
+      "case_id": "sanjiu-adversarial",
+      "passed": "2/3",
+      "rate": 0.6666666666666666
+    },
+    "live_regression": {
+      "live-deepseek-20261017": {
+        "claims": 12,
+        "ungrounded": 0,
+        "domains_read": 2,
+        "candidates": 10,
+        "fingerprint": "2f88f2fda57f78ed"
+      },
+      "live-deepseek-envcheck-20261017": {
+        "claims": 8,
+        "ungrounded": 0,
+        "domains_read": 4,
+        "candidates": 10,
+        "fingerprint": "3e2fe1b58ce2e415"
+      }
+    }
+  }
+}

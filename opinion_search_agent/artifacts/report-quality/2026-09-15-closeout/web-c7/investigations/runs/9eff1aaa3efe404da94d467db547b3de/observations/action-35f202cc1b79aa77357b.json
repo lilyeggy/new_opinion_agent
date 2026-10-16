@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-6e216ae112f566d377c8",
+      "query": "听证会举行的时间地点、听证人名单、参加人名单构成的原文内容",
+      "version_id": "source-7f7e0c3c5c2ad3f7e963"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-c24e06c9d523354eea4a",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "一、听证会举行的时间和地点",
+        "start": 306,
+        "end": 319,
+        "locator": "Reader text chars 306:319"
+      },
+      {
+        "evidence_id": "evidence-476212c8d1f470385d2b",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "三、听证会参加人名单（共35名）",
+        "start": 431,
+        "end": 447,
+        "locator": "Reader text chars 431:447"
+      },
+      {
+        "evidence_id": "evidence-81290be93ac702b5d267",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "二、听证人名单（共3名）",
+        "start": 356,
+        "end": 368,
+        "locator": "Reader text chars 356:368"
+      },
+      {
+        "evidence_id": "evidence-46f422a1c7b5b5ee469c",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "六、听证方案主要内容",
+        "start": 1238,
+        "end": 1248,
+        "locator": "Reader text chars 1238:1248"
+      },
+      {
+        "evidence_id": "evidence-bcd969e030feef32d149",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "（二）请参加听证会的人员按照《政府制定价格听证办法》有关规定，正确行使权力、履行义务，并于2025年5月29日凭本人身份证在重庆两江假日酒店会议签到处报到参会。",
+        "start": 4386,
+        "end": 4466,
+        "locator": "Reader text chars 4386:4466"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-所有条目标记为 `status = "blocked"`：尚未取得可核验、可公开访问的原文快照，因此没有填写 `materials`、`user_request`、`required_questions` 或 `expected`。这符合“材料不可获得时明确 blocked，不用虚构替代”的要求。
+`response-dev` 已在本地实验批次收集 8 份带 sha256 的公开文本快照；`rules-dev` 已收集国内航班充电宝规则、地区执行和后续监管共 6 份快照。两者均标记为 `materials_collected_local_unreviewed`。原文快照默认不提交 Git；registry 保留 URL、哈希和本地路径，使材料缺失与未获分发确认保持可见。候选问题、禁止结论与来源依赖仍是 `model_preannotation`，尚未获得人工复核，因此只能用于本地材料管线和模型调试，不能进入人工质量门槛。其余 8 个条目仍为 `blocked`，不以虚构材料补位。
 
 ## 填写规则（取得材料后）
 

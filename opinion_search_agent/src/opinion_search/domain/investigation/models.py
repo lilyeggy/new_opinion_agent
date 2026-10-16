@@ -45,9 +45,9 @@ Facet = Literal["rule_change", "service_change", "billing_remedy", "investigatio
 class EventProfile(Record):
     """Composable event facets proposed by the model, confirmed by the program.
 
-    Facets are product content policy, not agent types: they only decide which
-    whitelisted modules a workbench page highlights. Unknown values are dropped
-    by the confirmation step; they never widen the module whitelist.
+    Facets are product content policy, not agent types: they select whitelisted
+    PagePlan modules and their evidence fields. Unknown values are dropped by
+    the confirmation step; they never widen the module or renderer whitelist.
     """
 
     facets: tuple[Facet, ...] = ("general",)
@@ -222,10 +222,16 @@ class Retirement(Record):
 
 
 class ComponentAssessment(Record):
-    """Model-proposed disposition of one compound-issue component."""
+    """Model-proposed state for one compound-issue component.
+
+    A reflection may answer only the parts covered by current evidence while
+    leaving the rest open.  The persisted QuestionComponent already supports
+    that state; accepting it here keeps partial synthesis representable instead
+    of turning an otherwise useful finding into a malformed model response.
+    """
 
     text: Text
-    status: Literal["answered", "disputed", "not_found", "unavailable"]
+    status: Literal["open", "answered", "disputed", "not_found", "unavailable"]
     evidence_ids: tuple[str, ...] = ()
     note: str = ""
 

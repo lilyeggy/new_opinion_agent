@@ -1,0 +1,501 @@
+{
+  "action": {
+    "decision": {
+      "action": "reflect",
+      "findings": [
+        {
+          "issue_id": "issue-a005936cabd3c860827a",
+          "text": "重庆市发展和改革委员会《关于完善重庆市城市轨道交通票价机制的通知》（渝发改规范〔2025〕1号）规定，新票价按乘坐里程计价：0—4（含）公里2元；4—8（含）公里3元；8—12（含）公里4元；12—17（含）公里5元；17—23（含）公里6元；23—30（含）公里7元；30—40（含）公里8元；40—55（含）公里9元；55公里以上每增加20公里增加1元。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-b41a7e691b85b59bf18f"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": [
+            {
+              "module": "rule-comparison",
+              "field": "new_value",
+              "value": "按乘坐里程计价：0—4（含）公里2元；4—8（含）公里3元；8—12（含）公里4元；12—17（含）公里5元；17—23（含）公里6元；23—30（含）公里7元；30—40（含）公里8元；40—55（含）公里9元；55公里以上每增加20公里增加1元"
+            },
+            {
+              "module": "billing-remedy",
+              "field": "billing_basis",
+              "value": "按乘坐里程计价（计程票价），以乘坐里程区间对应票价（线路票价里程表见通知附件）"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-a005936cabd3c860827a",
+          "text": "上述通知明确执行范围为重庆市城市轨道交通线路，包含城市轨道交通1、2、3、4、5、6、9、10、18号线、环线、国博线及后续开通的城市轨道交通线路；不含江跳线、璧铜线等市郊铁路线路。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-09c18c05236b0147b8ab"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": [
+            {
+              "module": "rule-comparison",
+              "field": "applies_to",
+              "value": "重庆市城市轨道交通线路（1、2、3、4、5、6、9、10、18号线、环线、国博线及后续开通的城市轨道交通线路）；不含江跳线、璧铜线等市郊铁路线路"
+            },
+            {
+              "module": "billing-remedy",
+              "field": "scope",
+              "value": "重庆市城市轨道交通线路（1、2、3、4、5、6、9、10、18号线、环线、国博线及后续开通线路），不含江跳线、璧铜线等市郊铁路线路"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-a005936cabd3c860827a",
+          "text": "通知载明新票价机制自2025年7月30日起执行；该规范性文件落款日期为2025年7月25日。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-277fce119050d8b0546b",
+            "evidence-241b7588c38b036bb791"
+          ],
+          "contradicting_ids": [],
+          "event_time": "2025-07-30",
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": [
+            {
+              "module": "rule-comparison",
+              "field": "effective_time",
+              "value": "自2025年7月30日起执行（文件落款2025年7月25日）"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-a005936cabd3c860827a",
+          "text": "通知在保障措施中要求运营企业严格落实国家及重庆市对老年人、学生、残疾人、现役军人等乘客的优惠政策，执行公共交通换乘优惠，制定多层次优惠措施并适时优化完善，具体实施办法由运营企业另行公布。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-aab1530efa9db6459911"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-6e216ae112f566d377c8",
+          "text": "重庆市发展改革委关于召开完善城市轨道交通票价机制听证会的公告设有专门章节列明听证会举行的时间和地点。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-c24e06c9d523354eea4a"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-6e216ae112f566d377c8",
+          "text": "听证会公告公布听证会参加人名单，共35名。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-476212c8d1f470385d2b"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-fdc966cc4c688c1b2198",
+          "text": "听证会公告载明公众负担测算：根据乘车消费记录，剔除免费乘客后付费乘客人次平均支出为3.21元（含税），实施配套优惠措施后方案一、方案二分别增至3.76元（提高0.55元）、3.79元（提高0.58元）；按月均出行10.81次计，方案一、方案二人均月支出分别增加5.95元、6.27元；通勤乘客按每月22个工作日、出行44次计，方案一、方案二人均月支出分别增加24.20元、25.52元。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-dcb475240f66b6b8ca2e"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-fdc966cc4c688c1b2198",
+          "text": "公告称2023年3月至2024年2月运营企业累计优惠6.99亿元，并测算方案一、方案二年优惠金额分别增加1.90亿元、1.86亿元。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-dcb475240f66b6b8ca2e"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-fdc966cc4c688c1b2198",
+          "text": "公告对比两套听证方案：方案一保持起步价2元不变，票价不变的付费乘客占比30.73%，票价增加1元的占比63.97%，增加2—4元的占比5.30%；方案二调整起步价，占比分别为25.02%、73.58%、1.40%；线网内最长单程计费里程为88公里，方案一、方案二对应票价均为11元。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-f550b886e9609f4ce54e"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-31e513537ec6af736eb8",
+          "text": "听证会公告载明，重庆市发展改革委按照《中华人民共和国价格法》《政府制定价格成本监审办法》等规定对城市轨道交通运营成本进行监审，监审范围选取全部正式运营线段，运营成本由与运营相关的主营业务成本和财务费用构成，经合法性、相关性、合理性审核，核定单位运营成本为15.13元/人次。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-23c50698ff62da5670a7",
+            "evidence-5a314a5238623d34916a"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-31e513537ec6af736eb8",
+          "text": "听证方案提出“优化结构、合理比价”原则：综合考虑线网规模、客流分布、出行距离等因素，优化票价里程区间，保持与地面公交票价的合理比价，完善绿色出行票价体系，引导公众合理选择出行方式。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-7699b88630708b6b706e"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        }
+      ],
+      "assessments": [
+        {
+          "issue_id": "issue-a005936cabd3c860827a",
+          "status": "open",
+          "reason": "正式通知已完整给出新计价区间、执行范围与生效时间，但换乘与优惠规则仅作原则性要求、具体实施办法明确由运营企业另行公布；且新旧规则对照缺少可核查的旧票价规则原文，故保留未覆盖部分待补。",
+          "evidence_ids": [
+            "evidence-b41a7e691b85b59bf18f",
+            "evidence-09c18c05236b0147b8ab",
+            "evidence-277fce119050d8b0546b",
+            "evidence-241b7588c38b036bb791",
+            "evidence-aab1530efa9db6459911"
+          ],
+          "components": [
+            {
+              "text": "计价方式",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-b41a7e691b85b59bf18f"
+              ],
+              "note": "通知明确按乘坐里程计价"
+            },
+            {
+              "text": "起步价与里程票价",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-b41a7e691b85b59bf18f"
+              ],
+              "note": "0—4公里2元起步，各里程区间票价与55公里以上加价规则已列明"
+            },
+            {
+              "text": "换乘与优惠规则",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-aab1530efa9db6459911"
+              ],
+              "note": "仅见原则性要求（落实老年人等优惠、执行公共交通换乘优惠、多层次优惠由运营企业另行公布），具体实施办法与新旧对比尚未取得"
+            },
+            {
+              "text": "执行时间与适用范围",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-277fce119050d8b0546b",
+                "evidence-09c18c05236b0147b8ab"
+              ],
+              "note": "自2025年7月30日起执行；范围含1、2、3、4、5、6、9、10、18号线、环线、国博线及后续开通线路，不含江跳线、璧铜线等市郊铁路"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-6e216ae112f566d377c8",
+          "status": "open",
+          "reason": "目前仅有公告的章节标题与“共35名”参加人规模，听证会时间地点具体内容、参加人结构以及各方意见与争议焦点均无证据支持。",
+          "evidence_ids": [
+            "evidence-c24e06c9d523354eea4a",
+            "evidence-476212c8d1f470385d2b"
+          ],
+          "components": [
+            {
+              "text": "听证会组织过程",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-c24e06c9d523354eea4a"
+              ],
+              "note": "仅知公告列有“听证会举行的时间和地点”章节，具体时间、地点与组织程序未取得"
+            },
+            {
+              "text": "参会人员构成",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-476212c8d1f470385d2b"
+              ],
+              "note": "仅知参加人共35名，未见消费者、专家、企业、部门等类别分布"
+            },
+            {
+              "text": "各方主要意见",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "争议焦点",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-fdc966cc4c688c1b2198",
+          "status": "open",
+          "reason": "官方方案已给出付费乘客人次平均支出、月均支出与通勤支出增量测算，但尚未取得低收入群体影响、与居民收入比较、与同类城市票价比较的材料。",
+          "evidence_ids": [
+            "evidence-dcb475240f66b6b8ca2e",
+            "evidence-f550b886e9609f4ce54e"
+          ],
+          "components": [
+            {
+              "text": "乘客月均支出测算",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-dcb475240f66b6b8ca2e"
+              ],
+              "note": "人次平均支出3.21元，方案一、二增至3.76元、3.79元；月均10.81次下人均月支出增加5.95元、6.27元"
+            },
+            {
+              "text": "通勤与低收入群体影响",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-dcb475240f66b6b8ca2e"
+              ],
+              "note": "通勤乘客按每月44次计增量已给出（24.20元、25.52元），低收入群体影响的专门分析未取得"
+            },
+            {
+              "text": "与居民收入比较",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "与同类城市票价比较",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-31e513537ec6af736eb8",
+          "status": "open",
+          "reason": "单位运营成本15.13元/人次及其监审依据与成本构成已由官方公告说明，但客运量、财政补贴、票款收入及更细的统计口径尚未取得证据。",
+          "evidence_ids": [
+            "evidence-23c50698ff62da5670a7",
+            "evidence-5a314a5238623d34916a",
+            "evidence-5a314a5238623d34916a"
+          ],
+          "components": [
+            {
+              "text": "客运量",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "运营成本",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-23c50698ff62da5670a7"
+              ],
+              "note": "核定单位运营成本15.13元/人次，成本由主营业务成本与财务费用构成"
+            },
+            {
+              "text": "财政补贴与票款收入",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "数据来源与统计口径",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-23c50698ff62da5670a7",
+                "evidence-5a314a5238623d34916a"
+              ],
+              "note": "依据价格法与政府制定价格成本监审办法，监审范围覆盖全部正式运营线段，经书面通知、资料初审、实地审核、意见告知、出具报告程序及合法性、相关性、合理性审核"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-0330b42c3eafd6aaa7a1",
+          "status": "open",
+          "reason": "尚未检索到主管部门对听证意见的采纳与未采纳说明、未覆盖问题的官方理由等材料，各组成部分均无证据支持。",
+          "evidence_ids": [],
+          "components": [
+            {
+              "text": "被采纳的意见",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "未被采纳的意见",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "未覆盖的问题",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "官方说明理由",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-4017ab265289ec363335",
+          "status": "open",
+          "reason": "目前仅有通知写明自2025年7月30日起执行，属于方案生效规定；实际实施情况、有无延期或修正、实施后客流与票款收入及后续评估安排尚无独立证据。",
+          "evidence_ids": [
+            "evidence-277fce119050d8b0546b"
+          ],
+          "components": [
+            {
+              "text": "是否按计划实施",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-277fce119050d8b0546b"
+              ],
+              "note": "通知规定生效日期，仍需实施后证据确认实际执行"
+            },
+            {
+              "text": "延期或修正情况",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "实施后客流与票款收入",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            },
+            {
+              "text": "社会反馈与后续评估",
+              "status": "open",
+              "evidence_ids": [],
+              "note": ""
+            }
+          ]
+        }
+      ],
+      "add_questions": [],
+      "retirements": [],
+      "source_relations": [],
+      "reason": "已读取重庆市发展改革委听证会公告与正式票价机制通知两份原始文件，先固化可由原文直接支持的计价规则、执行范围与时间、优惠要求、公众负担测算与成本监审结论，并据实标注听证意见、客运量与补贴数据、意见采纳及实施后情况等仍未覆盖部分。"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "reflect",
+    "outcome": null,
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -3,10 +3,71 @@
 > 文档性质：持续追加的工程事实记录  
 > Canonical Design：[`public-opinion-search-agent-design.md`](./public-opinion-search-agent-design.md)  
 > 执行计划：[`opinion-search-agent-5-day-plan.md`](./opinion-search-agent-5-day-plan.md)  
-> 当前记录截至：2026-08-23（后接 Web 演示控制台与结论持久化节点）
-> 当前已完成节点：Day 1、Day 2、Day 3、Day 4（Context Compiler 与 run-scoped Working Memory）、Web 演示控制台（浏览器启动/观察/取消调查）
+> 当前记录截至：2026-10-15（M1–M6 全链路深度化改造完成：展示层视觉拓扑重构 + 收束死锁解除 + 页面内证据清洗加权 + 反方与数值冲突检测）
+> 当前已完成节点：Day 1–4、Web 演示控制台、工作台与研判流程（§18/§19 各批次）、秋招收尾（D1–D5）、深度化改造 M1–M6（视觉拓扑与自主编排 Presentation Agent + 收束控制修复 + 页面内检索清洗与冲突检测）
 
-## 0. 最新节点：最终结论的可恢复提交（2026-08-23）
+## 0. 最新节点：M1–M6 全链路深度化改造（2026-10-15）
+
+### 解决的问题
+
+针对真实运行产物（三九胃泰 `9b1bf7d631804cffbfc85a00086aef52` 与罗永浩吐槽野人先生 `cb39508854dd491a8d9752fae46e2ec6`）及 D4 对抗评测暴露出的核心痛点：
+1. **呈现层文字过重、缺乏图形化关系表达且与上游强耦合**：非必答模块因未填 `module_fields` 或存在多源表述差异被隐藏为 `insufficient`；通用事件退化为长段落卡片列表；缺乏主体、议题、立场与信源之间的可视化拓扑网络。
+2. **收束控制阶段存在双门控死锁**：`response_search_complete` 使用全局 `state.read_errors` 导致单网页反爬失败锁死所有问题的 `not_found` 收口；`ConsolidationValidator` 在模型调用过 `2/3` 且已有判断全部审查后只允许 `FinishDecision`，而 `completion()` 又因必答问题仍 `open` 拒绝 `FinishDecision`，导致三九胃泰连续 18 次 `finish` 被拒直至步数耗尽。
+3. **页面内摘录混入图片/链接噪声且漏摘关键引语**：`chunks()` 未过滤纯 Markdown 图片标签（`![Image ...]`）且硬切边界劈断引语；`terms()` 未过滤高频虚词双字；缺少同源通稿识别、未处置反方证据提示与跨源数值冲突（316.03 亿 vs 3160.3 亿）检测。
+
+### 实现范围与相关文件
+
+- **M1–M3 视觉拓扑呈现引擎与自主编排 Presentation Agent（`investigation/presentation.py`, `investigation/workbench.py`, `report_contract/*`, `presentation_skill/llm_planner.py`, `investigation/manager.py`）**：
+  - 放宽 `facet_modules` 状态判定并扩展 `_timeline` 支持中文日期与斜杠日期前缀。
+  - 在 `projector.py` 与 `renderer.py` 中实现交互式三层 SVG 节点关系拓扑图（`RELATION_GRAPH`：参与主体/信源 ──▶ 核心争议子议题 ──▶ 事件总枢纽，支持点击/悬停高亮路径与穿透面板）、正反阵营证据拔河条与对抗卡（`DEBATE_VERSUS`）、三栏立场光谱泳道看板（`POSITION_MATRIX`）、横向里程碑流向链（`TIMELINE`）以及长文本自动提炼标题+要点胶囊（`_extract_structured_summary`）。
+  - 升级 `LlmPresentationPlanner` 支持 `DynamicModuleProposal`，强制校验 `source_finding_ids` 与 `unbacked_specifics` 数字防幻觉护栏。
+- **M4 收束死锁修复（`domain/investigation/engine.py`, `investigation/service.py`, `investigation/context.py`）**：
+  - 新增 `_issue_has_read_errors(state, issue_id)`，将读取失败判定局部化到当前议题候选 URL，解除无关议题对 `not_found` 的阻塞，并在 `_open_questions_guidance` 中明确提示合法收口状态。
+  - 在 `ConsolidationValidator.validate` 中解除 `FinishDecision` 与 `open_required` / `partial` 审查结果的死锁：当保留段内仍有 `open` 必答议题或 `partial` 判断且剩余模型调用充足时，允许执行 `ReflectDecision` 收口或零网络开销的本地 `RetrieveDecision` 补证。
+- **M5 页面内证据清洗、句子边界切块与引语/日期加权（`investigation/storage.py`）**：
+  - 新增 `_is_noise_chunk` 过滤纯 Markdown 图片标签（`![Image ...]`）、裸跟踪链接与 Base64 噪声块，同时严格保持 `[start, end)` 与原文切片一致（100% 通过 `verify_evidence`）。
+  - `chunks(text)` 优先对齐句末标点与引号边界并保留滑动重叠；`terms(text)` 过滤高频无意义双字并补充 3-gram 特征；`Corpus` 按 `version_id` 增量写入 FTS5，并在 BM25 召回池上对包含直接引语（`“...”`、`「...」`）和明确日期/数值量纲的片段进行重排加权。
+- **M6 聚合站饱和预警、近似通稿检测与反方/数值冲突提醒（`domain/investigation/engine.py`, `investigation/context.py`）**：
+  - 新增 `evidence_quality_signals(state)` 并注入 `memory.coverage`：自动检测单一域名饱和（`>= 50%` 候选或多次读取失败）、跨源双字集合 Jaccard `>= 0.75` 的近似通稿转载、未处置反方/质疑证据，以及同单位相差 `>= 2x` 的跨源数值冲突（如 `316.03亿元` vs `3160.3亿元`）。
+
+### 验证证据
+
+- `tests/unit/report_contract`、`tests/unit/presentation_skill` 及 `tests/investigation/` 下的专项、页面计划、工作台投影、页面导出、回应覆盖、决策校验、回放套件等 **86 项核心测试全部通过**。
+- 两个真实运行产物（三九胃泰 `9b1bf7d631804cffbfc85a00086aef52` 与罗永浩事件 `cb39508854dd491a8d9752fae46e2ec6`）生成包含双 SVG 关系拓扑图、正反拔河条与三栏泳道看板的 `dossier.html` 验证通过。
+
+## 0.1 历史节点：项目封存（2026-09-22）
+
+### 解决的问题
+
+秋招面试导向的快速收尾。项目功能早已足够，缺的是四件收口事实：单一可讲述的系统、一次真实闭环、可引用的质量数字、成形的面试叙事。
+
+### 实现范围与相关文件
+
+- **D1 单一 harness（09-21）**：实验性多角色流水线（planner→research→analyst→reviewer）评估后归档至 `opinion_search_agent/archive/harness-pipeline/`（含完整决策记录 README）；该代码从未提交进 git，主线始终单 harness。生产路径保留 `runtime/loop.py` 一套循环，「骨架→渲染」思路由 PagePlan + search_targets 在生产路径实现。归档后全量 779 passed, 2 skipped（沙箱环境需 `--basetemp` 指向项目内目录）。
+- **阻塞项核查（09-21）**：「过去 30 天」空格不解析在 09-12 提交中已修（`strip()`→`re.sub(r"\s+","")`），09-09 分析文档记的是旧行为；补回归测试覆盖 4 种空格变体（`tests/unit/domain/opinion/test_framing.py`）。`live_model()` 的 max_output_tokens/timeout 注入经实证验证无需修。
+- **D2–D3 真实闭环（09-21）**：新增 `scripts/run_live_investigation.py`（生产路径 runner，`model_copy` 调步数不动源码）。三九胃泰中秋广告争议事件两跑：s5-a 默认 20 步 partial（诊断显示 `committed_steps=20` 恰等于默认上限、预算仅用 16%–45%——配置问题非逻辑问题）；s5-b 60 步全流程走完——17 搜/17 读/14 findings/92 处证据引用，review 执行（6 supported/8 partial），completion gate 拒绝 finish 18 次直到步数耗尽（必答问题仍 open），诚实 partial。产物在 `artifacts/live-runs/investigations/runs/{f045d7ee…,9b1bf7d6…}/`。
+- **D4 质量基线（09-21）**：检索召回 60%（6/10 人工标注必中清单，逐项独立搜索验证）；忠实性 71% 完全支持（10/14）且 100% 零虚构；对抗埋点 2/3（更正完全采纳✓、反方稿已读已摘 5 条证据但零 finding 引用✗、错误数字未传播✓但靠的是未轮到综合而非矛盾检测）。对抗案例与 replay 产物在 `artifacts/adversarial-cases/sanjiu-2026-09/`。方法见 `docs/舆情agent-质量三数字-D4-2026-09-21.html`。
+- **D5 面试资产（09-22）**：`docs/舆情agent-面试收口手册-D5-2026-09-22.html`——3 分钟电梯陈述、白板架构图、§16 十四问要点答案、三个数字、失败修复故事链、已知限制与下一步。README 增加 Project status 段（定位/实测结果/已知限制）。
+
+### 关键取舍
+
+- 合流做「决策级」不做代码级：完整重构（流水线作为 Runtime 之上的调度策略）故事更美但秋招前做不扎实；砍 fork 本身是 scope discipline 的面试资产。
+- 质量工作定位为「验收工程」而非产品优化：数字的短板定位比数字本身更有面试价值，修复方向全部写入「下一步」清单但不动手。
+- 即使终态是 partial 也计为闭环完成：诊断链完整记录系统如何发现自己的不足，这是可靠性机制的卖点。
+
+### 测试命令与结果
+
+归档后全量：779 passed, 2 skipped（live-gated smoke，设计内）；framing 回归测试新增后通过。D5 仅改动 Markdown/HTML 文档与 README，未触碰运行时代码。
+
+### 已知限制（面试主动讲）
+
+候选 66% 来自 news.qq.com 聚合站、原发媒体站零覆盖；qq/sohu 反爬 6/17 读取失败；证据摘录召回是单点（4 条 partial 全是引语在原文但摘录未摘到；反方稿已读已摘未引用）；模型不会把长期无证据问题显式从 open 转 not_found（gate 拒 finish 18 次的直接原因）；数字护栏只验出处不验可信度（真实 316.03 亿与埋点 3160.3 亿静默并存）。
+
+### 对下一节点的约束
+
+秋招前封存，不改运行时代码。秋招后若重启，优先级：① TaskFrame 约束传导到 Brave 参数（freshness/search_lang/域名）；② 结构化 QueryPlan + 第二引擎破聚合站偏向；③ 事件内 FTS5/BM25 二次检索命中「摘录未摘到」「已读未引用」两个失败模式；④ 数字矛盾检测；⑤ open→not_found 显式收口动作；⑥ 必中清单+对抗埋点回归套件化。
+
+## 归档节点：最终结论的可恢复提交（2026-08-23）
 
 ### 解决的问题
 
@@ -2636,6 +2697,1177 @@ Playwright（仓库外托管 Node 工作区安装，不进入项目依赖）驱�
 - 这只是固定材料模型回放的能力入口，不是本次已执行的真实模型结果；真正运行需要模型 API 预算与案例材料决定。
 - 不调用 Brave/Jina，不改变 web 产品模式，不把 synthetic replay 与真实材料 registry 混同。
 
+## 36. 报告质量 S0/S1 与首个真实材料候选（2026-09-13）
+
+> 阶段状态：无付费实现完成；真实模型对照、人工质量评分和联网发现仍为 `NOT_RUN`。本节执行入口为 `opinionsearch-report-quality-next-stage-guide-2026-09-13.md`。
+
+### 36.1 会污染质量评价的语义问题
+
+- 完成判定：required issue 的 component 为 `unavailable` 时会使报告保持 partial；父问题的 `disputed` 不再掩盖关键子项无法判断。
+- 专项字段：不同字符串值默认保留为 `multiple`，Web 与静态 HTML 显示“多种有依据表述”及引用；只有 finding 带明确反驳证据时才投影为 `conflict`。终态存在多种表述时模块保持 `insufficient`，等待核对时间和范围。
+- 数字护栏：确定性检查从“数字是否出现”收紧为数字、倍率与单位组合核对，支持万元/元等可比较换算；完整对象、时间和因果仍由独立 reviewer 检查，未声称正则已完成事实核验。
+- 回放生命周期：真实模型回放强制每份材料使用 `snapshot_path + sha256`；超时、缺少澄清答案或其他异常会取消 worker 并等待短暂退出，避免调用端直接遗留活动调查。
+
+### 36.2 `billing-dev-v1` 本地材料批次
+
+- 从既有重庆燃气真实运行产物中核对并冻结 8 份公开文本，共 31,138 字符；manifest、URL、标题、获取时间、可获得发布时间、角色和 sha256 位于 `opinion_search_agent/artifacts/report-quality/2026-09-13-s1/`。
+- 材料按 T0（2024 年调查与公司清退披露转述）和 T1（2025 年再次调查、企业回应及后续监管安排）登记；预标注包含 5 个必答问题、候选断言、来源依赖和禁止结论。
+- `tests/investigation/cases/registry.json` 将其标为 `materials_collected_local_unreviewed`。正文快照因尚未确认对外再分发条件而被 Git 忽略；manifest 和预标注可审计，但在缺少本地 snapshots 的 checkout 不能执行该真实材料回放。
+- 预标注明确为 `model_preannotation / UNREVIEWED`，`expected` 保持空对象。该案例不能计入人工 90%/95% 门槛，也不能证明退款到账、整改全面生效或用户总体满意。
+
+### 36.3 预算与待执行边界
+
+- 批次 `2026-09-13-s1` 的外部预算为 0；模型、Brave、Jina 实际调用均为 0。发现本地凭据不视为付费授权。
+- 下一批建议上限仍为：当前 Agent 冻结材料 40 次模型请求/1,200 秒，单次摘要基线最多 2 次模型请求，Brave/Jina 为 0；需在批次授权后执行。
+- S3 当前 Agent 与单次摘要对照、S4 人工原子断言评分、S5 T0→T1 更新与真实浏览器长材料走查、S6 多案例及联网发现全部未执行。
+
+### 36.4 验证记录
+
+- `pytest tests/investigation -q -p no:cacheprovider`：139 passed。
+- `pytest -q -m "not live" -p no:cacheprovider --maxfail=1`：740 passed, 2 deselected。
+- Web API e2e：7 passed；沙箱内首次因 localhost bind 被拒绝，允许临时本地端口后通过。
+- `node --check` 与 `git diff --check` 通过。
+
+## 37. S3 单次摘要基线与外部调用边界（2026-09-13）
+
+> 阶段状态：baseline harness implemented；真实 Agent/基线模型调用 `BLOCKED`，外部请求数 0。
+
+- 新增 `investigation/baseline.py`，以同一 `ReplayCase` 的完整冻结正文构造一次性摘要输入；材料使用稳定的 m01…mNN 编号和一基行号，预标注、expected 与评分表不会进入模型上下文。
+- 输出契约包含按问题处置、原子断言、回应覆盖、执行层级、关键未知和范围限制。answered/disputed 与全部 claim 必须有材料行号；程序拒绝未知材料、越界、空定位和无引用断言，并保存 input、输出、解析后摘录、Markdown、预算与失败信息。
+- `test_quality_baseline.py` 使用注入模型验证输入隔离、引用定位和持久化；真实案例输入估算 16,490 tokens，低于 30,000 输入上限，因此没有为基线单独截断材料。
+- 建立批次 `artifacts/report-quality/2026-09-13-s3/batch.json`，上限为 Agent 40 次、baseline 2 次，Brave/Jina 为 0。尝试启动 Agent 前，自动审批要求用户明确允许把任务和 8 份冻结公开文本发送至配置的 `opencode.ai` 兼容模型网关；调用被拒绝且没有发出网络请求，批次保持 `BLOCKED`。
+
+## 38. Codex 冻结材料参考报告（2026-09-13）
+
+> 阶段状态：reference completed / `UNREVIEWED`；生产 Agent 与同模型摘要对照仍为 `BLOCKED`。
+
+- 用户要求在项目模型不可请求时直接用当前 Codex 得到结果。Codex 逐份读取 `billing-dev-v1` 的 8 份冻结正文，生成 `artifacts/report-quality/2026-09-13-s3/runs/codex/run-001/{report.json,report.md,self-check.md,validation.json}` 与批次 `comparison.md`。
+- 参考报告形成 5 个必答回答、8 条核心断言、5 项回应覆盖和 6 项关键未知。核心判断是：2024 年有一轮问题认定和公司所称清退，2025 年监管再次认定整改不力，后续材料支持持续治理而不足以证明个案全面结案。
+- 程序遍历结构化报告全部 citation：46 次引用、26 个唯一位置、覆盖 m01—m08，均未越界且对应非空原文；Markdown 34 次引用也全部可解析。该结果只证明引用结构，不是语义人工通过。
+- 自检主动降低 m08 时间表述：正文没有发布时间，仅页面 URL 路径含 `20260616`，因此报告不把 2026 年 6 月写成已由正文确认的发布日期。
+- `comparison.md` 明确说明不能比较生产 Agent 与单次摘要。Codex 参考报告可作为人工审核草案和 Web 长内容样例，但不能证明 planner/retrieve/reviewer/completion 的生产链路质量。
+- 本节点回归：`tests/investigation` 142 passed；全仓 non-live 743 passed, 2 deselected；`git diff --check`、JavaScript syntax 和 JSON 解析通过。
+
+## 39. 单次调查生产链路诊断（2026-09-14）
+
+> 阶段状态：实现完成并通过离线、API 与实际浏览器验收；真实联网运行和跨 run 统计 `NOT_RUN`。
+
+### 39.1 诊断计算与持久化
+
+- 新增 `investigation/diagnostics.py`，以 `opinion-investigation-diagnostics/1` 输出九段链路：scope / discovery / acquisition / sources / evidence / analysis / review / completion / runtime。
+- 诊断是 State、StepRecord 和 budget 的确定性派生视图，不打综合质量分。它区分 critical/warning/info，并保留稳定 signal code、问题说明、建议动作和有限的复现细节。
+- 覆盖信号包括：必答 issue/component 未解决、provider 搜索失败、未读候选、Reader 失败、读取后未保存正文、单域名/单来源角色、来源关系未核实、发布时间未知、终态无证据、来源未被当前判断引用、证据摘录过宽、终态无 finding、主体不足、回应覆盖缺失、finding 未审查/未通过、完成状态不一致、决策重试和预算接近上限。
+- 观点图启用条件在诊断中保持 false：当前材料没有代表性抽样框且来源关系未全部核实，只能描述材料内主张构成，不能解释为公众观点占比。
+- Hook 每个 checkpoint 把诊断写入 `draft.progress` 与 provisional workbench；发布报告将最终 runtime checkpoint、动作分布、重试和预算固化到 report/workbench。取消前无领域 checkpoint 时使用显式 `domain_checkpoint_missing`，不伪造空链路为正常。
+
+### 39.2 Web 与导出
+
+- 新增 `GET /api/investigations/{id}/diagnostics`；终态返回 report 中固化版本，运行中返回最近 checkpoint 的持久化诊断。
+- 在线 workbench 导航新增“链路诊断”，显示九个阶段、阻塞/待处理计数、阶段指标和建议动作。诊断视图独占主内容宽度，不保留无关的证据侧栏；`view=diagnostics` 刷新后可恢复。
+- 自包含 HTML 导出增加同一诊断章节；旧报告没有诊断时显示“历史版本没有链路诊断数据”，不尝试补造历史遥测。
+- 进度页显示当前阻塞/待处理数量，并强调结构信号不代表事实正确率。
+- workbench 投影策略升级为 `workbench-projection-3`，因此新增诊断的页面获得新的内容绑定 snapshot id。
+
+### 39.3 已知缺口与验收
+
+- StepRecord 目前没有分步耗时和 token usage；每次生产诊断显式给出 `fine_grained_cost_latency_unavailable`。本轮没有扩张 Runtime 协议去补这些字段。
+- 本能力不做跨 run 聚合、长期时序、外部告警、人工质量评分或真实联网发现能力评估；也没有调用模型、Brave 或 Jina。
+- 故意退化测试验证能同时识别 unresolved issue、未读候选、来源集中/关系未知、回应缺失、未审查和 completion mismatch；正常 offline 公交链路记录 6 个 committed steps（search/read/reflect/review/finish）、0 次决策重试及 search/read/model 预算。
+- `pytest tests/investigation -q -p no:cacheprovider`：144 passed。
+- `pytest tests/e2e/test_investigation_web.py -q -p no:cacheprovider`：7 passed（沙箱内回环 bind 被拒后，在允许本地端口的同命令环境通过）。
+- `pytest -q -m "not live" -p no:cacheprovider --maxfail=1`：745 passed, 2 deselected。
+- 实际浏览器访问临时 8920 服务，完成离线调查 → 打开链路诊断 → 刷新深链接；页面显示 9 个阶段、0 个阻塞、1 个待处理、运行预算与三个解释信号，刷新后仍保持诊断视图。第一次截图发现证据栏压缩诊断卡，随后改为诊断视图隐藏证据栏并复验通过。
+
+## 40. PagePlan 驱动的搜索与 Web 编排（2026-09-14）
+
+> 阶段状态：核心契约、Agent Context、completion、workbench 与静态 HTML 已实现，并通过离线、Web API 与实际浏览器验收；真实模型/Brave/Jina 调用仍为 `NOT_RUN`。
+
+### 40.1 契约与状态边界
+
+- 新增 `investigation/page_plan.py`，格式 `opinion-page-plan/1`、策略 `public-event-framework-1`。它从 `EventProfile + Issue + active Finding.module_fields` 确定性重建，不写入 State/checkpoint，避免产生第二份可漂移事实状态。
+- 固定区块为事件总览、争议/主张/回应、材料与来源关系、证据与原文、链路诊断、终态完整报告；确认的 rule/service/billing/investigation facet 在总览后插入独立专项视图。通用事件不显示空专项页。
+- 每个专项模块暴露 required/present/missing fields、关联 issue 和状态。只有与 required Issue 关联的模块才生成 search target；展示候选侧重可以保持 optional，不强制无关调查工作。
+
+### 40.2 搜索、完成与呈现连接
+
+- Context Compiler 增加受保护的 `memory.page_plan`。Agent prompt 要求优先使用 required `search_targets`，复制 target_gap、绑定 issue_id 并选择建议 purpose；明确禁止为完成卡片而推断字段。
+- Completion 增加 required module gap 检查。问题处置、finding、evidence 和 review 均满足但必需专项字段仍缺时，终态只能是 partial；字段齐备后仍要经过原有判断审查，PagePlan 本身不证明内容正确。
+- 链路诊断增加 `required_page_modules_incomplete`，把 PagePlan 未闭合与普通“报告质量不好”区分开，并给出原始 search targets；终态缺失为 critical，运行中为 warning。
+- Workbench 投影升级为 `workbench-projection-4` 并固化 `page_plan`。在线导航读取计划，新增 focus 视图；总览回到核心研判、时间线和材料分布。静态 HTML 使用相同章节顺序与专项模块，旧 projection 缺 PagePlan 时保留旧顺序兼容。
+
+### 40.3 当前验证与边界
+
+- 新增 `test_page_plan.py`，覆盖通用 fallback、不同事件页面组合、required target、字段闭合、optional facet、Compiler 同源计划以及 completion 降级。
+- 相关专项测试 39 passed；完整 investigation 测试 152 passed；Python/JavaScript 语法与 `git diff --check` 已通过最终检查。
+- Web e2e 7 passed；随后仅增强 PagePlan 响应断言，最终复跑所需 localhost 权限因自动审批模型容量不足被拒，故该增强后的单次套件标记为 `NOT_RERUN`。全仓 non-live（包含增强前同一 7 项 e2e）753 passed, 2 deselected；核心字段另由 152 项 investigation 测试和实际浏览器验收覆盖。
+- 实际浏览器在临时 8921 服务完成两条离线调查：公交页面导航为“规则与适用影响”，水费页面为“计费、复核与补救”；两页保持相同可信骨架但专项字段不同。`view=focus` 刷新恢复成功，自包含 HTML 也显示相同专项导航和章节。临时服务已停止，用户现有 8918 未改动。
+- 上述均为合成材料与机制验收，不代表真实模型搜索报告质量提高；本轮没有调用模型、Brave 或 Jina。
+
+## 41. V1 范围冻结与问题驱动的模块必填字段（2026-09-14）
+
+> 阶段状态：边界文档和首项正确性修复已实现；真实模型、Brave、Jina、真实联网质量验收仍为 `NOT_RUN`。
+
+### 41.1 唯一 V1 边界
+
+- 新增 `docs/opinionsearch-v1-scope-and-acceptance.md`，把 V1 定义为本地单用户、可恢复、证据驱动的公开 Web 事件调查工具；交付目标是可供研究人员继续审核的调查初稿。
+- V1 只收敛一条 Web 主链路：事件输入与必要澄清 → 动态问题 → 缺口搜索与正文取证 → 主张/回应/执行分析 → 独立审查 → 明确终态 → Web 核查 → 按需更新和版本比较。
+- 新增功能只允许解决调查正确性、真实报告质量证据或 Web 主路径可用性。社交采集、全网声量/情绪/代表性饼图、持续监测、多 Agent、多用户、分布式调度、向量数据库/跨事件 RAG、平台化、任意 HTML、框架迁移和新 CLI 流程均进入 Backlog。
+- 收口以三个真实案例、90% 必答问题、95% 重要断言支持或降级、100% 引用定位结构、关键禁止错误、T0/T1 更新、实际浏览器主路径和至少一次最新生产代码真实联网调查为准。通过只说明有限场景可用。
+
+### 41.2 模板不得扩大用户问题
+
+- 原 PagePlan 在一个 facet 关联必答 Issue 后，会把该模块静态字段集整体升级为 required。例如用户只问“新规则是什么”，系统也可能强制搜索适用对象和生效时间，并因模板空位把报告降为 partial。
+- `page_plan.py` 现在为每类专项模块保留一个语义锚点字段，并从关联 Issue 的 question、components 和 origin_questions 确定性触发其他字段。模块要求新增 `required_field_basis`，每个搜索 target 同时保存 `basis_issue_ids`，使“为什么需要查这个字段”可以回指用户问题。
+- PagePlan 的缺口闭合只读取与该 facet 关联 Issue 的 active module fields，防止另一个无关问题中的同名字段误将必答缺口标为完成。呈现层仍可展示任意显式、带证据的专项字段；只对通用文本摘录按问题相关性过滤。展示信息和完成证明因此保持不同职责。
+- `facet_modules()` 接收 PagePlan 生成的每模块 requirements，Workbench 投影升级为 `workbench-projection-5`。在线页面、静态 HTML、Agent Context、diagnostics 和 completion 继续消费同一个可重建计划，没有新增可变事实源。
+
+### 41.3 回归发现与修正
+
+- 首次完整回放暴露两个边界问题：过严的问题过滤隐藏了更新 Issue 中显式的过渡安排；“执行”这个宽泛词又把计费问题误判为要求执行结果。
+- 修正后，显式 `module_fields` 可以跨问题展示，但不能跨无关问题闭合 required gap；计费 `execution_status` 只由到账、实际执行、落实或完成退费等明确语义触发。
+- 新增覆盖：窄问题只要求锚点字段、用户明确询问时扩展字段、无关 Issue 字段不能闭合缺口、更新字段仍能展示，以及多种有依据表述与明确冲突分开处理。
+
+### 41.4 验证与限制
+
+- 定向回放、PagePlan、事件模块、页面导出和链路诊断：44 passed。
+- 完整 investigation：154 passed；全仓 non-live：755 passed, 2 deselected。全仓测试在沙箱内首次运行到 Web e2e 时仅因禁止绑定 `127.0.0.1` 中断；允许临时回环端口后同一套件完整通过。
+- Python `compileall` 与 `git diff --check` 通过；Web JavaScript 文件分别通过 `node --check`。
+- 本节点没有调用模型、Brave 或 Jina，也没有触碰用户现有 8918 服务。它修复的是范围和完成语义，尚不能证明真实报告质量达到 V1 门槛。
+
+## 42. S3 有余额模型批次启动记录（2026-09-14）
+
+> 阶段状态：配置和批次账本完成；外部执行在进程启动前被自动审批拒绝，实际外部请求为 0。
+
+- 用户明确说明已在 `.env` 配置有余额的模型 API key，并授权继续执行。只读预检确认 `OPINION_MODEL_API_KEY`、`BRAVE_SEARCH_API_KEY`、HTTPS 模型端点和 `deepseek-flash` 模型配置可以由 `LiveConfig` 解析；没有输出任何密钥或额外 header 的值。
+- 新建隔离批次 `artifacts/report-quality/2026-09-14-s3-live/batch.json`，冻结案例仍为 `billing-dev-v1`，记录 manifest/preannotation 哈希、Git revision 和 dirty 状态。总账上限为 Agent 40 次模型请求、baseline 2 次；冻结回放的 Brave/Jina 上限均为 0。
+- 生产 Agent 计划复用 `run_replay_case()` 与正常 planner/decision/reviewer/report 管线，输出根目录独立于 8918。执行命令在进程启动前被自动审批系统拒绝；拒绝原因是审批模型 at capacity，不是项目模型网关、凭据或 Agent 运行失败。
+- 批次已标为 `BLOCKED`，usage 保持 model/search/read 全部 0。根据审批返回要求，不用替代命令绕过；只有在向用户说明后获得新的明确授权，才能重新提交同一外部动作。
+- 用户在获知首次拒绝后明确回复“允许重新提交冻结材料模型对照”。第二次提交仍在进程启动前被同一自动审批服务以审批模型 at capacity 拒绝。两次均没有启动项目 Python 进程或发出外部请求；当前阻塞已从“等待用户授权”更新为“执行环境审批服务不可用”，不能归因于项目 API key、余额或模型网关。
+- 用户在第二次拒绝披露后再次要求继续执行；第三次提交仍以相同的审批模型 at capacity 原因在进程启动前被拒绝。连续三次阻塞条件一致，批次保持 `BLOCKED`，不再在同一状态下重复提交或尝试间接执行。
+
+## 43. 首次生产模型对照失败与收敛修复（2026-09-14）
+
+> 阶段状态：S3 真实模型批次已执行并判定 `FAIL`；基于失败的代码修复已通过机制测试，真实模型复跑 `NOT_RUN`。
+
+### 43.1 实际运行结果
+
+- 用户开启 unrestricted execution 后，第四次提交真正启动。Agent 组使用 `.env` 的 `deepseek-flash`，冻结 Search/Reader，Brave/Jina 各 0 次；生产 planner、Decision、Processor、Reducer、reviewer、completion 和 report 管线保持不变。
+- Run `88944351cb90499d8d2cd18a4b362535` 实际使用 40/40 次模型请求、764.557 秒、11 次 search、8 次 read、3 次 retrieve，读取全部 8 份正文并保存 44 个 Evidence。44/44 的正文哈希、start/end 与 excerpt 机器复核一致。
+- 22 个已提交步骤中没有 reflect/review/finish，最终 0 Finding、0 Review、0 Conclusion，6/6 必答问题和 17/17 必答子项仍 open。系统正确发布 partial，但核心回答为空，因此质量闸门为 `FAIL`。
+- 单次摘要基线使用同一任务和完整材料，输入约 18,661 tokens。第一次 4,096 输出上限截断，第二次 8,192 上限仍被推理消耗；安全元数据显示 23,847 reasoning characters、8,192 completion tokens、blank final content。两次请求耗尽，未生成可评分报告。
+- 批次模型请求共 42 次，达到预设上限；token 总账和费用仍不可用。原始 Agent 报告、workbench、budget、baseline failure、结构校验和 `comparison.md` 均保存在 `artifacts/report-quality/2026-09-14-s3-live/`。
+
+### 43.2 根因与范围内修复
+
+- 核心失败位于“已取得证据 → 形成 Finding”的 Loop 收敛：提示词要求 reflect，但程序允许模型不断换词搜索。冻结 Search 首次返回 8 个候选后，后续 10 次搜索没有增加材料，仍消耗模型决策请求。
+- 新增纯领域函数 `required_reflection_reason()`：没有 active Finding 时，若已有至少 4 个正文版本和证据，或连续两次搜索结果为 duplicate 且已有证据，下一动作必须 reflect。产生首个 Finding 后释放闸门，允许继续按缺口取证。
+- Compiler 增加可信且不可压缩的 `memory.next_action_constraint`；Validator 使用同一规则拒绝其他动作和空 reflect。该规则属于舆情调查领域，不进入通用 AgentLoop。
+- 修复三个配置 wiring：`model_max_output_tokens` 现在传给模型客户端；`build_loop()` 使用 `LiveConfig.max_steps` 和 `max_decision_attempts`，不再硬编码 100/2。
+
+### 43.3 验证与证据边界
+
+- 新增测试覆盖：足量证据触发 reflect、连续 duplicate 触发、空 reflect 被拒绝、产生 Finding 后释放、受保护 Runtime context，以及生产 max steps/decision attempts/output cap 生效。
+- 定向测试 18 passed；完整 investigation 160 passed；全仓 non-live 761 passed, 2 deselected。Python `compileall`、Web JavaScript `node --check` 与 `git diff --check` 通过。
+- 本次不能比较 Agent 与基线的语义质量，因为两组都未生成可评分内容。失败证明当前版本不可形成有价值报告，并为修复提供了真实生产证据；它不证明修复有效，下一批只能做一次受限复跑。
+
+## 44. 首次收敛修复的真实复跑与状态机细化（2026-09-14）
+
+> 阶段状态：首次修复真实触发但复跑仍 `FAIL`；第二版搜索/读取/研判状态机已完成机制验证，真实模型复跑 `NOT_RUN`。
+
+### 44.1 受限复跑
+
+- 新批次 `2026-09-14-s4-convergence-rerun` 只运行 Agent，初始输出上限 16,384、max steps 20、decision attempts 3、模型请求上限 24，Brave/Jina 为 0。
+- 实际使用 9 次模型请求、3 search、1 read、1 retrieve，保存 1 份正文和 6 个证据；6/6 定位通过。配置 wiring 生效，本轮没有 length truncation。
+- 连续两次 duplicate 后，受保护 context 和 Validator 确实阻止继续搜索并要求 reflect。模型随后尝试生成带证据 Finding，证明闸门进入真实生产链路。
+- 三次恢复未产生合法决定：第一次违反动作约束；第二次 reflect 的 component status 超出 schema；第三次使用 response=`not_found`，但没有完成该分类要求的机构定向、事件回应和后续搜索。Run 以 `Decision recovery was exhausted: missing-response assessment requires successful scoped response searches` 结束，仍为 0 Finding 的 partial。
+
+### 44.2 第二版状态机
+
+- 首次策略在只有 1 份正文时直接要求 reflect，容易诱导模型过早处置全部问题。`required_next_action()` 现在把 duplicate 场景分流：有未读候选时要求 read；候选已读完时要求 reflect；正文及证据达到 4 份时直接要求首次 reflect。
+- Runtime constraint 明确：首次 reflect 只提交当前证据支持的 Finding，只为能够处置的问题提交 assessment；其他问题保持省略，not_found 必须满足原有范围搜索前提。
+- Validator 继续执行同一约束；产生首个 active Finding 后释放 acquisition gate。没有增加状态字段、第二事实源或通用 Runtime 规则。
+
+### 44.3 验证与边界
+
+- 第二版定向测试 20 passed；完整 investigation 161 passed；全仓 non-live 762 passed, 2 deselected。Python `compileall` 和 `git diff --check` 通过。
+- 两次真实 Agent 运行均未形成可评分内容，当前生产质量结论仍为 `FAIL`。根据本轮停止条件不继续追加模型请求；第二版策略的真实效果仍须在下一次明确批次中验证。
+
+## 45. 两天收尾执行计划（2026-09-14，仅文档）
+
+- 用户要求今天明天完成收尾。核对本地时间约 9月14日21:00 后，新增 `docs/opinionsearch-two-day-closeout-plan-2026-09-14.md`：9月15日14:30 功能冻结、18:00 交付。
+- 保留 V1 三真实案例与人工90%/95%等门槛；两案例只是开发关口。截止时按 V1_LIMITED_PASS / EXPERIMENTAL_CLOSED_LOOP / ENGINEERING_ONLY 明确交付，不以截止时间降低质量标准。
+- 先验证现有第二版收敛修复，再按实际失败做有限契约修正；全量 InvestigationBlueprint/SearchNeed/SearchTask 等对象框架进入 Backlog。最小需求视图复用现有领域状态，避免第二事实源。
+- 检查确认：真实材料登记目前仅一个案例有快照且为 UNREVIEWED；ReplaySearchAdapter 对不同查询返回同组材料。因此冻结模型验证与实际 Brave/Jina 发现验收必须分开，T0/T1 更新不能由两个无关联 create 代替。
+- 计划列明各阶段时间、依赖、模型调用上限（合计最多146，条件批次不必执行）、独立材料采集预算、人工核查分母、浏览器步骤及失败停止规则。该预算仅为后续执行上限，本次未调用模型或搜索 Provider。
+- 同步 canonical design、V1 边界与历史执行计划的当前入口。未修改生产代码、未重跑测试、未执行浏览器验收；计划不是验收结果。
+
+## 46. 两天收尾真实执行：阶段性判断、预算收敛与第二案例（2026-09-15）
+
+> 阶段状态：生产链路从 Evidence 推进到 reviewed Finding，但三个真实模型批次均未形成完整结论；当前质量等级仍低于 V1_LIMITED_PASS。人工评分、保留案例真实联网和最终浏览器验收尚未完成。
+
+### 46.1 批次与真实结果
+
+- 建立隔离批次 `artifacts/report-quality/2026-09-15-closeout/`，记录代码指纹、模型/外部请求硬上限、阶段状态与每次运行产物。C0 冻结 8 份重庆燃气材料哈希；未接触用户已有 8918 服务。
+- C1（run `5acbf6c65f754cf498a788fdd1a13c1d`）使用 18 次模型请求、4 份正文、16 条 Evidence，因 component status、未知 ID 与最后一次 Provider error 未提交 Finding，判定 FAIL。
+- C3（run `0bbef5541a894609bf75d3b77251af23`）使用 24 次模型请求、7 份正文、37 条 Evidence，提交并审查 8 条 Finding；1 条 supported、7 条 partial。模型预算在 finish 前耗尽，6 个问题与 17 个子项仍 open，0 Conclusion。该轮只证明 Evidence→Finding→Review 阻塞已修复，状态为 PASS_WITH_LIMITATIONS，不计 V1 质量通过。
+- C5 新增真实规则调整开发案例 `powerbank-flight-rules-dev-v1`：6 份国内航班充电宝新规、地区执行、机场服务和后续监管公开正文带 sha256 快照，T0 为前 4 份、T1 为后 2 份；案例问题、禁止结论和来源依赖均为 `model_preannotation/UNREVIEWED`。
+- C5（run `60fda700b0464b97966decc0a84a97a4`）实际读取 5 份正文、保存 25 条 Evidence，形成 17 条 active Finding；6 条保持 supported review 并进入阶段性判断，11 条在最终 Reflect 后失去当前 review。6 个必答问题只处置 3 个，0 Conclusion，判定 FAIL_REPORT_CLOSURE。
+- C6 T0（run `e42fc0b8d08048678ef92b2801af7b46`）只开放两份 2024 年材料，使用 16 次模型请求，得到 2 份正文与 15 条 Evidence，但 0 Finding。模型在两次 Retrieve 后连续提交 3 次空结论 Finish，且发生两次 Provider server error。T1 因父版本无判断而停止，判定 FAIL_T0_NO_FINDINGS；不能把 parent_id 机制测试冒充判断变化验收。
+
+### 46.2 真实失败驱动的通用修复
+
+- `ComponentAssessment.status` 允许 `open`；第一次强制 Reflect 必须创建 1–4 条原子 Finding，合法 issue/evidence ID 在受保护 Runtime section 中完整列出。部分覆盖时允许父问题和未覆盖子项保持 open，禁止用未知 ID 或不满足搜索条件的 not_found 补齐。
+- `workbench-projection-6` 与 report 增加阶段性判断语义：partial 且无 Conclusion 时，只把拥有当前 supported review 的 active Finding 投影为 `interim_findings`，页面明确显示“已核查阶段性判断（调查未完成）”。它不升级为核心结论，也不隐藏未完成问题。
+- 预算收敛同时由 Context 和动作边界执行。模型调用达到上限三分之二后：无 Finding 只能 Reflect 并生成有证据判断；存在未审查 Finding 只能 Review；所有当前 Finding 已审查后只能 Finish。这样阻止继续搜索耗尽预算，也阻止审查后再次改写使 review 失效。Completion 仍决定 complete/partial，门禁本身不把未知变成答案。
+- Planner 提示明确 facet 只能使用 canonical identifier；对旧/不稳定模型翻译出的简短中文 facet 标签，程序仅按产品词表映射到现有白名单，任意新类别仍丢弃。Read 指令同时明确来源角色按实际发布/转述关系判断，政府域名转载新闻不能只凭域名标为 original。
+- 新增 `run_replay_update_case()`：在同一 Manager root 对已有 parent 创建关联更新，复用正常 update intent、父状态、锁、checkpoint 和原子发布，仅替换为 hash 校验冻结 Search/Reader。超时与异常仍取消 worker；两次无关联 create 不再是可接受的更新验收方式。
+
+### 46.3 证据边界与冻结决定
+
+- A C3 与 B C5 的 37/37、25/25 Evidence 定位均从归档正文重新验证；T0 的 15/15 也通过。引用结构通过不代表断言正确或样本完整。
+- B 的公开材料以机构来源为主，因此页面只能分析规则、执行、回应与缺口；`stance_distribution_eligible=false`，不得绘制公众观点比例或声称总体满意。
+- 新的程序收敛门禁、facet 恢复和来源角色提示只完成确定性测试。遵守批次同类失败停止规则，没有再次付费复跑 B 或 T0，因此真实修复效果仍为 NOT_RUN。
+- 截至本节点，批次已使用 82 次模型请求、10 次材料搜索、6 次正文读取。C7 保留案例、C9 浏览器和 C10 人工签字仍决定最终交付等级。
+
+## 新 Harness / Report Contract 纵切（实现记录）
+
+> **历史条目（2026-09-24 按代码校正）**：从本节起至文末「报告级综合结论与 Review 硬化」
+> 各节（含「Live Harness 首次真实运行」「Planner / ResearchAgent 边界调整」
+> 「动态 ResearchAgent 与 Reviewer 硬化」「表现层升级」「观感 P0 优化」「P1 表现层增强」
+> 「P2 内容压缩与可视化质量」「P2 Live 验证成功」「P3 部分支持与总体状态展示」
+> 「全中文化与证据原文渲染修复」）记录的，都是 2026-09-16 前后那次**多角色流水线纵切**：
+> `opinion_search/harness/`（Legal Action Kernel / HarnessEngine / ResourceLedger /
+> Planner → ResearchAgent → EvidencePacket → Analyst → Reviewer / Synthesizer /
+> ContentBuilder）以及 `LlmController` / `LlmResearchAgent` / `LlmAnalyst` / `LlmReviewer`。
+>
+> 该纵切已于 2026-09-21 评估后整体归档至 `opinion_search_agent/archive/harness-pipeline/`，
+> **不属于当前实现**。当前生产路径是 `runtime/loop.py` 一套 AgentLoop，见 §0 与 canonical design。
+>
+> 例外：`report_contract/` 与 `presentation_skill/` 两个模块保留在当前代码库并有单测覆盖，
+> 但当前 CLI 与 Web 生产路径均未引用它们（`investigation/` 使用自己的 workbench / export /
+> report）。归档决策见 §0 的 D1 条目与归档 README。
+
+本轮新增一个新的低耦合纵切，不替换旧单 Agent 主路径。
+
+### 已实现
+
+```text
+opinion_search_agent/src/opinion_search/report_contract/
+├── contracts.py
+├── registry.py
+├── projector.py
+├── renderer.py
+└── validator.py
+
+opinion_search_agent/src/opinion_search/harness/
+├── actions.py
+├── checkpoint.py
+├── content_builder.py
+├── coverage.py
+├── engine.py
+├── ledger.py
+├── live_search.py
+├── llm_roles.py
+├── mock.py
+├── models.py
+├── planner.py
+├── ports.py
+├── role_schemas.py
+├── search.py
+└── state.py
+
+opinion_search_agent/src/opinion_search/presentation_skill/
+├── __init__.py
+└── llm_planner.py
+
+opinion_search_agent/scripts/
+├── report_contract_preview.py
+├── harness_preview.py
+└── run_harness.py
+```
+
+### 已跑通
+
+```text
+ContentDocument
+→ PresentationPlan
+→ Validator
+→ Deterministic Renderer
+→ HTML
+```
+
+以及：
+
+```text
+Planner
+→ Scheduler
+→ ResearchAgent
+→ EvidencePacket
+→ Analyst
+→ FindingDraft
+→ Reviewer
+→ ReviewRecord
+→ HarnessState
+→ CoverageMatrix
+→ GapAudit
+→ ContentDocument
+```
+
+### 已支持
+
+- Legal Action Kernel
+- HarnessState
+- HarnessEngine
+- ResourceLedger
+- JsonHarnessCheckpoint / resume
+- FakeSearchProvider
+- BraveJinaSearchProvider
+- LlmAnalyst / LlmReviewer / LlmController
+- GenericPlanner
+- LlmPresentationPlanner
+- ModuleRegistry 共 39 个模块
+- 空值状态
+- 模块到视觉编码选择
+- 自包含 HTML 渲染
+
+### 验证
+
+```text
+targeted tests: 21 passed
+non-e2e suite: 748 passed, 1 failed
+```
+
+失败项：
+
+```text
+tests/investigation/test_budget_recovery.py::test_budget_limits_come_from_env_without_losing_defaults
+```
+
+该失败为既有环境变量预算测试问题，不是本轮新增代码导致。
+
+e2e 测试仍受当前 base_url fixture / httpx 环境问题影响，不纳入本轮验证结论。
+
+### 已知限制
+
+- live 模式尚未用真实 API key 运行。
+- LLM Controller 是可选层，默认仍使用确定性 Controller。
+- BraveJinaSearchProvider 使用同步桥接调用异步适配器，后续可迁移为全异步。
+- Live 搜索质量、LLM 输出质量和真实报告质量尚未评估。
+- 新路径尚未替换旧单 Agent 主路径。
+
+## Live Harness 首次真实运行（2026-09-16）
+
+使用 `scripts/run_live_fixed.py` 加载 `.env`，修复当前环境 `NO_PROXY` 的 IPv6 解析问题后，真实调用 Brave / Jina / LLM，完成一次 live Harness 运行。
+
+事件：
+
+```text
+重庆轨道交通票价机制调整
+```
+
+运行结果：
+
+```text
+7 个 ResearchTask
+41 条 Finding
+41 条 Review
+Review verdict 全部为 supported
+5 个 Content Section
+event-summary / event-timeline / issue-map / position-matrix /
+response-coverage / source-structure / evidence-index 均为 ready
+```
+
+使用统计：
+
+```text
+plan = 1
+dispatch_research = 7
+analyze = 7
+review = 7
+finish = 1
+```
+
+产物：
+
+```text
+artifacts/harness-live.html
+artifacts/harness-live.plan.json
+artifacts/harness-live.trace.json
+artifacts/harness-live.content.json
+artifacts/live-run5.log
+```
+
+质量观察：
+
+- 真实官方文件、文号、时间线和票价结构可以被检索、抽取和审查。
+- Reviewer 在第一轮运行中成功识别过两条 partial Finding。
+- 当前 GenericPlanner 仍是通用问题模板，查询质量依赖事件名和任务目标。
+- ContentDocument builder 已修复一个 Evidence 对应多条 Finding 时只保留一条的问题。
+- 当前运行耗时数分钟，仍有查询去重、模块聚合和结果压缩空间。
+
+## Planner / ResearchAgent 边界调整
+
+为避免 Planner 把注意力放在填充查询计划 schema，新 Harness 增加了最小规划契约：
+
+```text
+ResearchBrief
+IssueIntent
+PlanningOutput
+```
+
+实现行为：
+
+- Planner 输出自由文本 `ResearchBrief.content`
+- Planner 输出最小结构 `IssueIntent[]`
+- Planner 不再输出 query plan
+- `ResearchTask` 仍只包含 objective、source_goals、report_module、data_shape
+- `HarnessEngine` 把 `ResearchBrief` 传给 ResearchAgent
+- ResearchAgent 根据任务和 brief 动态决定实际 query
+- 实际 query 由 ResearchAgent 执行时记录
+
+验证：
+
+```text
+tests/unit/harness tests/unit/report_contract tests/unit/presentation_skill
+21 passed
+```
+
+fake CLI 仍可运行：
+
+```text
+scripts/run_harness.py --mode fake
+```
+
+## 动态 ResearchAgent 与 Reviewer 硬化
+
+新增：
+
+```text
+LlmResearchAgent
+ResearchQueryOutput
+SearchTraceEntry
+normalize_query
+Reviewer batching / fallback
+ContentDocument provisional module handling
+```
+
+### 实现行为
+
+- Planner 仍只输出 ResearchBrief + IssueIntent，不输出 query plan。
+- ResearchAgent 在运行时调用 LLM 生成 query。
+- Query 会做规范化去重。
+- 实际执行 query 记录到 EvidencePacket.search_trace。
+- LlmReviewer 按 batch_size 分批审查。
+- Reviewer 对单个 Finding 失败时降级，不会中断整个 run。
+- 未通过审查的 Finding 不再让整个模块为空。
+- 如果模块部分 Finding 通过审查，模块标记为 provisional，并只展示 supported 子集。
+- HarnessTrace 现在记录 ResearchBrief。
+
+### 真实运行结果
+
+事件：
+
+```text
+重庆轨道交通票价机制调整
+```
+
+动态 query 运行结果：
+
+```text
+search_trace_entries = 28
+findings = 56
+reviews = 56
+supported = 50
+partial = 6
+```
+
+使用真实 trace 重新投影后：
+
+```text
+event-summary      provisional
+event-timeline     provisional
+issue-map          ready
+position-matrix    ready
+response-coverage  provisional
+source-structure   provisional
+evidence-index     ready
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## 页面标题重复修复
+
+问题：
+
+```text
+ContentBuilder 在 Finding 没有 module_payload 时，
+会把每个 item.title 填成模块标题。
+结果：
+event-summary 下 9 个标题全部是“事件概况”
+issue-map 下 8 个标题全部是“议题与争议”
+position-matrix 下 8 个标题全部是“立场矩阵”
+```
+
+修复：
+
+- cards / timeline fallback 改为从 Finding 文本生成独立短标题
+- source-structure / categorical fallback 改为使用来源标题和 label/value
+- comparison / matrix fallback 改为使用“判断/来源”语义列
+- 保留 Finding text 作为正文
+
+验证：
+
+```text
+25 passed
+```
+
+重新投影真实 trace 后：
+
+```text
+event-summary 标题不再重复
+issue-map / position-matrix 使用判断列
+source-structure 使用来源分布列
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## 事件脉络流程化修复
+
+问题反馈：
+
+```text
+事件总览里的事件概况只是几组事实堆叠，没有顺序，不能快速看出事件发展脉络。
+```
+
+修复：
+
+- 将 event-timeline 提升到“事件总览”中的第一个模块
+- event-summary 保留为后续补充要点
+- timeline renderer 支持箭头连接符
+- timeline item 会按时间排序
+- 无法解析时间的 item 保持稳定顺序并排在最后
+- timeline 保留标题、正文、来源元信息
+
+真实 trace 重新投影后：
+
+```text
+事件总览
+├── event-timeline  事件时间线（带箭头，按时间排序）
+└── event-summary   事件概况（补充事实）
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## 表现层升级：多视图、渐进披露、前端美化
+
+针对“文字太多、内容太少、渲染单一”的反馈，完成：
+
+### Content / Presentation 模型
+
+- ContentSection / PlannedSection 支持 `view_id` 和 `view_title`
+- ContentModule 支持 `view_id`
+- item payload 支持 `summary` / `detail`
+- fallback payload 自动生成摘要和详情
+
+### ContentBuilder
+
+- 从 Finding 文本生成 `summary`
+- 保留完整文本为 `detail`
+- 按语义 section 生成视图：
+  - 总览
+  - 议题与观点
+  - 回应与处置
+  - 来源与证据
+
+### Renderer
+
+- 新增 view tabs 切换
+- cards / timeline 支持“展开详情”
+- 时间线继续使用箭头和排序
+- 新增现代化前端样式：
+  - 背景渐变
+  - 圆角卡片
+  - hover 反馈
+  - 状态徽标
+  - 响应式布局
+
+### Presentation Skill
+
+新增：
+
+```text
+references/frontend-patterns.md
+```
+
+内容包括：
+
+- 渐进披露
+- 多视图切换
+- 视觉层次
+- cards / timeline / chart 规范
+- 状态展示规范
+- 反模式禁止
+
+真实验证：
+
+```text
+25 passed
+```
+
+重新投影的真实页面：
+
+```text
+artifacts/harness-live-fixed.html
+```
+
+页面包含：
+
+```text
+视图：总览 / 议题与观点 / 回应与处置 / 来源与证据
+展开详情：7 处
+```
+
+## 观感 P0 优化
+
+目标：
+
+```text
+首屏抓住重点
+模块先给结论
+详细内容点击展开
+视图可分享
+```
+
+实现：
+
+- ContentBuilder 自动生成 `current-judgments` 模块，取 top 5 supported findings
+- 总览视图顺序变为：
+  ```text
+  current-judgments
+  event-timeline
+  event-summary
+  ```
+- 每个模块显示模块级摘要
+- cards / timeline 支持“展开详情”
+- Renderer 增加“展开全部 / 收起全部”
+- Renderer 增加 URL hash 视图切换
+- 视图可直接分享，例如 `#issues`、`#response`
+- 新增现代化前端样式
+
+真实 trace 重新投影结果：
+
+```text
+overview modules: current-judgments / event-timeline / event-summary
+module summaries: 8
+expandable details: 9
+expand/collapse all: enabled
+url hash switching: enabled
+```
+
+验证：
+
+```text
+25 passed
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## P1 表现层增强
+
+### Analyst 模块字段
+
+EvidencePacket 新增：
+
+```text
+report_module
+report_title
+data_shape
+```
+
+ResearchAgent 会把这些字段带入 packet。  
+LlmAnalyst 现在收到模块上下文，并被要求输出模块可渲染的 `module_payload`：
+
+```text
+event-summary      title / summary / detail
+event-timeline     time / title / text
+issue-map          议题 / 状态 / 说明
+position-matrix    主体 / 立场 / 目标 / 依据
+response-coverage  问题 / 回应 / 未覆盖
+source-structure   label / value / display
+```
+
+### Renderer 增强
+
+- source-structure 支持分布聚合
+- 2-5 个类别使用 donut 图
+- 类别多时使用 bar 图
+- position-matrix 优先按“主体/立场/目标/依据”列渲染
+- 保持 timeline 箭头和排序
+- 保持多视图、摘要、展开详情、hash 视图
+
+### 模型兼容性
+
+角色 schema 从 `extra="forbid"` 改为 `extra="ignore"`，容忍模型网关偶尔返回的：
+
+```json
+{"type": "json_object", ...}
+```
+
+### 验证
+
+```text
+25 passed
+```
+
+已有真实 trace 重新投影后：
+
+```text
+donut: 2
+matrix tables: 4
+expandable details: 9
+view tabs: enabled
+```
+
+## P2 内容压缩与可视化质量
+
+### Finding 相似度去重
+
+新增基于字符 bigram Jaccard 的近似去重：
+
+- 先按规范化文本去重
+- 再按相似度阈值 0.82 去重
+- 减少语义重复的 Finding 展示
+
+### Item 重要度排序
+
+- item payload 增加 `_importance`
+- cards 按 `_importance` 降序展示
+- table renderer 跳过以下划线开头的内部字段
+
+### source-structure 来源角色聚合
+
+问题：
+
+```text
+BraveJinaSearchProvider 之前用 task.source_goals[0] 作为来源角色，
+导致所有 source-structure item 都是“原始来源”。
+```
+
+修复：
+
+- 新增 `infer_source_role(title, url)`
+- gov.cn / 公告 / 通知 -> original
+- 搜狐 / 新浪 / 腾讯 / 百家号 -> reporting
+- 其他公开网页 -> unknown
+- source-structure 现在按真实来源角色聚合和画图
+
+### response-coverage 专门渲染
+
+- 新增 coverage card
+- 显示问题、回应状态、未覆盖项、理由
+- 状态 badge：
+  ```text
+  direct
+  partial
+  non_substantive
+  not_found
+  unknown
+  ```
+
+### 验证
+
+```text
+25 passed
+```
+
+已有真实 trace 重新投影后：
+
+```text
+donut: 1
+coverage-grid: 1
+coverage-badge: 1
+expandable details: 9
+```
+
+## P2 Live 验证成功
+
+使用 detached runner 重新跑通 live：
+
+```text
+scripts/run_detached.py --target scripts/run_live_fixed.py --log artifacts/live-run11.log
+```
+
+真实运行结果：
+
+```text
+7 dispatch_research
+7 analyze
+7 review
+41 Finding
+38 supported
+3 partial
+```
+
+关键改进生效：
+
+### position-matrix
+
+Analyst 输出真实字段：
+
+```text
+主体 / 立场 / 目标 / 依据
+```
+
+### response-coverage
+
+Analyst 输出真实字段：
+
+```text
+问题 / 回应 / 未覆盖
+```
+
+Renderer 渲染为 coverage cards 和状态 badge：
+
+```text
+direct
+partial
+```
+
+### source-structure
+
+Analyst 输出类别分布：
+
+```text
+政府官方文件 = 3
+媒体报道 = 3
+信息平台 = 1
+```
+
+Renderer 自动渲染 donut。
+
+### 页面统计
+
+```text
+donut: 2
+coverage-grid: 2
+coverage-badge: 8
+expandable details: 15
+```
+
+产物：
+
+```text
+artifacts/harness-live.html
+artifacts/harness-live.plan.json
+artifacts/harness-live.trace.json
+artifacts/harness-live.content.json
+artifacts/live-run11.log
+```
+
+### 稳定后台运行
+
+新增：
+
+```text
+scripts/run_detached.py
+```
+
+使用 Python 双 fork + os.setsid 运行长任务，避免 shell 超时重置杀掉 live 运行。
+
+## P3 部分支持与总体状态展示
+
+### 部分支持 Finding
+
+- provisional 模块现在同时展示 supported 和 partial Finding
+- partial Finding 增加：
+  ```text
+  _review_status = partial
+  _review_reason = 审查看法
+  ```
+- Renderer 显示：
+  ```text
+  部分支持
+  审查看法
+  ```
+- 不再把 partial Finding 直接从页面隐藏。
+
+### 总体状态条
+
+页面 header 新增模块状态统计：
+
+```text
+完整
+阶段性
+证据不足
+不可用
+未发现
+待调查
+已省略
+```
+
+用户可以在首屏看到报告完整度，而不是只看到“partial”。
+
+### 核心判断排序
+
+current-judgments 现在按：
+
+```text
+Evidence 数量
+```
+
+降序取 Top 5。
+
+### 最新投影统计
+
+```text
+review-badge: 2
+summary-pill: 3
+coverage-badge: 8
+donut: 2
+expandable details: 16
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## 全中文化与证据原文渲染修复
+
+### 问题
+
+1. 前端仍显示内部字段：
+   ```text
+   module-type = event-summary / position-matrix
+   visual=cards · data_shape=cards; preferred visual is allowed
+   ```
+
+2. “证据与原文”展示：
+   ```text
+   evidence_id
+   source_version_id
+   locator
+   原始 Markdown / 图片链接
+   ```
+
+### 修复
+
+- 移除前端 `module-type`
+- 移除前端 `visual-note`
+- 页面状态改为中文：
+  ```text
+  partial -> 部分完成
+  completed -> 已完成
+  cancelled -> 已取消
+  ```
+- 页脚改为中文：
+  ```text
+  内容契约 → 呈现方案 → 确定性渲染
+  ```
+
+### 证据与原文重做
+
+现在证据卡片只展示用户需要的信息：
+
+```text
+来源标题
+原文摘要
+展开原文
+```
+
+不再显示：
+
+```text
+evidence_id
+source_version_id
+locator
+```
+
+并清理 Markdown：
+
+- 图片语法
+- 链接语法
+- 标题星号
+- 加粗/下划线标记
+- 多余空白
+
+### 验证
+
+```text
+25 passed
+```
+
+重新投影后：
+
+```text
+module-type: 0
+visual-note: 0
+evidence-card: 5
+evidence-id: 0
+```
+
+产物：
+
+```text
+artifacts/harness-live-fixed.html
+artifacts/harness-live-fixed.plan.json
+artifacts/harness-live-fixed.content.json
+```
+
+## 报告级综合结论与 Review 硬化
+
+### 新增 Synthesizer
+
+新增：
+
+```text
+SynthesisJudgment
+SynthesisOutput
+DeterministicReportSynthesizer
+LlmReportSynthesizer
+```
+
+Synthesizer 输出：
+
+```text
+headline
+summary
+key_judgments
+uncertainties
+watch_points
+```
+
+HarnessEngine 现在会在 ContentDocument 生成前调用 Synthesizer。
+
+### ContentDocument
+
+新增模块：
+
+```text
+executive-summary
+```
+
+总览视图顺序变为：
+
+```text
+executive-summary
+current-judgments
+event-timeline
+event-summary
+```
+
+`executive-summary` 展示：
+
+```text
+事件总述
+关键不确定性
+后续关注
+```
+
+`current-judgments` 优先使用 synthesis.key_judgments。
+
+### Reviewer 程序硬化
+
+新增：
+
+```text
+review_checks.py
+```
+
+规则：
+
+- Finding 必须有已保存 Evidence
+- Finding 中的数字、日期、文号必须在支持摘录中出现
+- 否则 supported 自动降级为 partial
+
+### Finding 压缩
+
+- 每个模块按证据量排序
+- cards / table / matrix 默认保留 Top 6
+- timeline 默认保留 Top 8
+- 相似 Finding 去重并合并 Evidence
+
+### 验证
+
+```text
+27 passed
+```
+
+现有真实 trace 重新投影后：
+
+```text
+executive-summary 已生成
+current-judgments 使用 synthesis key_judgments
+模块顺序：
+executive-summary / current-judgments / event-timeline / event-summary /
+issue-map / position-matrix / response-coverage / source-structure / evidence-index
+```
+
+---
+
+## 2026-09-28 代码规范化与工程基础设施梳理 (Interview Readiness)
+
+### 实现范围
+
+1. **代码洁净度治理**：
+   - 修复 `domain/investigation/engine.py`（移除未使用的 `date` 与 `Observation` 导入）。
+   - 修复 `investigation/context.py`（移除未使用的 `ContextBudget` 导入）。
+   - 修复 `investigation/export.py`（移除未使用的 `url` 与 `link` 变量声明）。
+   - 修复 `investigation/presentation.py`（移除未使用的 `FACET_MODULE_TYPES` 导入）。
+   - 修复 `investigation/service.py`（移除未使用的 `LiveConfig` 与 `PlanProposal` 导入）。
+   - 修复 `investigation/workbench.py`（移除未使用的 `report_json` 序列化变量）。
+   - 修复 `web/__init__.py` 与 `web/__main__.py` 的文件末尾换行符。
+   - `ruff check` 达到 0 errors / 0 warnings。
+
+2. **核心 Runtime 类型硬化 (PEP 544 Conformance)**：
+   - `runtime/completion.py`：为 `CompletionPolicy` 与 `CompletionEvaluator` 中的参数泛型添加 `contravariant=True`。
+   - `runtime/cancellation.py`：将 `CancellationSignal.wait_cancelled` 返回类型明确声明为 `Coroutine[Any, Any, None]`。
+   - `runtime/loop.py`：为 `_await_operation` 中的 `wait_task` 补全 `asyncio.Task[None]` 类型注解。
+   - `runtime` 模块通过 `mypy --ignore-missing-imports` 静态检查，0 issues。
+
+3. **工程工具链与标准化入口**：
+   - `pyproject.toml`：添加 `[tool.ruff]`（line-length 120, isort 配置）与 `[tool.mypy]` 严格模式配置。
+   - 根目录 `Makefile`：提供标准化的 `install`, `lint`, `format`, `typecheck`, `test-fast`, `test`, `demo`, `web`, `clean` 目标。
+   - `.github/workflows/ci.yml`：建立标准 GitHub Actions CI 流水线（自动跑 Ruff, Mypy, Pytest）。
+   - `.gitignore`：屏蔽 `.workbuddy-ai/`, `**/.pytest_tmp/`, `**/.pytest_run/`, `**/.pytest_iso2/`, `**/.ruff_cache/`, `artifacts/*.log`。
+   - 根目录 `README.md`：建立工业级项目门面（架构分层图、技术栈、核心不变量、Quickstart）。
+
+### 验证证据
+
+- `make lint`：0 errors (All checks passed)
+- `make typecheck`：`Success: no issues found in 9 source files`
+- `pytest tests/unit -q`：441 passed in 31.97s
+- `pytest tests/contract tests/integration tests/security -q`：128 passed in 8.74s
+- `make demo`：离线确定性 Demo 跑通，正常输出 4 个 gap 闭环的 OpinionSearch Brief 并持久化。
+
+
 ---
 
 ## 2026-10-13 边界收敛与搜索约束透传
@@ -2668,7 +3900,7 @@ tests/investigation (-W error):                      179 passed
 旧 offline checkpoint 执行 resume:                   报 execution profile does not match，未重放
 ```
 
-真实 Brave 的 `freshness=YYYY-MM-DDtoYYYY-MM-DD` 参数格式未用 live 调用验证，本节点未消耗 API 配额。该项列为未覆盖风险。
+真实 Brave 的 `freshness=YYYY-MM-DDtoYYYY-MM-DD` 参数已在后续 live 核验中确认：请求返回 200，8 条结果的 `page_age` 全部落在 2026-08-01 至 2026-08-20 之间（查询 "公交 夜班车 调整"，`search_lang=zh-hans`）。该核验为单次手动调用，未纳入自动测试。
 
 ### 已知限制
 
@@ -2676,7 +3908,153 @@ tests/investigation (-W error):                      179 passed
 - `country` 未使用。
 - 时间解析只接受 ISO 区间与少数相对表达；无法识别的显式 `time_range` 当前被静默降级为 UNSPECIFIED，尚未决定是否改为请求校验失败。
 
+### excerpt 选择离线基准（未合入代码）
+
+- 新增 `opinion_search_agent/scripts/excerpt_recall_bench.py`：离线重放 28 个冻结正文（`artifacts/` 中的 live 读取正文与对抗材料），按事件 must-hit 关键词标注计算金标对（页面含事实且关键词成立）。焦点取标注项的 fact 描述，近似真实 gap 问题。
+- 金标对 33 个，每个代表 3%；关键词标注存在循环风险，结论只能用于相对比较。
+- 基线（HEAD 的 `_select_evidence_excerpts`）：25/33 = 76%（fact 焦点）；16/33 = 48%（泛化事件焦点）。
+- 试验 BM25（块内 IDF 与长度归一化）：两种焦点下均为 25/33 与 16/33，无增益。已撤回，不合入代码。
+- 试验 `max_blocks` 3→5：26/33（+1 对）；未采纳，证据数量增加的成本未经评估。
+
 ### 对下一节点的影响
 
 - excerpt 选择的语义（召回瓶颈）仍待用户决定，本节点未改动。
 - 评测集与离线评测脚本尚未建设；按边界决策，评测只能是 `scripts/` 下的离线脚本，不进入 Evaluation 平台。
+
+---
+
+## 2026-10-15 证据优先解耦、自主视觉档案编排与收敛机制深化（M1–M6）
+
+### 实现范围
+
+1. **M1 展示与取证解耦（Evidence-First Module Rendering）**：
+   - `investigation/presentation.py` 与 `investigation/workbench.py` 移除“缺少 4 个必填 `module_fields` 即整块折叠隐藏已核实 `Finding`”的展示门控，保留所有已核实原子判断及结构化条目分组。
+   - `investigation/context.py` 的 `INSTRUCTIONS` 将 `module_fields` 降级为可选补充元数据，显式优先要求模型将未处置 `Evidence`、`undisposed_counter_evidence` 与 `numeric_conflicts` 转化为原子 `Finding`。
+2. **M2 & M3 自主视觉档案编排与图谱化渲染（Visual-First Autonomous Dossier）**：
+   - 激活 `report_contract/{contracts.py,registry.py,projector.py,renderer.py}` 与 `presentation_skill/llm_planner.py`：新增 `VisualEncoding.DEBATE_VERSUS` 与 `VisualEncoding.RESPONSE_SCORECARD`，支持在 `ContentDocument → PresentationPlan → render_html` 管线中生成自包含高对比度视觉档案 `dossier.html` 与 `presentation_plan.json`。
+   - 图形化与结构化视觉组件：
+     - **三层交互式 SVG 节点拓扑关系图（`_render_relation_graph`）**：映射 `参与主体/信源节点 → 核心争议子议题 → 事件总枢纽`，支持点击/悬停高亮关联路径与底部节点穿透详情面板。
+     - **正反阵营交锋天平竞技场（`_render_debate_versus`）**：顶部拔河权重条（Tug-of-War Bar）动态展示正反证据引证占比，左右并列核心主张、引证句与数值要点。
+     - **三栏立场光谱泳道看板（`_render_matrix`）**：按 `质疑/批评阵营`、`中立/事实观察`、`支持/回应辩护` 三栏分流展示主体表态。
+     - **横向演进里程碑流向链（`_render_timeline`）** 与 **卡片核心要点自动拆解（`_extract_structured_summary`）**，消除长段落文字墙。
+   - `LlmPresentationPlanner` 支持动态模块提案（`DynamicModuleProposal`）与 `unbacked_specifics` 确定性数值锚定护栏；`Manager._publish_dossier_artifacts` 在 `live` 模式且预算充足时自动调用 `LlmPresentationPlanner`，异常或预算耗尽时确定性回退至 `build_presentation_plan`。
+   - `web/server.py` 与 `web/assets/{api.js,workbench.js}` 暴露 `/api/investigations/{id}/dossier` 与 `/api/investigations/{id}/presentation-plan` 并在工作台顶栏提供“打开视觉档案 / 下载视觉档案”入口。
+3. **M4 收敛阶段死锁修复（Consolidation & Response Coverage）**：
+   - `domain/investigation/engine.py` 新增 `_issue_has_read_errors`，当某议题检索方向受页面读取错误阻塞时允许诚实以 `not_found`/`unavailable` 收口，避免无限重搜。
+   - `investigation/service.py` 的 `ConsolidationValidator` 与 `investigation/context.py` 的 `Compiler.compile` 在模型预算进入最后 1/3 收敛储备期且仍存在未关停 `required` 议题或 `partial` 审查结论时，放行有界 `reflect` 与 `retrieve`。
+4. **M5 页面噪音过滤、增量 FTS5 索引与引语/日期重排**：
+   - `investigation/storage.py` 新增 `_is_noise_chunk` 过滤站点导航/页脚/免责声明噪音，移除每次 `retrieve()` 全表删除重建 FTS5 的开销（改为按 `version_id` 增量入库），并在 `Corpus.retrieve` 中叠加 `cjk_2gram_overlap`、直接引语（`“…”`/`「…」`）、年份日期与精确数值密度加权。
+5. **M6 证据质量与争议信号计算（Evidence Quality Signals）**：
+   - `domain/investigation/engine.py` 新增 `evidence_quality_signals(state)`，自动计算 `domain_saturation`、`near_duplicate_sources`、`undisposed_counter_evidence` 与 `numeric_conflicts` 并注入 `memory.coverage`。
+6. **舆情痛点驱动的底层深化（Domain-Driven Agent Infra Hardening）与全景架构展示页**：
+   - **长报道多视角首读摘录提取与证据生命周期压缩**：`investigation/service.py` 的 `_read_material` 联合匹配 `decision.focus + issue.question + open components`；`domain/opinion/processor.py` 增强引语/量纲/回应高价值信号加权与分块去重；`investigation/context.py` 的 `Compiler.compile` 对已引用证据、未处置反方证据及数值冲突证据强制使用 `CompactionMode.NEVER`，对未引用边缘证据、来源元数据及历史观测启用 `CompactionMode.TRUNCATE`。
+   - **确定性同源通稿去重与独立信源簇计权**：`domain/investigation/engine.py` 的 `reduce_state` 新增 `_auto_detect_syndicated_relations`（摘录二元词 Jaccard $\ge 0.75$ 自动生成 `repost/same_text` 溯源关系）；`report_contract/projector.py` 新增 `_build_source_cluster_map`（Union-Find），在正反拔河权重条与关系拓扑图中按去重后的独立信源簇数量计权。
+   - **相对时间自动锚定**：`report_contract/projector.py` 新增 `_anchor_relative_time`，结合 `SourceVersion.published_at` 将“昨日”、“10月13日”等相对时间换算为标准 ISO 日期并保留原文标注。
+   - **系统全景架构与数据流交互网页**：生成 `artifacts/architecture_showcase.html`，可视化呈现 AgentLoop 10 阶段事务状态机、端到端数据流管道、四层代码架构与舆情痛点映射表。
+
+### 验证证据
+
+```text
+tests/unit/domain/opinion + tests/unit/report_contract + tests/unit/presentation_skill + tests/investigation: 270 passed
+真实案例端到端重放验证:
+- cb39508854dd491a8d9752fae46e2ec6（罗永浩吐槽野人先生冰淇淋事件）: 生成 13 个视觉模块（含 relation_graph, debate_versus, position_matrix, response_scorecard），Corpus.retrieve 召回 5 条高密度引语/数值证据，识别 numeric_conflicts=1, undisposed_counter_evidence=5
+- 9b1bf7d631804cffbfc85a00086aef52（三九胃泰中秋广告争议事件）: 生成 14 个视觉模块，Corpus.retrieve 召回 5 条核心证据，识别 domain_saturation=1, undisposed_counter_evidence=5
+```
+
+
+
+## 确定性回放（Decision Journal + Replay，S1–S5）
+
+### 实现范围
+
+- `runtime/replay_record.py`：`StepJournalRecord` / `ModelCallRecord` 记录结构、`canonical_json` 与 `fingerprint`（sha256）、`Divergence`、`compare_step_records` / `compare_journals`（按执行顺序返回第一处分歧）。
+- `runtime/recording.py`：`DecisionRecorder` 管理单 step 的 model call 缓冲与 in-flight 侧文件；`RecordingModelClient` 记录每次 decide 的结果（决策或 `ModelClientError`）；`JournalingCheckpointStore` 包装 checkpoint store，保证 journal 的 commit 记录先于 checkpoint 落盘。
+- `runtime/replay.py`：`replay_records` 只替换 model 与 action executor（回放端只读录制内容，缺失即抛 `ReplayMissingRecordError`），其余 compiler、validator、resolver、reducer、completion 均为生产实现；回放产出的 journal 与原记录逐 step 比较。
+- `runtime/journal.py`（S2）新增公共方法 `rewrite`，供 in-flight 对齐使用。
+
+### 核心流程
+
+1. 每次 decide 前后，`RecordingModelClient` 以 `fingerprint(context)` 作为 `context_hash`，把 outcome 追加到 `<journal>.inflight`（每条 model call 一条，同步 fsync）。
+2. step 提交时，`prepare_save` 先把 `StepJournalRecord` 追加到 `journal`，随后 `inner.save` 写 checkpoint，最后 `after_save` 在无 active step 时删除 in-flight 文件。
+3. `load` 时 `reconcile_load` 对齐三方：journal 比 checkpoint 多 1 条则截断（commit 后 checkpoint 前崩溃）；少或多超过 1 条则拒绝；按 active step 的 attempt 与 phase 计算应有 model call 数，保留对应前缀，不足则该 step 标记 `complete=False`。
+
+### 关键契约与不变量
+
+- 每个 decision attempt 恰好一次 model call，因此已完成 model call 数为 `(attempt-1) + [phase 不在 OPENED/DECIDING]`。提交时 `complete` 的 step 必须满足 `len(model_calls) == attempt`，否则记录失败。
+- journal 的 `step_index` 严格递增（沿用 S2 的 I1）；checkpoint 版本保持 v4 不变。
+- 回放不调用真实 model 或 tool；上下文哈希不一致、action 或 action_id 不一致、状态指纹不一致分别产生带 step 与字段的 divergence。
+- `complete=False` 的 step 不可回放，回放返回 `UNREPLAYABLE` 而不是误报分歧。
+
+### 设计取舍
+
+- 选择独立 journal 而非扩展 checkpoint 到 v5：checkpoint 兼容性不变，回放材料可独立归档或删除。
+- in-flight 文件使 resume 后的续跑 step 仍可完整回放；代价是每次 model call 增加一次 fsync 写入。
+- 回放通过 `build_loop` 注入组件，不在回放模块内复制 loop 逻辑，保证回放与生产共用同一状态机。
+
+### 失败与恢复语义
+
+- journal 追加失败抛 `JournalWriteError`，run 终止；下次 load 按上述对齐规则恢复。
+- 崩溃发生在 commit 的 checkpoint 写入之后、in-flight 清理之前：下次 load 因 active step 为空而丢弃残留 in-flight 文件。
+- 缺失记录的回放请求抛异常，不降级为真实调用。
+
+### 测试与验证证据
+
+```text
+tests/unit/runtime/test_journal.py: 13 passed（S2）
+tests/integration/test_decision_replay.py: 6 passed
+  - 正常录制 5 step 后回放 MATCHED
+  - 同一 journal 连续回放 3 次结果完全相同
+  - 篡改 step 2 的 context_hash → divergence(step=2, field=model_calls[0].context_hash)
+  - 篡改 step 3 的 state_fingerprint → divergence(step=3, field=state_fingerprint)
+  - 缺失最后一条记录 → ReplayMissingRecordError
+  - commit 的 checkpoint 写入前注入崩溃 → resume 后 journal 为 5 条且全部 complete，回放 MATCHED
+全量 pytest: 822 passed, 2 skipped（live 测试）
+跨进程确定性: PYTHONHASHSEED=1 录制、PYTHONHASHSEED=777 回放 → matched 5；另一 seed=5 录制的 journal 与 seed=1 字节级一致
+```
+
+### 已知限制
+
+- ruff 未在项目 venv 中安装，静态检查仅通过 `compileall`，未运行 lint。
+- 回放已在 live 模型与真实 tool 的录制上验证（见文末「收口节点：真实模型回放验证与离线质量门禁（2026-10-17）」）；离线 fake 装配保留为最快的回归层。
+- journal 不记录时间戳与分步耗时；这不影响回放正确性，但诊断仍停留在 StepRecord 层。
+
+### 对下一节点的影响
+
+- live 路径已接入 `RecordingModelClient` / `JournalingCheckpointStore` / `DecisionRecorder`（`build_live_service` + `scripts/live_record_replay.py record`），`ReplayCodec` 使用 live 决策与观察的 `TypeAdapter`。
+- 后续若 StepRecord 字段或 `CompiledContext` 的序列化形状变化，会改变 `context_hash` 与 `state_fingerprint`，需要同步更新测试期望。
+
+## 收口节点：真实模型回放验证与离线质量门禁（2026-10-17）
+
+### 解决的问题
+
+1. 旧已知限制写着「回放只在离线 fake 装配上验证」，说明不了确定性回放对真实 provider 也成立。
+2. 对外引用的三个质量数字（检索召回 60%、忠实性 71%、对抗点 2/3）是一次性人工统计，没有命令可以重跑。
+3. journaled run 只写 checkpoint，不产 `report.md`，读结论要翻 domain_state。
+
+### 已实现的语义
+
+- **真实 provider 录制 + 回放**：`scripts/live_record_replay.py` 的 `record` / `replay` 子命令，真实 Brave 搜索 + Jina 读取 + `deepseek-flash`（`https://api.deepseek.com/v1`）。`artifacts/live-run-deepseek-20261017`（9 步）与 `artifacts/live-run-deepseek-envcheck-20261017`（13 步）两次运行各回放 3 次全部 `matched`，journal 的 md5 在回放前后不变（回放只读）。另在 `artifacts/live-recorded-run` 上验证了篡改 `context_hash` 会 `diverged`、删除末条记录会 `ReplayMissingRecordError`。
+- **离线质量门禁**：`src/opinion_search/evaluation/{bundle,metrics,gate,__main__}.py` + `evaluation/corpus.json` + `evaluation/annotations/*.json`，入口 `python scripts/quality_gate.py [--check]`。四个冻结案例（对抗 s5-b 运行、埋点对抗运行、两次 OpinionSearch 真实轻路径运行），不调用模型、不访问网络。
+- 门禁复算结果与历史人工统计一致：检索召回发现层 7/10、已读层 6/10（历史 6/10）、忠实性 10/14、系统自评 6/14、对抗点 2/3；人机一致率 9/10，唯一分歧是必中清单第 7 项（大河网「河声」评论：候选池确有 `news.qq.com` 转载，历史人工判定为未覆盖）。分歧照实打印，不把规则调成「刚好等于历史数字」。
+- 门禁把「对抗 2/3」里丢的那一分显式化：反方稿被读、被摘 5 条证据，但 0 条进入判断层；被放大 10 倍的数字没有进判断层，却以原始摘录留在报告末尾的证据附录里——通过是「这一轮没轮到综合」，不是「有数字校验收拦截」，附录中出现这两个数字也被记进基线。
+- **`record --report`**：复用 `build_search_outcome` + `RunBundleWriter`，与 served 入口同一条路径，在 checkpoint 旁写出 `report.md` 与 `outcome.json`。
+- **`.env.example`** 落地环境变量的完整清单与 `NO_PROXY` 的坑；CI 追加 `quality_gate.py --check` 与 `pytest tests/quality`。
+
+### 测试命令与结果
+
+```
+python scripts/quality_gate.py --check   # quality gate: baseline reproduced exactly
+pytest tests/quality -q                  # 6 passed
+```
+
+### 已知限制
+
+- 门禁保证的是「给定这些冻结运行，数字可重算、可回归」，不保证标注本身正确，也不证明换模型或换搜索引擎后仍然成立。
+- s5-b 的 11 个已读来源里有 4 个没有冻结快照，它们的 25 条证据标记为「不可核」，不计入引用可核率的分母。
+- 两条 `OpinionSearch` 案例只覆盖 opinion 域（没有 findings / review 层），只作为当日真实运行的回归指纹。
+
+### 对下一节点的影响
+
+- 结构化 QueryPlan + 第二引擎（破 `news.qq.com` 66% 聚合站偏向）仍是最有价值的下一步。
+- 数字矛盾检测：现在只有「摘录未摘到」「已读未引用」的量化证据，缺机制。
+- 对抗埋点可以按 `evaluation/annotations/sanjiu-adversarial.json` 的模式扩到多案例，形成真正的回归套件。

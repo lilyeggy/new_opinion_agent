@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harness 整体设计评估 · 2026-09-21</title>
+<style>
+  :root {
+    --ink: #1a2233; --ink-2: #3d4a63; --ink-3: #6b7690;
+    --line: #e3e7ef; --bg: #f7f8fa; --card: #ffffff;
+    --accent: #2b5ce6; --accent-soft: #eef3fe;
+    --red: #c0392b; --red-soft: #fdf0ee;
+    --amber: #b3770a; --amber-soft: #fdf6e7;
+    --green: #1e7e4d; --green-soft: #ecf7f1;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--ink); line-height: 1.85; font-size: 15.5px; }
+  .page { max-width: 900px; margin: 0 auto; padding: 56px 32px 96px; }
+  header.masthead { border-bottom: 3px solid var(--ink); padding-bottom: 28px; margin-bottom: 36px; }
+  .kicker { font-size: 13px; letter-spacing: 2px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-size: 29px; line-height: 1.4; font-weight: 700; }
+  .meta { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+  h2 { font-size: 21px; margin: 52px 0 16px; padding-top: 14px; border-top: 1px solid var(--line); font-weight: 700; }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  h3 { font-size: 16.5px; margin: 26px 0 8px; color: var(--ink-2); }
+  p { margin: 12px 0; }
+  code { font-family: var(--mono); font-size: 13.5px; background: #eef0f4; padding: 1px 6px; border-radius: 4px; }
+  .verdict { background: var(--ink); color: #f2f4f8; border-radius: 10px; padding: 26px 30px; margin: 32px 0 8px; line-height: 1.9; }
+  .verdict .tag { color: #8fb0ff; font-size: 13px; letter-spacing: 2px; font-weight: 600; }
+  .verdict p { margin: 10px 0 0; }
+  .verdict strong { color: #fff; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 24px; margin: 14px 0; }
+  .card.bad { border-left: 4px solid var(--red); background: var(--red-soft); }
+  .card.warn { border-left: 4px solid var(--amber); background: var(--amber-soft); }
+  .card.good { border-left: 4px solid var(--green); background: var(--green-soft); }
+  .card.info { border-left: 4px solid var(--accent); background: var(--accent-soft); }
+  .card h4 { font-size: 15.5px; margin-bottom: 6px; }
+  .card .ev { font-size: 12.5px; color: var(--ink-3); margin-top: 8px; font-family: var(--mono); line-height: 1.7; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; line-height: 1.7; }
+  th { background: #eef0f5; font-weight: 650; font-size: 13.5px; }
+  td.num { text-align: center; }
+  .sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 20px; white-space: nowrap; }
+  .sev.p0 { background: var(--red); color: #fff; }
+  .sev.p1 { background: var(--amber); color: #fff; }
+  .sev.p2 { background: var(--ink-3); color: #fff; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 6px 0; }
+  .flow { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 24px;
+          font-family: var(--mono); font-size: 12.5px; line-height: 2; overflow-x: auto; white-space: pre; color: var(--ink-2); }
+  .flow .hit { color: var(--red); font-weight: 700; }
+  .flow .ok { color: var(--green); font-weight: 700; }
+  .footnote { font-size: 13px; color: var(--ink-3); border-top: 1px dashed var(--line); margin-top: 48px; padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">HARNESS 整体设计评估 · 面向快速闭环目标</div>
+  <h1>两套循环，一份答卷：<br>当前 harness 设计合理吗？</h1>
+  <div class="meta">评估对象：runtime/loop.py（生产链路）与 harness/engine.py（骨架→渲染原型） · 依据：全部核心源码逐行审读 · 2026-09-21 · 本评估只评设计，不评产出质量</div>
+</header>
+
+<div class="verdict">
+  <div class="tag">总 体 判 断</div>
+  <p><strong>整体合理性：设计哲学成立，单点实现分化，最大缺陷在「fork 本身」。</strong>你们现在有两套互不相同、零共享代码的循环：<code>runtime/loop.py</code> 的深度加固 AgentLoop（生产 Web 链路在用，恢复语义/错误模型/完成控制都很扎实），和 <code>harness/engine.py</code> 的「planner→research→analyst→reviewer→render」骨架流水线（就是你们说的「先建骨架再渲染」的设计，但目前<strong>只接在 mock 和测试里，没进产品路径</strong>）。</p>
+  <p>讽刺的地方在于：<strong>B 的流水线形态比 A 的自由 agent 循环更贴合你们的产品论</strong>（固定骨架、确定性调度、程序渲染），但 B 的实现保真度是原型级的——预算不生效、错误会炸穿整个 run、证据没有完整性保障、失败被静默吞掉；而 A 花了两周加固的所有东西（研判闸门、发布保留段、PagePlan、证据哈希校验），B 一样都没继承。</p>
+  <p><strong>对「快速闭环」目标的回答：能支撑，但前提是先做一次「合流」决策</strong>——两套循环必须收敛成一套，否则每修一个 bug 都要修两遍，每加一个模块都要想两遍契约。合流方向建议：保留 A 的执行底座（checkpoint/resume/预算/失败语义/证据完整性），把 B 的流水线作为 A 之上的确定性调度策略。</p>
+</div>
+
+<h2><span class="no">01</span>Agent loop：循环结构、终止条件与迭代逻辑</h2>
+
+<h3>A 循环（runtime/loop.py，576 行）——结构正确，代价是重</h3>
+
+<div class="card good">
+  <h4>✓ 优点：这是仓库里工程完成度最高的模块</h4>
+  <ul>
+    <li><strong>相位状态机 + classify_resume</strong>：每一步分 opened→deciding→accepted→action_running→observation_ready→reducing→committed，每个相位边界落 checkpoint，崩溃后从任意相位精确续跑。这在自研单 agent loop 里是教科书级做法。</li>
+    <li><strong>终止条件语义完整</strong>：max_steps→partial、context overflow→partial、决策恢复耗尽→按是否有 committed step 分 partial/failed、取消通过竞态助手包裹 model/tool await、REDUCE_OBSERVATION 阶段取消被延后以保证已落盘观察恰好提交一次。每类终止都有明确归宿，没有「裸异常终态」。</li>
+    <li><strong>完成是策略不是模型声明</strong>：每步 committed 后由 CompletionEvaluator 判定，模型的 finish 只是 proposal。</li>
+  </ul>
+</div>
+
+<div class="card warn">
+  <h4>⚠ 不足 1：每步约 9 次全量 checkpoint，写放大明显</h4>
+  <p>每个相位边界都 <code>save(state) + hook</code>，即每步全量序列化整个 RunState（含 domain state 全部证据）近 9 次。正确性上无可厚非，但对「快速闭环」意味着：单次 run 的 I/O 开销与状态大小平方级相关，640 条证据的压力场景下这不是小数目。可做增量 checkpoint（全量每 N 步 + 相位日志）或至少在 step 内合并相邻边界。</p>
+  <div class="ev">证据：loop.py `_save` 在 STEP_OPENED/DECIDING/DECISION_ACCEPTED/ACTION_RUNNING/OBSERVATION_READY/REDUCING/STEP_COMMITTED/CONTINUATION_APPLIED 各调用一次</div>
+</div>
+
+<div class="card warn">
+  <h4>⚠ 不足 2：REPEATED_ACTION 直接终止为 partial，对迭代目标过于刚烈</h4>
+  <p>模型连续提出重复动作时，<code>_recover_decision_failure</code> 立即把整个 run 降级为 partial 终止。一个完成了 90% 的调查，可能只因模型最后一次换词失败而丢掉 completed 终态。更温和的设计是把「重复动作」作为一条观察反馈给模型（ Context 里已有失败方向记录），给它一次改道机会，连续 N 次才终止。</p>
+  <div class="ev">证据：loop.py `_recover_decision_failure` 中 REPEATED_ACTION 分支直接 terminate_run(PARTIAL)</div>
+</div>
+
+<div class="card warn">
+  <h4>⚠ 不足 3：单动作步进是结构性吞吐瓶颈</h4>
+  <p>每步 = 一次模型调用 + 一个动作。一次搜索 5 条候选，要读其中 3 篇就需要 3 个完整步（3 次模型往返）。20 步预算下有效阅读量天花板约 6–8 篇。这不影响正确性，但决定了「闭环速度」的物理上限。允许一个 decision 携带动作批（search×k 或 read×k）能在不改语义的前提下把吞吐提高 2–3 倍。</p>
+</div>
+
+<h3>B 循环（harness/engine.py，114 行）——形态对，纪律缺</h3>
+
+<div class="flow">while True:
+    actions = legal_actions(state)        <span class="ok"># 纯函数推导合法动作，好设计</span>
+    if not actions: break                 <span class="hit"># 唯一的终止路径</span>
+    action = controller.choose(state, actions)
+    ledger.charge(action)                 <span class="hit"># 记账了，但 over_budget() 永不被检查</span>
+    state = step(state, action)           <span class="hit"># 无 try/except：provider 429 → 整个 run 炸掉</span>
+    checkpoint.save_state(state)</div>
+
+<div class="card bad">
+  <h4>✗ 缺陷 1：预算是摆设</h4>
+  <p><code>ResourceLedger</code> 有 <code>max_steps=100</code> 和 <code>over_budget()</code>，engine 每步 <code>charge()</code> 却<strong>从不检查</strong> <code>over_budget()</code>。终止完全依赖 <code>legal_actions</code> 耗尽（task 队列有限所以确实会停），但系统没有任何「预算耗尽→降级收尾」的路径——而「有限预算内保证有产出」恰恰是闭环产品的核心承诺。</p>
+  <div class="ev">证据：engine.py investigate() 循环体内无 over_budget 调用；ledger.py over_budget() 定义后无生产调用方</div>
+</div>
+
+<div class="card bad">
+  <h4>✗ 缺陷 2：Controller 是一个假装在做决策的抽象</h4>
+  <p><code>legal_actions()</code> 的每个分支都返回<strong>单元素元组</strong>——永远只有一个合法动作。<code>DeterministicController.choose</code> 返回 <code>actions[0]</code>；<code>LlmController</code> 更尴尬：花一次 LLM 调用从一个元素里「选」一个，prompt 还在认真讨论「优先 ANALYZE」——选择的对象根本不存在。这个抽象应该二选一：<strong>要么让 legal_actions 返回真实备选项</strong>（下一个 dispatch 哪个 task、零证据 task 是否重查、预算紧张时是否提前 FINISH——这些才是真决策点），<strong>要么删掉 Controller</strong>，让确定性级联直接命名「调度规则」。</p>
+  <div class="ev">证据：actions.py legal_actions 全部分支返回 1-tuple；llm_roles.py LlmController.choose + CONTROLLER_INSTRUCTIONS</div>
+</div>
+
+<div class="card bad">
+  <h4>✗ 缺陷 3：没有迭代，只有流水线重放</h4>
+  <p>B 循环名为迭代，实为固定管线的确定性重放：review 给出 contradicted/insufficient 不会触发补查；task 返回零证据照样标记完成（<code>with_packet</code> 无条件把 task 移出 pending）；brief 在 plan 阶段写死后全程不变。<strong>发现无法反哺搜索</strong>——这正是上一轮指出的「搜索质量瓶颈」在循环结构层面的根因：结构上就没有给「根据已发现的东西调整后续调查」留位置。</p>
+  <div class="ev">证据：state.py with_packet 无条件移除 pending；engine.py REVIEW 分支只写 reviews 不产生新任务；research_agent 只读 state.brief</div>
+</div>
+
+<div class="card bad">
+  <h4>✗ 缺陷 4：同步串行 + asyncio.run 嵌套，既是瓶颈也是地雷</h4>
+  <p>engine 是同步 while 循环，而 <code>LlmResearchAgent/LlmAnalyst/LlmReviewer/LlmReportSynthesizer/LlmController</code> 每个都在方法体内 <code>asyncio.run(self._model.decide(...))</code>。两个后果：① 7 个 task 的 research 严格串行，这是闭环墙钟时间的最大单瓶颈；② <code>asyncio.run</code> 在已有事件循环里会直接抛错——这套代码<strong>永远接不进你们自己的 async Web 服务器</strong>，接线那天就是重写那天。</p>
+  <div class="ev">证据：llm_roles.py / research_agent.py / synthesis.py 各角色类内 asyncio.run 调用</div>
+</div>
+
+<h2><span class="no">02</span>模块职责与数据流转</h2>
+
+<div class="card good">
+  <h4>✓ A 侧：职责划分是这套系统最值得保留的资产</h4>
+  <p>Model 只提议、Tool 只返回、Processor 建 Delta、Reducer 独占写入、Context 是单次输入、Working Memory 是派生投影——每一层都有协议边界和单测，Runtime 不出现舆情语义、Domain 不碰生命周期。B 侧的阶段端口（Planner/ResearchAgent/Analyst/Reviewer/Synthesizer/ContentBuilder 全是 Protocol）方向同样正确，<code>harden_reviews</code> 用程序核验模型输出（数字必须出现在摘录）体现了「模型提议、程序处置」的正确直觉。</p>
+</div>
+
+<div class="card bad">
+  <h4>✗ 核心问题：两套平行宇宙，概念全重复、能力不对等</h4>
+  <table>
+    <tr><th>概念</th><th>A（runtime/investigation）</th><th>B（harness/）</th><th>后果</th></tr>
+    <tr><td>搜索执行</td><td>ToolExecutor：重试/熔断/超时/provider 切换/缓存</td><td>BraveJinaSearchProvider 直调，<strong>无重试无超时无熔断</strong></td><td>B 的搜索失败即 run 死亡</td></tr>
+    <tr><td>证据</td><td>artifact 哈希 + 字符偏移 + 发布前校验</td><td>EvidenceItem 只有 url/title/excerpt，<strong>无 locator 无哈希</strong></td><td>B 的证据不可核验，审计卖点在 B 侧不存在</td></tr>
+    <tr><td>预算</td><td>LiveConfig.max_steps 真生效</td><td>ResourceLedger 记账不执法</td><td>见 §01</td></tr>
+    <tr><td>完成</td><td>CompletionPolicy 多规则判定</td><td>GapAudit.should_finish 存在但 engine 不调用</td><td>B 无降级终态</td></tr>
+    <tr><td>checkpoint</td><td>版本化 + profile 校验 + 相位恢复</td><td>单文件无版本无命名空间，<strong>并发 run 互相覆盖</strong>；load 不到时 resume 静默重开新调查</td><td>B 的恢复语义近乎没有</td></tr>
+  </table>
+  <p style="margin-top:10px">过去两周在 A/investigation 域修的所有生产教训（首次研判闸门、发布保留段、PagePlan 搜索目标、来源关系契约），B 全部没有。继续维持两套，意味着每条教训都要再踩一遍。</p>
+</div>
+
+<div class="card warn">
+  <h4>⚠ 「整体骨架」其实是静态模板，不从事件派生</h4>
+  <p><code>GenericPlanner.plan()</code> 对任何事件都产出同样 7 个 task（事实/时间线/议题/立场/回应/来源/证据），只把事件名插进字符串。用户的必答问题、事件类型差异、已知背景都不影响骨架。这与「为舆情事件先建立整体骨架（谁做了什么）」的设计叙述有差距：<strong>现在的骨架不是从事件里长出来的，是一个万能表格</strong>。PLAN 阶段不接模型、不接用户问题结构，是数据流上最明显的一个「断点」。</p>
+  <div class="ev">证据：planner.py GenericPlanner 固定七元组 ResearchTask，无 LLM、无用户问题输入参数</div>
+</div>
+
+<div class="card warn">
+  <h4>⚠ module_payload 是无 schema 的自由 JSON</h4>
+  <p>Analyst 的 prompt 里用「示例」约定各模块的字段（中文 key 混英文 key），程序侧无逐模块 schema 校验——模型写错 key，content_builder 只能静默容忍。investigation 域已有 <code>ModuleField</code> 白名单契约，B 没有沿用。渲染驱动的系统，渲染输入却不受类型约束，这是数据流转链条上最脆的一环。</p>
+</div>
+
+<h2><span class="no">03</span>反馈机制与错误处理</h2>
+
+<div class="card good">
+  <h4>✓ A 侧：错误模型是显式、分类、可恢复的</h4>
+  <p>ModelErrorKind→RuntimeFailureKind 完整映射；malformed/empty/refusal/timeout/rate_limit 各有着落；决策失败同 step 修复（DECIDING 重试 / DECISION_ACCEPTED 修复回 DECIDING，attempt+1 保序记录）；Reducer 不变量 fail-closed；工具失败以 typed observation 反馈模型换方向。<strong>这部分无需大改。</strong></p>
+</div>
+
+<div class="card bad">
+  <h4>✗ B 侧：错误处理近乎空白，且失败会被「洗白」</h4>
+  <ul>
+    <li><code>research_agent</code> 里 <code>provider.search()</code> 无异常包裹：Brave 429/超时 → 异常穿透 engine → 整个 run 以 Python traceback 死亡，无 partial、无失败记录、无逐任务隔离（一个 task 失败应标记 blocked 并继续其他 task，现在是一死全死）。</li>
+    <li><strong>静默 fallback 三连</strong>：LLM 查询生成失败→悄悄用 task.objective 原句当查询；Analyst 失败→悄悄把证据摘录原文当 finding（fallback- 前缀）；Synthesizer 失败→悄悄退回确定性拼接。trace 里这些看起来都像正常数据。一个以「可审计」为卖点的系统，<strong>失败不可见比失败本身更伤</strong>——它让质量评估和调试都失去抓手。</li>
+    <li>Reviewer 的降级（逐条 insufficient）方向是对的——失败以「可见的保守判定」呈现。这应该成为统一范式推广到所有角色：<strong>可以降级，但必须留痕</strong>。</li>
+    <li>无取消、无超时、无墙钟预算。web 产品路径要求的「活动调查可取消」在 B 侧无法实现。</li>
+  </ul>
+  <div class="ev">证据：research_agent.py run() 无 try/except；llm_roles.py _fallback_findings / LlmController 静默回退；synthesis.py LlmReportSynthesizer except Exception 静默回退</div>
+</div>
+
+<h2><span class="no">04</span>能否支撑「快速闭环」？冗余与瓶颈</h2>
+
+<p><strong>先给公允的判断：B 作为闭环原型，形态选择是对的。</strong>固定阶段流水线 + 确定性调度 + mock 全离线可回放（MockInvestigationHarness 323 行提供确定性 e2e），迭代速度远快于 A 的自由 agent 循环——改一个模块立刻能在 mock 里看到渲染结果。问题不在形态，在于它目前是个「质量绝缘体」：跑得越快，越快地产出不可核验、无失败语义、无预算约束的报告。</p>
+
+<table>
+  <tr><th>环节</th><th>对闭环的影响</th><th>判定</th></tr>
+  <tr><td>两套循环并存</td><td>每个修复/契约变更双倍成本；B 不继承 A 的生产教训</td><td style="color:var(--red);font-weight:600">最大冗余，必须合流</td></tr>
+  <tr><td>串行 research（7 task × ≤4 query）</td><td>单次闭环墙钟时间的主瓶颈</td><td style="color:var(--red);font-weight:600">瓶颈</td></tr>
+  <tr><td>asyncio.run 嵌套</td><td>无法接入 async web 服务，接线即重写</td><td style="color:var(--red);font-weight:600">技术债，越早还越便宜</td></tr>
+  <tr><td>无反馈回路（review 不触发补查）</td><td>闭环只能「一轮走完」，无法迭代加深</td><td style="color:var(--amber);font-weight:600">结构缺口</td></tr>
+  <tr><td>A 侧每步 9 次全量 checkpoint</td><td>run 越大越慢</td><td style="color:var(--amber);font-weight:600">可优化，不阻塞</td></tr>
+  <tr><td>Controller 空转抽象</td><td>读代码的人被误导，LlmController 白烧 token</td><td style="color:var(--amber);font-weight:600">冗余</td></tr>
+  <tr><td>mock 确定性 e2e</td><td>迭代速度的真正保障</td><td style="color:var(--green);font-weight:600">保留并扩大</td></tr>
+</table>
+
+<h2><span class="no">05</span>可扩展性与可维护性</h2>
+
+<ul>
+  <li><strong>端口化是好的：</strong>B 的各阶段都是 Protocol，Mock 替换成本极低，新增一种模块 = planner 模板 + analyst prompt 示例 + content_builder 分支，三处触点，可以接受。但 <code>report_module</code> 是裸字符串、<code>module_payload</code> 是自由 dict——建议收敛为逐模块的 pydantic schema，在 Analyst 边界校验（investigation 域的 ModuleField 白名单可直接借用）。</li>
+  <li><strong>状态增长只增不减：</strong>HarnessState 各 tuple 只 append，无压缩。当前规模没问题；若按 P1-3 加反馈回路产生多轮补查，state 会快速膨胀，届时需要 compaction 策略（A 侧的 Context Compiler 经验可复用）。</li>
+  <li><strong>概念词汇表漂移：</strong>Evidence/EvidenceItem、Finding/FindingDraft、Review/ReviewRecord/ReviewRecord……同一概念三套命名三套字段。合流时应统一词汇，否则未来每个跨层功能都要写翻译层。</li>
+  <li><strong>B 的 checkpoint 是单文件固定路径：</strong>无 run 命名空间，两个并发调查互相覆盖；<code>resume()</code> 在文件缺失时<strong>静默从零开始新调查</strong>——这是最危险的一类「表面正常」行为，恢复必须显式报错。</li>
+</ul>
+
+<h2><span class="no">06</span>优先级排序的优化方向</h2>
+
+<div class="card info">
+  <h4><span class="sev p0">P0</span> · 1. 合流决策：一套循环，两层分工</h4>
+  <p>明确 B 的流水线是产品形态、A 的 runtime 是执行底座：把 planner→research→analyze→review 表达为 A 循环之上的<strong>确定性调度策略</strong>（每阶段是合法的 domain decision 序列），而非独立循环。立即继承：checkpoint/resume、取消、真实预算、typed 工具错误、artifact 证据完整性、发布协议。这是唯一一个「不做则其他优化都在流沙上」的事项。</p>
+</div>
+<div class="card info">
+  <h4><span class="sev p0">P0</span> · 2. 预算执法与降级终态</h4>
+  <p>无论合流与否：循环必须检查 <code>over_budget()</code>，预算耗尽进入「确定性收尾」（用已有材料合成 partial 报告并明确标注），而非跑死或跑穿。HarnessState 需要 finished 之外的 partial/failed 终态。</p>
+</div>
+<div class="card info">
+  <h4><span class="sev p0">P0</span> · 3. 失败语义：逐任务隔离 + 全部留痕</h4>
+  <p>provider/LLM 异常按 task 隔离（失败 task 标记 blocked 并计数，继续其余 task）；所有 fallback 路径在 trace 中显式打标（<code>degraded: true</code> + 原因）。范式照抄 Reviewer 的「可见的保守判定」。</p>
+</div>
+<div class="card">
+  <h4><span class="sev p1">P1</span> · 4. 加反馈回路：让发现反哺调查</h4>
+  <p>review 判 contradicted/insufficient、或 task 零证据时，生成有界的后续 research task（每 task 最多 1 次改述重查，换 source_goal/查询角度）。这是把「流水线」变「迭代」的关键一步，也是报告质量/预算比最高的结构改动。</p>
+</div>
+<div class="card">
+  <h4><span class="sev p1">P1</span> · 5. 全异步化 + research 有界并发</h4>
+  <p>角色类全部改为 async，删除所有 <code>asyncio.run</code>；跨 task research 用 semaphore（3–4 并发）gather。闭环墙钟时间直接砍 60%+，同时解除接入 web 服务的阻塞。</p>
+</div>
+<div class="card">
+  <h4><span class="sev p1">P1</span> · 6. Controller 二选一</h4>
+  <p>给 legal_actions 真实备选（task 选择、重查决策、提前收尾）让 Controller 名副其实，或删除该抽象。不要留着空转的决策点烧 token、误导读者。</p>
+</div>
+<div class="card">
+  <h4><span class="sev p2">P2</span> · 7. 杂项加固</h4>
+  <p>module_payload 逐模块 schema 校验；checkpoint 加版本号 + run 命名空间 + resume 显式报错；REPEATED_ACTION 先反馈后终止；A 侧 checkpoint 增量化；统一 Evidence/Finding/Review 词汇表。</p>
+</div>
+
+<h2><span class="no">07</span>一句话总评</h2>
+
+<p style="font-size:17px; line-height:1.9; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px 26px;">
+<strong>方向是对的，骨头是散的。</strong>「固定骨架 + 确定性调度 + 程序渲染」的流水线形态，比自由 agent 循环更配得上你们的产品论——这个判断我和你们一致。但当前实现把这个好形态做在了错误的底座上：一个没有失败语义、没有预算执法、没有证据完整性、还进不了 async 服务器的原型壳里，同时又让它和生产级 runtime 平行存在、互不继承。<strong>设计合理性 = 形态 8 分，单点实现 A 9 分 / B 4 分，整体架构 5 分——扣掉的分几乎全在「fork」上。</strong>合流之后，这套设计完全撑得起快速闭环；不合流，闭环跑得越快，债滚得越快。
+</p>
+
+<div class="footnote">
+  证据基础：runtime/loop.py、runtime/transaction.py、harness/engine.py / actions.py / state.py / coverage.py / ledger.py / planner.py / research_agent.py / llm_roles.py / synthesis.py / checkpoint.py 全部逐行审读；HarnessEngine 接线范围经全仓检索确认（仅 mock.py 与测试引用）。所有「未生效/未接线」判断均指向具体符号，可在代码中直接复核。
+</div>
+
+</div>
+</body>
+</html>

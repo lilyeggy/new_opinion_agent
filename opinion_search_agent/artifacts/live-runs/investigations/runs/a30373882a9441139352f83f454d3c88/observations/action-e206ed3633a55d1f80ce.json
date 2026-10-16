@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-675e209d603afa8583dc",
+      "url": "https://huaren.us/showtopic.html?topicid=3215009",
+      "focus": "罗永浩吐槽野人先生与钟薛高重启降价的时间线、三家品牌被卷入的方式及后续发展",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://huaren.us/showtopic.html?topicid=3215009"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:22:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -1,0 +1,821 @@
+{
+  "run_id": "9eff1aaa3efe404da94d467db547b3de",
+  "case_id": "aaeca456891043e4865c31ebbef99f09",
+  "parent_id": null,
+  "mode": "live",
+  "request": {
+    "question": "调查2025年重庆市城市轨道交通票价机制调整：重点核查调整内容、听证中各方争议、公众负担与轨道运营成本依据、主管部门对意见的采纳和未覆盖问题，以及后续正式执行情况。调查截止到2026年9月15日。",
+    "topic": null,
+    "time_range": null,
+    "focus": null,
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": [],
+    "region": null,
+    "reference_urls": [],
+    "clarification": null
+  },
+  "fixture": null,
+  "status": "partial",
+  "phase": "部分完成",
+  "created_at": "2026-09-15T11:48:23.352561+00:00",
+  "clarification_questions": [],
+  "clarify_rounds": 0,
+  "progress": {
+    "questions": [
+      {
+        "issue_id": "issue-a005936cabd3c860827a",
+        "question": "2025年重庆市城市轨道交通票价机制调整的具体内容是什么？包括计价方式、起步价与里程票价、换乘与优惠规则的变更，以及正式公布的执行时间与适用范围。",
+        "required": true,
+        "status": "open",
+        "note": "正式通知已完整给出新计价区间、执行范围与生效时间，但换乘与优惠规则仅作原则性要求、具体实施办法明确由运营企业另行公布；且新旧规则对照缺少可核查的旧票价规则原文，故保留未覆盖部分待补。",
+        "evidence_ids": [
+          "evidence-b41a7e691b85b59bf18f",
+          "evidence-09c18c05236b0147b8ab",
+          "evidence-277fce119050d8b0546b",
+          "evidence-241b7588c38b036bb791",
+          "evidence-aab1530efa9db6459911"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "计价方式",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-b41a7e691b85b59bf18f"
+            ],
+            "note": "通知明确按乘坐里程计价"
+          },
+          {
+            "text": "起步价与里程票价",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-b41a7e691b85b59bf18f"
+            ],
+            "note": "0—4公里2元起步，各里程区间票价与55公里以上加价规则已列明"
+          },
+          {
+            "text": "换乘与优惠规则",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-aab1530efa9db6459911"
+            ],
+            "note": "仅见原则性要求（落实老年人等优惠、执行公共交通换乘优惠、多层次优惠由运营企业另行公布），具体实施办法与新旧对比尚未取得"
+          },
+          {
+            "text": "执行时间与适用范围",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-277fce119050d8b0546b",
+              "evidence-09c18c05236b0147b8ab"
+            ],
+            "note": "自2025年7月30日起执行；范围含1、2、3、4、5、6、9、10、18号线、环线、国博线及后续开通线路，不含江跳线、璧铜线等市郊铁路"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-6e216ae112f566d377c8",
+        "question": "票价调整听证会的组织过程与参会结构如何？各方（消费者代表、运营企业、专家学者、主管部门）提出的主要意见与争议焦点分别是什么？",
+        "required": true,
+        "status": "open",
+        "note": "目前仅有公告的章节标题与“共35名”参加人规模，听证会时间地点具体内容、参加人结构以及各方意见与争议焦点均无证据支持。",
+        "evidence_ids": [
+          "evidence-c24e06c9d523354eea4a",
+          "evidence-476212c8d1f470385d2b"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "听证会组织过程",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-c24e06c9d523354eea4a"
+            ],
+            "note": "仅知公告列有“听证会举行的时间和地点”章节，具体时间、地点与组织程序未取得"
+          },
+          {
+            "text": "参会人员构成",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-476212c8d1f470385d2b"
+            ],
+            "note": "仅知参加人共35名，未见消费者、专家、企业、部门等类别分布"
+          },
+          {
+            "text": "各方主要意见",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "争议焦点",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-fdc966cc4c688c1b2198",
+        "question": "调整方案关于公众负担的论证依据有哪些？包括乘客月均支出测算、通勤群体与低收入群体受影响情况、与居民收入及同类城市票价的比较。",
+        "required": true,
+        "status": "open",
+        "note": "官方方案已给出付费乘客人次平均支出、月均支出与通勤支出增量测算，但尚未取得低收入群体影响、与居民收入比较、与同类城市票价比较的材料。",
+        "evidence_ids": [
+          "evidence-dcb475240f66b6b8ca2e",
+          "evidence-f550b886e9609f4ce54e"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "乘客月均支出测算",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-dcb475240f66b6b8ca2e"
+            ],
+            "note": "人次平均支出3.21元，方案一、二增至3.76元、3.79元；月均10.81次下人均月支出增加5.95元、6.27元"
+          },
+          {
+            "text": "通勤与低收入群体影响",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-dcb475240f66b6b8ca2e"
+            ],
+            "note": "通勤乘客按每月44次计增量已给出（24.20元、25.52元），低收入群体影响的专门分析未取得"
+          },
+          {
+            "text": "与居民收入比较",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "与同类城市票价比较",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-31e513537ec6af736eb8",
+        "question": "轨道运营成本依据是什么？运营企业及主管部门公布的客运量、运营成本、财政补贴、票款收入与成本缺口，其数据来源和统计口径如何？",
+        "required": true,
+        "status": "open",
+        "note": "单位运营成本15.13元/人次及其监审依据与成本构成已由官方公告说明，但客运量、财政补贴、票款收入及更细的统计口径尚未取得证据。",
+        "evidence_ids": [
+          "evidence-23c50698ff62da5670a7",
+          "evidence-5a314a5238623d34916a",
+          "evidence-5a314a5238623d34916a"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "客运量",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "运营成本",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-23c50698ff62da5670a7"
+            ],
+            "note": "核定单位运营成本15.13元/人次，成本由主营业务成本与财务费用构成"
+          },
+          {
+            "text": "财政补贴与票款收入",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "数据来源与统计口径",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-23c50698ff62da5670a7",
+              "evidence-5a314a5238623d34916a"
+            ],
+            "note": "依据价格法与政府制定价格成本监审办法，监审范围覆盖全部正式运营线段，经书面通知、资料初审、实地审核、意见告知、出具报告程序及合法性、相关性、合理性审核"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-0330b42c3eafd6aaa7a1",
+        "question": "主管部门对听证意见的采纳与未采纳情况如何？哪些意见被写入最终方案，哪些问题（如优惠覆盖范围、跨方式换乘、价格动态调整机制）未被覆盖，给出的理由是什么？",
+        "required": true,
+        "status": "open",
+        "note": "尚未检索到主管部门对听证意见的采纳与未采纳说明、未覆盖问题的官方理由等材料，各组成部分均无证据支持。",
+        "evidence_ids": [],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "被采纳的意见",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "未被采纳的意见",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "未覆盖的问题",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "官方说明理由",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-4017ab265289ec363335",
+        "question": "截至2026年9月15日，调整方案的正式执行情况如何？是否按计划实施、有无延期或修正，实施后客流与票款收入、社会反馈及后续评估安排怎样？",
+        "required": true,
+        "status": "open",
+        "note": "目前仅有通知写明自2025年7月30日起执行，属于方案生效规定；实际实施情况、有无延期或修正、实施后客流与票款收入及后续评估安排尚无独立证据。",
+        "evidence_ids": [
+          "evidence-277fce119050d8b0546b"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "是否按计划实施",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-277fce119050d8b0546b"
+            ],
+            "note": "通知规定生效日期，仍需实施后证据确认实际执行"
+          },
+          {
+            "text": "延期或修正情况",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "实施后客流与票款收入",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "社会反馈与后续评估",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      }
+    ],
+    "source_count": 4,
+    "finding_count": 11,
+    "read_errors": 1,
+    "search_errors": 0,
+    "diagnostics": {
+      "format": "opinion-investigation-diagnostics/1",
+      "summary": {
+        "status": "attention",
+        "critical": 0,
+        "warnings": 6,
+        "informational": 5,
+        "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+      },
+      "stages": [
+        {
+          "id": "scope",
+          "label": "事件与问题",
+          "status": "attention",
+          "metrics": {
+            "issues": 6,
+            "required": 6,
+            "unresolved_required": 6,
+            "unresolved_components": 18
+          },
+          "signal_codes": [
+            "required_issues_unresolved",
+            "required_components_unresolved"
+          ]
+        },
+        {
+          "id": "discovery",
+          "label": "搜索与召回",
+          "status": "observed",
+          "metrics": {
+            "attempts": 7,
+            "outcomes": {
+              "candidates": 7
+            },
+            "purposes": {
+              "followup": 1,
+              "official_response": 1,
+              "original": 1,
+              "positions": 4
+            },
+            "candidate_urls": 31
+          },
+          "signal_codes": [
+            "search_directions_unattempted"
+          ]
+        },
+        {
+          "id": "acquisition",
+          "label": "正文获取",
+          "status": "attention",
+          "metrics": {
+            "read_attempts": 5,
+            "saved_versions": 4,
+            "read_errors": 1,
+            "unread_candidates": 26
+          },
+          "signal_codes": [
+            "reader_errors",
+            "unread_candidates"
+          ]
+        },
+        {
+          "id": "sources",
+          "label": "来源结构",
+          "status": "attention",
+          "metrics": {
+            "documents": 4,
+            "versions": 4,
+            "domains": {
+              "fzggw.cq.gov.cn": 3,
+              "m.thepaper.cn": 1
+            },
+            "roles": {
+              "original": 3,
+              "reporting": 1
+            },
+            "hash_duplicates": 0,
+            "relations_recorded": 0,
+            "relations_unverified": 4,
+            "unknown_publication_dates": 4
+          },
+          "signal_codes": [
+            "source_independence_unverified",
+            "publication_dates_unknown"
+          ]
+        },
+        {
+          "id": "evidence",
+          "label": "证据定位",
+          "status": "observed",
+          "metrics": {
+            "items": 34,
+            "cited_items": 12,
+            "sources_with_cited_evidence": 2,
+            "uncited_source_versions": 2
+          },
+          "signal_codes": [
+            "saved_sources_uncited"
+          ]
+        },
+        {
+          "id": "analysis",
+          "label": "争议与回应分析",
+          "status": "attention",
+          "metrics": {
+            "active_findings": 11,
+            "finding_kinds": {
+              "fact": 11
+            },
+            "stakeholders": [],
+            "response_classes": {
+              "not_assessed": 11
+            },
+            "required_module_gaps": 0,
+            "stance_distribution_eligible": false,
+            "stance_distribution_reason": "材料集没有代表性抽样框，来源关系也未全部核实；只能展示材料内主张构成，不能解释为公众观点占比。"
+          },
+          "signal_codes": [
+            "stakeholder_diversity_low"
+          ]
+        },
+        {
+          "id": "review",
+          "label": "关键结论审查",
+          "status": "attention",
+          "metrics": {
+            "active_findings": 11,
+            "supported": 0,
+            "unreviewed": 11,
+            "not_supported": 0,
+            "review_models": {}
+          },
+          "signal_codes": [
+            "active_findings_unreviewed"
+          ]
+        },
+        {
+          "id": "completion",
+          "label": "结束判断",
+          "status": "pending",
+          "metrics": {
+            "publication_status": "finalizing",
+            "policy_disposition": "reject_and_continue",
+            "policy_reason": "Required investigation questions remain open.",
+            "conclusions": 0
+          },
+          "signal_codes": []
+        },
+        {
+          "id": "runtime",
+          "label": "运行与预算",
+          "status": "observed",
+          "metrics": {
+            "available": true,
+            "status": "partial",
+            "checkpoint_boundary": "run_terminated",
+            "active_step_phase": null,
+            "committed_steps": 20,
+            "decision_retries": 0,
+            "failure_kinds": {},
+            "actions": {
+              "read": 5,
+              "reflect": 1,
+              "retrieve": 7,
+              "search": 7
+            },
+            "step_timing_available": false,
+            "token_usage_available": false,
+            "budget": {
+              "available": true,
+              "resources": {
+                "search": {
+                  "used": 7,
+                  "limit": 12,
+                  "ratio": 0.5833
+                },
+                "read": {
+                  "used": 5,
+                  "limit": 16,
+                  "ratio": 0.3125
+                },
+                "model": {
+                  "used": 21,
+                  "limit": 32,
+                  "ratio": 0.6562
+                },
+                "seconds": {
+                  "used": 345.418,
+                  "limit": 1200,
+                  "ratio": 0.2878
+                }
+              }
+            }
+          },
+          "signal_codes": [
+            "fine_grained_cost_latency_unavailable"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "code": "required_components_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "18 个必答子项仍未解决。",
+          "action": "逐项处置复合问题，避免父问题状态掩盖缺口。",
+          "details": {
+            "components": [
+              {
+                "issue_id": "issue-a005936cabd3c860827a",
+                "text": "换乘与优惠规则",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-6e216ae112f566d377c8",
+                "text": "听证会组织过程",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-6e216ae112f566d377c8",
+                "text": "参会人员构成",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-6e216ae112f566d377c8",
+                "text": "各方主要意见",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-6e216ae112f566d377c8",
+                "text": "争议焦点",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-fdc966cc4c688c1b2198",
+                "text": "通勤与低收入群体影响",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-fdc966cc4c688c1b2198",
+                "text": "与居民收入比较",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-fdc966cc4c688c1b2198",
+                "text": "与同类城市票价比较",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-31e513537ec6af736eb8",
+                "text": "客运量",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-31e513537ec6af736eb8",
+                "text": "财政补贴与票款收入",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0330b42c3eafd6aaa7a1",
+                "text": "被采纳的意见",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0330b42c3eafd6aaa7a1",
+                "text": "未被采纳的意见",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0330b42c3eafd6aaa7a1",
+                "text": "未覆盖的问题",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0330b42c3eafd6aaa7a1",
+                "text": "官方说明理由",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-4017ab265289ec363335",
+                "text": "是否按计划实施",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-4017ab265289ec363335",
+                "text": "延期或修正情况",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-4017ab265289ec363335",
+                "text": "实施后客流与票款收入",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-4017ab265289ec363335",
+                "text": "社会反馈与后续评估",
+                "status": "open"
+              }
+            ]
+          }
+        },
+        {
+          "code": "required_issues_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "6 个必答问题仍未得到可用处置。",
+          "action": "继续取证，或明确标为范围内未发现/无法判断。",
+          "details": {
+            "issue_ids": [
+              "issue-a005936cabd3c860827a",
+              "issue-6e216ae112f566d377c8",
+              "issue-fdc966cc4c688c1b2198",
+              "issue-31e513537ec6af736eb8",
+              "issue-0330b42c3eafd6aaa7a1",
+              "issue-4017ab265289ec363335"
+            ]
+          }
+        },
+        {
+          "code": "reader_errors",
+          "stage": "acquisition",
+          "severity": "warning",
+          "message": "有 1 个页面读取失败。",
+          "action": "重试、寻找原始出处或将对应结论降级为无法判断。",
+          "details": {
+            "urls": [
+              "https://fzggw.cq.gov.cn/zwxx/tzgg/202504/t20250428_14568323.html"
+            ]
+          }
+        },
+        {
+          "code": "source_independence_unverified",
+          "stage": "sources",
+          "severity": "warning",
+          "message": "4 个正文版本的来源关系尚未核实，不能据此声称独立验证。",
+          "action": "识别原始出处、转载、摘录和后续跟进关系。",
+          "details": {
+            "count": 4
+          }
+        },
+        {
+          "code": "stakeholder_diversity_low",
+          "stage": "analysis",
+          "severity": "warning",
+          "message": "当前判断只识别到不足两个明确表达主体，多方观点结构不充分。",
+          "action": "补查受影响主体、机构、独立核查者或专业观点。",
+          "details": {
+            "stakeholders": []
+          }
+        },
+        {
+          "code": "active_findings_unreviewed",
+          "stage": "review",
+          "severity": "warning",
+          "message": "11 条当前判断没有与其当前文本匹配的审查记录。",
+          "action": "完成独立审查，或从对外核心判断中移除。",
+          "details": {
+            "finding_ids": [
+              "finding-cd6b7d7290a51ceb8382",
+              "finding-e2065de5d0450195fd93",
+              "finding-8ba386f92fc74b092de2",
+              "finding-32ed18307015ef2e727f",
+              "finding-b1b2ae7934298cd87164",
+              "finding-d144c9c12136a787274e",
+              "finding-d14fe86953088349dd62",
+              "finding-6f3e8a98c6750d87a7f4",
+              "finding-909e13ec3c05319d5d5c",
+              "finding-0ee8191abe282f620255",
+              "finding-9d9fb922d4b026665c40"
+            ]
+          }
+        },
+        {
+          "code": "search_directions_unattempted",
+          "stage": "discovery",
+          "severity": "info",
+          "message": "有 2 类调查方向未尝试；这不是固定完成配额。",
+          "action": "根据具体问题判断是否需要补查。",
+          "details": {
+            "directions": [
+              "independent",
+              "event_response"
+            ]
+          }
+        },
+        {
+          "code": "unread_candidates",
+          "stage": "acquisition",
+          "severity": "info",
+          "message": "仍有 26 个已发现候选页未读取。",
+          "action": "确认它们无关或重复，或继续读取后再结束。",
+          "details": {
+            "urls": [
+              "http://admin.cq.gov.cn/ywdt/bmts/index_58.html",
+              "http://cq.bendibao.com/traffic/2025730/156297.shtm",
+              "http://cq.bendibao.com/traffic/2025730/156354.shtm",
+              "http://dianzibao.cb.com.cn/images/2025-05/26/02/2604A02C.pdf",
+              "http://wenda.bendibao.com/traffic/2019830/56691.shtm",
+              "https://c.m.163.com/news/a/K01458H60556D8TT.html",
+              "https://cj.sina.com.cn/articles/view/1650111241/625ab30901901d7ts",
+              "https://cj.sina.com.cn/articles/view/1700648435/655dd5f302001e3rk?froms=ggmp",
+              "https://cq.bendibao.com/traffic/2025728/156180.shtm",
+              "https://finance.sina.com.cn/roll/2025-05-27/doc-inexznxw8711327.shtml",
+              "https://finance.sina.com.cn/tech/digi/2025-05-25/doc-inexucqa6618532.shtml",
+              "https://fzggw.cq.gov.cn/zwgk/zfxxgkml/zcwdk_1/wdzt/ojjz",
+              "https://fzggw.cq.gov.cn/zwgk/zfxxgkml/zcwj/xzgfxwj/sfzggwxzgfxwj/202507/W020250915569783850930.pdf",
+              "https://m.cq.bendibao.com/traffic/156292.shtm",
+              "https://m.cq.bendibao.com/traffic/156297.shtm",
+              "https://m.cq.bendibao.com/traffic/156354.shtm",
+              "https://m.cqcb.com/yukuaibao/2025-04-29/5831569_pc.html",
+              "https://m.sohu.com/a/899664319_121333745?scm=10001.198_14-198_14_exp.0.0",
+              "https://m.sohu.com/a/899664319_121333745?scm=10001.198_14-198_14_exp.0.0.",
+              "https://news.qq.com/rain/a/20250514A02BSY00"
+            ]
+          }
+        },
+        {
+          "code": "publication_dates_unknown",
+          "stage": "sources",
+          "severity": "info",
+          "message": "4 份材料缺少可确认的发布时间。",
+          "action": "保留未知状态，不把 URL 或抓取时间写成发布时间。",
+          "details": {
+            "count": 4
+          }
+        },
+        {
+          "code": "saved_sources_uncited",
+          "stage": "evidence",
+          "severity": "info",
+          "message": "2 个已保存正文版本未支撑任何当前判断。",
+          "action": "确认其为背景/无关材料，或补充证据绑定。",
+          "details": {
+            "version_ids": [
+              "source-7a5d0ae3a672f1c9d407",
+              "source-b1b60c62145d62de4ec4"
+            ]
+          }
+        },
+        {
+          "code": "fine_grained_cost_latency_unavailable",
+          "stage": "runtime",
+          "severity": "info",
+          "message": "StepRecord 尚未保存分步耗时和 token 用量，当前只能定位动作、重试与预算计数。",
+          "action": "后续在 model/tool 边界记录开始结束时间与安全的 usage 元数据。",
+          "details": {}
+        }
+      ]
+    }
+  },
+  "plan": {
+    "subject": "2025年重庆市城市轨道交通票价机制调整",
+    "region": "重庆市",
+    "aliases": [
+      "重庆轨道交通票价调整",
+      "重庆市城市轨道交通票价机制调整听证会",
+      "重庆轨道交通票价优化调整"
+    ],
+    "clarification": [],
+    "questions": [
+      {
+        "question": "2025年重庆市城市轨道交通票价机制调整的具体内容是什么？包括计价方式、起步价与里程票价、换乘与优惠规则的变更，以及正式公布的执行时间与适用范围。",
+        "required": true,
+        "covers": [],
+        "components": [
+          "计价方式",
+          "起步价与里程票价",
+          "换乘与优惠规则",
+          "执行时间与适用范围"
+        ]
+      },
+      {
+        "question": "票价调整听证会的组织过程与参会结构如何？各方（消费者代表、运营企业、专家学者、主管部门）提出的主要意见与争议焦点分别是什么？",
+        "required": true,
+        "covers": [],
+        "components": [
+          "听证会组织过程",
+          "参会人员构成",
+          "各方主要意见",
+          "争议焦点"
+        ]
+      },
+      {
+        "question": "调整方案关于公众负担的论证依据有哪些？包括乘客月均支出测算、通勤群体与低收入群体受影响情况、与居民收入及同类城市票价的比较。",
+        "required": true,
+        "covers": [],
+        "components": [
+          "乘客月均支出测算",
+          "通勤与低收入群体影响",
+          "与居民收入比较",
+          "与同类城市票价比较"
+        ]
+      },
+      {
+        "question": "轨道运营成本依据是什么？运营企业及主管部门公布的客运量、运营成本、财政补贴、票款收入与成本缺口，其数据来源和统计口径如何？",
+        "required": true,
+        "covers": [],
+        "components": [
+          "客运量",
+          "运营成本",
+          "财政补贴与票款收入",
+          "数据来源与统计口径"
+        ]
+      },
+      {
+        "question": "主管部门对听证意见的采纳与未采纳情况如何？哪些意见被写入最终方案，哪些问题（如优惠覆盖范围、跨方式换乘、价格动态调整机制）未被覆盖，给出的理由是什么？",
+        "required": true,
+        "covers": [],
+        "components": [
+          "被采纳的意见",
+          "未被采纳的意见",
+          "未覆盖的问题",
+          "官方说明理由"
+        ]
+      },
+      {
+        "question": "截至2026年9月15日，调整方案的正式执行情况如何？是否按计划实施、有无延期或修正，实施后客流与票款收入、社会反馈及后续评估安排怎样？",
+        "required": true,
+        "covers": [],
+        "components": [
+          "是否按计划实施",
+          "延期或修正情况",
+          "实施后客流与票款收入",
+          "社会反馈与后续评估"
+        ]
+      }
+    ],
+    "facets": [
+      "rule_change",
+      "billing_remedy",
+      "service_change"
+    ],
+    "facet_rationale": "票价机制调整直接改变计价规则与票制结构，属于规则变更（rule_change）；起步价、里程计价与优惠换乘规则涉及计费方式与费用减免安排，对应计费与补救（billing_remedy）；运营成本依据、补贴与服务供给水平关系轨道运营服务安排，对应服务变更（service_change）。"
+  },
+  "followup": null,
+  "updated_at": "2026-09-15T11:54:08.794615+00:00",
+  "subject": "2025年重庆市城市轨道交通票价机制调整",
+  "published": true
+}

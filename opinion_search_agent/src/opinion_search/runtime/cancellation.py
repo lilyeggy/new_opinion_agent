@@ -1,6 +1,6 @@
 import asyncio
-from collections.abc import Awaitable
-from typing import Protocol
+from collections.abc import Coroutine
+from typing import Any, Protocol
 
 
 class CancellationSignal(Protocol):
@@ -8,7 +8,7 @@ class CancellationSignal(Protocol):
 
     def is_cancelled(self) -> bool: ...
 
-    def wait_cancelled(self) -> Awaitable[None]: ...
+    def wait_cancelled(self) -> Coroutine[Any, Any, None]: ...
 
 
 class NeverCancelledSignal:

@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-3242bd59f257b4ebcec4",
+      "url": "https://www.wenxuecity.com/news/2026/09/16/126776791.html",
+      "focus": "该稿是否确证争议广告已被撤下、撤下时间与执行范围（“后撤下”“全线撤除”），其原始刊发媒体与公司表态原文，以及是否含广告投放时间与点位信息",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.wenxuecity.com/news/2026/09/16/126776791.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:29:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unknown_provider_error",
+      "message": "The fetched page could not be verified against its saved text.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

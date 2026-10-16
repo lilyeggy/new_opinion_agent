@@ -1,0 +1,88 @@
+{
+  "case_id": "billing-dev-v1",
+  "request_question": "调查重庆燃气自2024年4月收费争议后至2026年6月的公开进展：确认收费问题、投诉与清退口径、2025年再次调查认定、企业和监管回应，以及哪些整改成效仍缺少独立验证。",
+  "focus": "区分监管认定、企业自述、媒体转述和后续工作安排；核对金额、户数、时间与适用范围；不要把宣布清退写成独立核验到账，也不要推断用户总体满意。",
+  "clarification_answers": [],
+  "materials": [
+    {
+      "url": "https://stcn.com/article/detail/1191864.html?u_atoken=0860f31648eb9e8d7bde84aec876f0b1&u_asig=ffbfd",
+      "final_url": "https://stcn.com/article/detail/1191864.html?u_atoken=0860f31648eb9e8d7bde84aec876f0b1&u_asig=ffbfd",
+      "title": "重庆燃气：对有问题收费已全面清退",
+      "snapshot_path": "snapshots/5657521f8a813e645b77b5803e5571c896584018bfae95f437b571c7feb2d729.txt",
+      "sha256": "5657521f8a813e645b77b5803e5571c896584018bfae95f437b571c7feb2d729",
+      "published_at": "2024-04-28T20:25:00+08:00",
+      "updated_at": null,
+      "role": "reporting"
+    },
+    {
+      "url": "https://www.stcn.com/article/detail/1182346.html?u_atoken=c03565df00029ab96a2fcd6e89bc4dd9&u_asig=ffbfd",
+      "final_url": "https://www.stcn.com/article/detail/1182346.html?u_atoken=c03565df00029ab96a2fcd6e89bc4dd9&u_asig=ffbfd",
+      "title": "退钱！免职！重庆通报燃气费多计多收问题",
+      "snapshot_path": "snapshots/af792fd76d4f2bedd763ce61cb4123c022035260d0d92623545fb0b46649e4a5.txt",
+      "sha256": "af792fd76d4f2bedd763ce61cb4123c022035260d0d92623545fb0b46649e4a5",
+      "published_at": null,
+      "updated_at": null,
+      "role": "reporting"
+    },
+    {
+      "url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?CompanyCode=80076724&gather=1&id=10746719",
+      "final_url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?CompanyCode=80076724&gather=1&id=10746719",
+      "title": "重庆燃气：关于燃气收费问题调查及整改情况的公告",
+      "snapshot_path": "snapshots/2c7e34c643b361a12868395d5b6739e566fcda5de928a72fd78a4d3ac506f337.txt",
+      "sha256": "2c7e34c643b361a12868395d5b6739e566fcda5de928a72fd78a4d3ac506f337",
+      "published_at": "2025-02-17",
+      "updated_at": null,
+      "role": "original"
+    },
+    {
+      "url": "https://news.ycwb.com/2025-02/14/content_53237508.htm",
+      "final_url": "https://news.ycwb.com/2025-02/14/content_53237508.htm",
+      "title": "未深刻汲取教训！市民再反映重庆燃气集团燃气收费异常，官方通报",
+      "snapshot_path": "snapshots/cae4f078f7ea34adde6665db35568ec5ec1f174a2220312618d3e1a0f3635f03.txt",
+      "sha256": "cae4f078f7ea34adde6665db35568ec5ec1f174a2220312618d3e1a0f3635f03",
+      "published_at": "2025-02-14",
+      "updated_at": null,
+      "role": "reporting"
+    },
+    {
+      "url": "https://cqrb.cn/shishi/2025-02-14/2177933_pc.html",
+      "final_url": "https://cqrb.cn/shishi/2025-02-14/2177933_pc.html",
+      "title": "重庆燃气集团燃气收费问题调查情况通报",
+      "snapshot_path": "snapshots/f7b990946347cdf7f58d486aff115a8172a4d14d915518a05d5a1eb83a93feda.txt",
+      "sha256": "f7b990946347cdf7f58d486aff115a8172a4d14d915518a05d5a1eb83a93feda",
+      "published_at": "2025-02-14T17:05:00+08:00",
+      "updated_at": null,
+      "role": "original"
+    },
+    {
+      "url": "https://jjxxw.cq.gov.cn/zwxx_213/jdtp/202507/t20250714_14811579.html",
+      "final_url": "https://jjxxw.cq.gov.cn/zwxx_213/jdtp/202507/t20250714_14811579.html",
+      "title": "焦点图片- 重庆市经济和信息化委员会",
+      "snapshot_path": "snapshots/a8b949dd4f2e77832321e88c22479e8fb35a806bd79eaa43ddc157ef89c38910.txt",
+      "sha256": "a8b949dd4f2e77832321e88c22479e8fb35a806bd79eaa43ddc157ef89c38910",
+      "published_at": null,
+      "updated_at": null,
+      "role": "original"
+    },
+    {
+      "url": "https://jjxxw.cq.gov.cn/zwxx_213/jxdt/202509/t20250929_15051464.html",
+      "final_url": "https://jjxxw.cq.gov.cn/zwxx_213/jxdt/202509/t20250929_15051464.html",
+      "title": "经信动态- 重庆市经济和信息化委员会",
+      "snapshot_path": "snapshots/adf8327633dacac0f09f7278cb10d2a9ac785cad069991968a8a1288e87887d8.txt",
+      "sha256": "adf8327633dacac0f09f7278cb10d2a9ac785cad069991968a8a1288e87887d8",
+      "published_at": null,
+      "updated_at": null,
+      "role": "original"
+    },
+    {
+      "url": "https://jjxxw.cq.gov.cn/zwgk_213/jytafhgk/202606/t20260616_15758324.html",
+      "final_url": "https://jjxxw.cq.gov.cn/zwgk_213/jytafhgk/202606/t20260616_15758324.html",
+      "title": "建议提案复函公开- 重庆市经济和信息化委员会",
+      "snapshot_path": "snapshots/fc61ab67bf05bc4817ecd67acff280c26dcbba5bdc5845966179be6eff1993c3.txt",
+      "sha256": "fc61ab67bf05bc4817ecd67acff280c26dcbba5bdc5845966179be6eff1993c3",
+      "published_at": null,
+      "updated_at": null,
+      "role": "original"
+    }
+  ]
+}

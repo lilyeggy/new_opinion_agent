@@ -1,0 +1,39 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-b72eac24c07826e2b055",
+      "query": "大河网 河声 评论 三九胃泰 “别团圆” 惹众怒 site:dahe.cn",
+      "purpose": "independent",
+      "page": 0,
+      "background": false,
+      "target_gap": "获取大河网自营域名上的“河声”评论原文（含署名与刊发载体），替代腾讯转载页，补足主流媒体评论原文缺口"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "大河网 河声 评论 三九胃泰 “别团圆” 惹众怒 site:dahe.cn -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": "2026-09-13to2026-09-21"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:28:attempt:1:action",
+      "tool_name": "search.web",
+      "kind": "unknown_provider_error",
+      "message": "Brave Search returned no web result object.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-a005936cabd3c860827a",
+      "query": "执行时间与执行范围的原文表述（自2025年7月30日起执行；不含江跳线、璧铜线等市郊铁路）",
+      "version_id": "source-ef4c572f82dfed124467"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-09c18c05236b0147b8ab",
+        "version_id": "source-ef4c572f82dfed124467",
+        "excerpt": "重庆市城市轨道交通线路（包含城市轨道交通1、2、3、4、5、6、9、10、18号线，环线、国博线及后续开通的城市轨道交通线路；不含江跳线、璧铜线等市郊铁路线路）。",
+        "start": 349,
+        "end": 430,
+        "locator": "Reader text chars 349:430"
+      },
+      {
+        "evidence_id": "evidence-277fce119050d8b0546b",
+        "version_id": "source-ef4c572f82dfed124467",
+        "excerpt": "自2025年7月30日起执行。",
+        "start": 591,
+        "end": 606,
+        "locator": "Reader text chars 591:606"
+      },
+      {
+        "evidence_id": "evidence-24b3adedc3b3884093f4",
+        "version_id": "source-ef4c572f82dfed124467",
+        "excerpt": "一、执行范围",
+        "start": 341,
+        "end": 347,
+        "locator": "Reader text chars 341:347"
+      },
+      {
+        "evidence_id": "evidence-d812850e54cedecebd22",
+        "version_id": "source-ef4c572f82dfed124467",
+        "excerpt": "三、执行时间",
+        "start": 583,
+        "end": 589,
+        "locator": "Reader text chars 583:589"
+      },
+      {
+        "evidence_id": "evidence-241b7588c38b036bb791",
+        "version_id": "source-ef4c572f82dfed124467",
+        "excerpt": "2025年7月25日",
+        "start": 1247,
+        "end": 1257,
+        "locator": "Reader text chars 1247:1257"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

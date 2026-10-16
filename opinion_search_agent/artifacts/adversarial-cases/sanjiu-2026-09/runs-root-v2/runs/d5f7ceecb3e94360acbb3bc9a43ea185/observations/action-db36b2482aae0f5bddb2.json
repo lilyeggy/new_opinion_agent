@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-341fef572dd46dc32954",
+      "query": "华润三九 2025年 销售费用 90.89亿元 CHC自我诊疗业务 收入 151.11亿元 三九胃泰 中成药胃药 市占率 经营数据",
+      "version_id": "source-ba2fd97ec37472164a68"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-e5aaca2d976c6f4a099d",
+        "version_id": "source-ba2fd97ec37472164a68",
+        "excerpt": "华润三九2025年全年销售费用达到90.89亿元，同比增长25.88%，增速接近营收的两倍。钱花得越来越多，但自我诊疗（CHC）业务的收入却从上一年的177亿量级下滑至151.11亿元，同比下降14.67%，占营收比重从50%以上滑落至47.81%。CHC业务的核心是“999”品牌矩阵，感冒灵、三九胃泰、皮炎平都在其中。",
+        "start": 1234,
+        "end": 1395,
+        "locator": "Reader text chars 1234:1395"
+      },
+      {
+        "evidence_id": "evidence-cb91f47cf09883b5023d",
+        "version_id": "source-ba2fd97ec37472164a68",
+        "excerpt": "胃肠品类的情况稍好于呼吸品类。米内网数据显示，2025年Q1华润三九在中成药胃药（胃炎、溃疡）市场以3.6亿元销售额位居二级集团第一，同比增长6.63%。",
+        "start": 1430,
+        "end": 1507,
+        "locator": "Reader text chars 1430:1507"
+      },
+      {
+        "evidence_id": "evidence-e20c5f63840131351051",
+        "version_id": "source-ba2fd97ec37472164a68",
+        "excerpt": "与此同时，销售费用涨得更猛。2025年前三季度销售费用约61.28亿元，同比增长28.98%。拉长时间看，2021年到2024年，华润三九销售费用累计达到243亿元。而研发投入呢？从2020年的5.81亿元提升到2024年的9.53亿元，增幅64%。",
+        "start": 3091,
+        "end": 3216,
+        "locator": "Reader text chars 3091:3216"
+      },
+      {
+        "evidence_id": "evidence-d2d3643b0a555536e984",
+        "version_id": "source-ba2fd97ec37472164a68",
+        "excerpt": "过去几年，CHC健康消费品业务一直是公司的绝对主力，感冒灵、三九胃泰、皮炎平这些国民级产品，贡献了过半营收。但2025年，这块业务的收入降到151.11亿元，同比下降14.67%，占比从50%以上滑到47.81%。",
+        "start": 2650,
+        "end": 2757,
+        "locator": "Reader text chars 2650:2757"
+      },
+      {
+        "evidence_id": "evidence-6ea1ba8a3e37fe964872",
+        "version_id": "source-ba2fd97ec37472164a68",
+        "excerpt": "2025年3月，华润三九斥资62.12亿元收购天士力28%股权，处方药业务收入直接从60亿元跳到120.94亿元，同比暴增101.38%。",
+        "start": 2920,
+        "end": 2989,
+        "locator": "Reader text chars 2920:2989"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

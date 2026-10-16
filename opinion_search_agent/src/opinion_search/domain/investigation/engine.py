@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from datetime import date
 from urllib.parse import urlsplit
 import json
+import re
 
 from opinion_search.domain.investigation.models import (
-    Action, Delta, Evidence, FACET_MODULE_TYPES, Finding, FinishDecision, Issue, Observation,
+    Action, Delta, Evidence, FACET_MODULE_TYPES, Finding, FinishDecision, Issue,
     QuestionComponent, ReadDecision, ReflectDecision, RetiredFinding, RetrieveDecision, ReviewDecision,
     SearchAttempt, SearchDecision, SourceRelation, State, accepted_review, uid, utcnow,
 )
 from opinion_search.domain.opinion.framing import build_task_frame
+from opinion_search.investigation.page_plan import required_module_gaps
 from opinion_search.runtime.completion import CompletionDisposition as Disposition, CompletionVerdict
 from opinion_search.tools.contracts import ToolError
 from opinion_search.tools.url import normalize_public_url
@@ -17,6 +18,368 @@ from opinion_search.tools.url import normalize_public_url
 
 SOCIAL_DOMAINS = ("weibo.com", "weibo.cn", "douyin.com", "xiaohongshu.com", "xhslink.com", "tiktok.com", "twitter.com", "x.com", "facebook.com", "instagram.com", "douban.com", "zhihu.com", "bilibili.com", "mp.weixin.qq.com", "tieba.baidu.com", "kuaishou.com", "reddit.com")
 RESPONSE_PURPOSES = {"official_response", "event_response", "followup"}
+FIRST_REFLECTION_SOURCE_LIMIT = 4
+FIRST_REFLECTION_DUPLICATE_STREAK = 2
+# Once findings exist, acquisition may continue — but not forever. When this
+# many saved excerpts remain undisposed by any finding or assessment, the
+# next acquisition decision is redirected into synthesis. Measured pain: a
+# 2026-09-23 live run converted only 4 of 8 read sources into findings.
+ONGOING_REFLECTION_UNDISPOSED_LIMIT = 8
+
+# Finish-gate guidance limits: the rejection reason must stay scannable.
+_GUIDANCE_PREVIEW_ITEMS = 3
+_GUIDANCE_EXCERPT_CHARS = 80
+
+# Language markers that some party publicly responded to the event. Used by
+# the finish gate to spot response-bearing evidence nobody disposed of.
+_RESPONSE_MARKERS = (
+    "回应", "声明", "公告", "致歉", "道歉", "表态", "通报", "发文", "官博", "官微",
+    "responded", "response", "statement", "apolog",
+)
+
+# Negative-existence claims ("X 尚未回应"): the stalest judgement in a live
+# investigation, because later-fetched evidence can refute them silently.
+_NEGATIVE_EXISTENCE = re.compile(
+    r"未(?:公开)?(?:表态|回应|发声|发布声明)|尚未(?:公开)?(?:回应|表态|发声|发布)|"
+    r"没有(?:公开)?(?:回应|表态|发声)|未见[^。；，]{0,16}?(?:回应|声明|表态|发声)|"
+    r"no (?:public )?(?:response|statement)|has not (?:responded|issued)",
+    re.IGNORECASE,
+)
+
+_STOP_TOKENS = {
+    "the", "and", "for", "that", "this", "with", "have", "has", "not", "been",
+    "their", "they", "them", "from", "about", "after", "before", "response",
+}
+
+# Response/negation vocabulary appears on both sides of a stale claim by
+# construction ("未回应" vs "回应了"), so it is not topical-overlap evidence.
+_GENERIC_TOKENS = frozenset(
+    _RESPONSE_MARKERS
+    + ("公开", "尚未", "未见", "没有", "截至", "发稿", "相关", "表示", "宣布")
+)
+
+
+def _linked_evidence_ids(state: State) -> set[str]:
+    """Evidence already disposed of by a finding, issue, or component."""
+    linked: set[str] = set()
+    for finding in state.findings:
+        if finding.active:
+            linked.update(finding.evidence_ids)
+            linked.update(finding.contradicting_ids)
+    for issue in state.issues:
+        linked.update(issue.evidence_ids)
+        for component in issue.components:
+            linked.update(component.evidence_ids)
+    return linked
+
+
+def _undisposed_evidence(state: State) -> list[Evidence]:
+    linked = _linked_evidence_ids(state)
+    return [item for item in state.evidence if item.evidence_id not in linked]
+
+
+def _issue_id_for_evidence(state: State) -> dict[str, str]:
+    """Best-effort evidence → issue map via source url → candidate issue."""
+    candidate_issue = {
+        candidate.get("url"): candidate.get("issue_id")
+        for candidate in state.candidates
+        if candidate.get("url")
+    }
+    version_url = {source.version_id: source.url for source in state.sources}
+    mapping: dict[str, str] = {}
+    for item in state.evidence:
+        url = version_url.get(item.version_id)
+        issue_id = candidate_issue.get(url) if url else None
+        if issue_id:
+            mapping[item.evidence_id] = issue_id
+    return mapping
+
+
+def _content_tokens(text: str) -> set[str]:
+    """Meaning-bearing tokens shared between a claim and an excerpt."""
+    tokens = {
+        token.casefold()
+        for token in re.findall(r"[A-Za-z][A-Za-z0-9_-]{3,}", text)
+        if token.casefold() not in _STOP_TOKENS
+    }
+    for sequence in re.findall(r"[一-鿿]{2,}", text):
+        tokens.update(
+            sequence[index : index + width]
+            for width in (2, 3, 4)
+            for index in range(len(sequence) - width + 1)
+        )
+    return tokens - _GENERIC_TOKENS
+
+
+def _issue_has_read_errors(state: State, issue_id: str) -> bool:
+    """Check whether read failures occurred on candidate URLs for this specific issue."""
+
+    if not state.read_errors:
+        return False
+    error_set = set(state.read_errors)
+    all_candidate_urls = {c.get("url") for c in state.candidates if c.get("url")}
+    if not (all_candidate_urls & error_set):
+        # Fallback when read_errors were populated without candidate entries
+        return True
+    issue_urls = {
+        c.get("url")
+        for c in state.candidates
+        if c.get("issue_id") == issue_id and c.get("url")
+    }
+    return bool(issue_urls & error_set)
+
+
+def _open_questions_guidance(state: State, open_required: list[Issue]) -> str:
+    """Turn a bare rejection into the actionable next step for each question.
+
+    A bare "questions remain open" rejection gave the live model no legal
+    move: a 2026-09-23 live run spun on finish 29 times until the step
+    limit. For every open question the gate now names what the program can
+    see — undisposed evidence, unread candidates, failed reads — and the
+    three legal exits: dispose saved evidence (reflect/retrieve), acquire
+    more (read/search), or close the question honestly (not_found after
+    scoped searches, otherwise unavailable).
+    """
+    undisposed = _undisposed_evidence(state)
+    evidence_issue = _issue_id_for_evidence(state)
+    lines = ["Required investigation questions remain open."]
+    for issue in open_required:
+        held = [
+            item for item in undisposed
+            if evidence_issue.get(item.evidence_id) == issue.issue_id
+        ]
+        unread = [
+            candidate["url"]
+            for candidate in state.candidates
+            if candidate.get("issue_id") == issue.issue_id
+            and candidate.get("url") not in state.read_attempts
+            and allowed_url(candidate["url"], state)
+        ]
+        parts = [f"- {issue.issue_id} ({issue.question[:60]}):"]
+        if held:
+            previews = "; ".join(
+                f"{item.evidence_id} «{item.excerpt[:_GUIDANCE_EXCERPT_CHARS]}»"
+                for item in held[:_GUIDANCE_PREVIEW_ITEMS]
+            )
+            parts.append(
+                f"  {len(held)} saved evidence excerpts for this question are "
+                f"not disposed by any finding or assessment ({previews}). "
+                "Reflect to dispose them, or retrieve the saved page with a "
+                "new focus."
+            )
+        if unread:
+            parts.append(
+                f"  {len(unread)} discovered candidates remain unread "
+                f"(e.g. {unread[0]}). Read one before another search."
+            )
+        if not held and not unread:
+            can_not_found = response_search_complete(state, issue.issue_id)
+            has_read_err = _issue_has_read_errors(state, issue.issue_id)
+            close_hint = (
+                "scoped response searches are complete for this question, so you may close it as status='not_found'"
+                if can_not_found
+                else (
+                    "candidate reads failed for this question, so close it as status='unavailable' if no further source exists"
+                    if has_read_err
+                    else "not_found only after the scoped response searches complete, otherwise unavailable"
+                )
+            )
+            parts.append(
+                "  No saved evidence and no unread candidates address it. "
+                "Search a different direction (new alias, origin, or material "
+                f"type), or reflect to close it honestly ({close_hint})."
+            )
+        lines.extend(parts)
+    return "\n".join(lines)
+
+
+def _stale_negative_findings(
+    state: State,
+) -> list[tuple[Finding, list[Evidence]]]:
+    """Negative-existence findings contradicted by undisposed evidence.
+
+    The 2026-09-23 live run published "the brand has not publicly responded"
+    while the evidence store already held the official response — read but
+    never converted into any finding. The gate cannot judge truth, but it
+    can refuse to finish while response-bearing, topically-overlapping
+    evidence remains undisposed. The exit is always available: one reflect
+    that cites the evidence (supporting or contradicting) disposes it.
+    """
+    undisposed = _undisposed_evidence(state)
+    if not undisposed:
+        return []
+    stale: list[tuple[Finding, list[Evidence]]] = []
+    for finding in state.findings:
+        if not finding.active:
+            continue
+        negative = (
+            finding.response == "not_found"
+            or bool(_NEGATIVE_EXISTENCE.search(finding.text))
+        )
+        if not negative:
+            continue
+        claim_tokens = _content_tokens(
+            " ".join(
+                part
+                for part in (
+                    finding.text,
+                    finding.stakeholder,
+                    finding.stance_target,
+                    finding.response_target,
+                )
+                if part
+            )
+        )
+        if not claim_tokens:
+            continue
+        suspects = [
+            item
+            for item in undisposed
+            if any(marker in item.excerpt for marker in _RESPONSE_MARKERS)
+            and _content_tokens(item.excerpt) & claim_tokens
+        ]
+        if suspects:
+            stale.append((finding, suspects))
+    return stale
+
+
+def _stale_findings_guidance(stale: list[tuple[Finding, list[Evidence]]]) -> str:
+    lines = [
+        "Finish rejected: a finding claims no response exists while saved "
+        "evidence that may bear a response remains undisposed."
+    ]
+    for finding, suspects in stale:
+        previews = "; ".join(
+            f"{item.evidence_id} «{item.excerpt[:_GUIDANCE_EXCERPT_CHARS]}»"
+            for item in suspects[:_GUIDANCE_PREVIEW_ITEMS]
+        )
+        lines.append(
+            f"- {finding.finding_id} «{finding.text[:60]}» conflicts with "
+            f"undisposed evidence: {previews}. Reflect first: retire or "
+            "reword the finding, or cite the evidence (supporting or "
+            "contradicting) so it is disposed."
+        )
+    return "\n".join(lines)
+
+
+_COUNTER_EVIDENCE_MARKERS = (
+    "反驳", "质疑", "否认", "辟谣", "不实", "相反", "批评", "反对", "支持", "肯定", "并非", "但也有", "另一方面",
+)
+_NUMERIC_QUANTITY_RE = re.compile(
+    r"(?P<num>\d+(?:\.\d+)?)\s*(?P<scale>[万亿])?(?P<unit>元|人|户|件|条|%|％)"
+)
+_SCALE_FACTORS = {None: 1.0, "": 1.0, "万": 10000.0, "亿": 100000000.0}
+
+
+def _bigrams(text: str) -> set[str]:
+    runs = re.findall(r"[\u4e00-\u9fff]{2,}", text)
+    return {run[i : i + 2] for run in runs for i in range(len(run) - 1)}
+
+
+def evidence_quality_signals(state: State) -> dict:
+    """Deterministic M6 signals: aggregator saturation, near-duplicate wires, counter-evidence, and numeric conflicts."""
+
+    # 1. Domain saturation & read-error hotspots
+    host_counts: dict[str, int] = {}
+    for c in state.candidates:
+        host = urlsplit(str(c.get("url") or "")).hostname or ""
+        if host:
+            host_counts[host] = host_counts.get(host, 0) + 1
+    error_hosts: dict[str, int] = {}
+    for u in state.read_errors:
+        host = urlsplit(str(u or "")).hostname or ""
+        if host:
+            error_hosts[host] = error_hosts.get(host, 0) + 1
+
+    total_cands = len(state.candidates)
+    saturated_domains = []
+    for host, cnt in sorted(host_counts.items(), key=lambda x: x[1], reverse=True):
+        err_cnt = error_hosts.get(host, 0)
+        if (total_cands >= 4 and cnt / total_cands >= 0.5) or err_cnt >= 2:
+            saturated_domains.append({
+                "domain": host,
+                "candidate_count": cnt,
+                "read_errors": err_cnt,
+                "advice": f"{host} 占比较高或多次读取失败，后续搜索请增加原发机构/媒体词或切换检索角度。",
+            })
+
+    # 2. Near-duplicate syndicated articles across read sources via Bigram Jaccard
+    by_version: dict[str, str] = {}
+    for ev in state.evidence:
+        by_version[ev.version_id] = by_version.get(ev.version_id, "") + "\n" + ev.excerpt
+    near_duplicates = []
+    sources = list(state.sources)
+    for i in range(len(sources)):
+        for j in range(i + 1, len(sources)):
+            s1, s2 = sources[i], sources[j]
+            if s1.content_hash == s2.content_hash or s1.duplicate_of or s2.duplicate_of:
+                continue
+            bg1 = _bigrams(by_version.get(s1.version_id, ""))
+            bg2 = _bigrams(by_version.get(s2.version_id, ""))
+            if len(bg1) >= 12 and len(bg2) >= 12:
+                jaccard = len(bg1 & bg2) / max(len(bg1 | bg2), 1)
+                if jaccard >= 0.75:
+                    near_duplicates.append({
+                        "source_version_id": s1.version_id,
+                        "related_version_id": s2.version_id,
+                        "similarity": round(jaccard, 2),
+                        "hint": "两份材料摘录高度重合，疑似同源通稿转载，请在 reflect 中记录 source_relations (repost/same_text)。",
+                    })
+
+    # 3. Undisposed counter-evidence
+    undisposed = _undisposed_evidence(state)
+    counter_items = []
+    for ev in undisposed:
+        matched_markers = [m for m in _COUNTER_EVIDENCE_MARKERS if m in ev.excerpt]
+        if matched_markers:
+            counter_items.append({
+                "evidence_id": ev.evidence_id,
+                "version_id": ev.version_id,
+                "markers": matched_markers[:3],
+                "excerpt_preview": ev.excerpt[:80],
+            })
+
+    # 4. Cross-source numeric conflicts (e.g., 316.03亿元 vs 3160.3亿元)
+    quantities: list[tuple[str, str, float, str, set[str]]] = []
+    for ev in state.evidence:
+        tokens = _content_tokens(ev.excerpt)
+        for m in _NUMERIC_QUANTITY_RE.finditer(ev.excerpt):
+            val = float(m.group("num")) * _SCALE_FACTORS.get(m.group("scale"), 1.0)
+            unit = "%" if m.group("unit") in {"%", "％"} else m.group("unit")
+            raw_q = m.group(0)
+            quantities.append((ev.evidence_id, raw_q, val, unit, tokens))
+
+    numeric_conflicts = []
+    seen_conflicts: set[tuple[str, str]] = set()
+    for i in range(len(quantities)):
+        for j in range(i + 1, len(quantities)):
+            eid1, raw1, val1, unit1, tok1 = quantities[i]
+            eid2, raw2, val2, unit2, tok2 = quantities[j]
+            if eid1 == eid2 or unit1 != unit2 or raw1 == raw2:
+                continue
+            if min(val1, val2) <= 0:
+                continue
+            ratio = max(val1, val2) / min(val1, val2)
+            shared = tok1 & tok2
+            if ratio >= 2.0 and len(shared) >= 2:
+                pair_key = tuple(sorted((f"{eid1}:{raw1}", f"{eid2}:{raw2}")))
+                if pair_key not in seen_conflicts:
+                    seen_conflicts.add(pair_key)
+                    numeric_conflicts.append({
+                        "evidence_a": eid1,
+                        "value_a": raw1,
+                        "evidence_b": eid2,
+                        "value_b": raw2,
+                        "shared_context": sorted(shared)[:4],
+                        "hint": f"检测到同单位数值显著冲突（{raw1} vs {raw2}），核查时请勿静默并存，需核对原发信源并在 contradicting_ids 中标注。",
+                    })
+
+    return {
+        "domain_saturation": saturated_domains[:3],
+        "near_duplicate_sources": near_duplicates[:4],
+        "undisposed_counter_evidence": counter_items[:5],
+        "numeric_conflicts": numeric_conflicts[:4],
+    }
 
 
 def matches(host: str, domain: str):
@@ -38,11 +401,74 @@ def response_search_complete(state, issue_id):
 
     attempts = [x for x in state.searches if x.issue_id == issue_id and x.purpose in RESPONSE_PURPOSES]
     covered = {x.purpose for x in attempts if x.outcome in {"candidates", "empty"}}
-    if not RESPONSE_PURPOSES <= covered or state.read_errors:
+    if not RESPONSE_PURPOSES <= covered or _issue_has_read_errors(state, issue_id):
         return False
     unread = [c for c in state.candidates
               if c.get("issue_id") == issue_id and c["url"] not in state.read_attempts and allowed_url(c["url"], state)]
     return not unread
+
+
+def required_next_action(state: State) -> dict | None:
+    """Bound acquisition bursts before they can consume the whole run.
+
+    Prompt advice alone did not stop a live quality run from spending its full
+    model budget without creating a Finding. Duplicate searches first drain
+    known unread candidates; enough acquired material then requires synthesis.
+    Once a substantive reflection creates a finding, ordinary gap-driven
+    acquisition can continue — but only while its output keeps getting used:
+    when too many saved excerpts remain undisposed, acquisition is redirected
+    into synthesis again instead of letting read-but-unused evidence pile up.
+    """
+
+    if any(finding.active for finding in state.findings):
+        undisposed = _undisposed_evidence(state)
+        if len(undisposed) >= ONGOING_REFLECTION_UNDISPOSED_LIMIT:
+            return {
+                "required_action": "reflect",
+                "allow_assessment_only": True,
+                "reason": (
+                    f"{len(undisposed)} saved evidence excerpts remain undisposed "
+                    "by any finding or assessment; synthesize them before more "
+                    "acquisition"
+                ),
+            }
+        return None
+    if not state.evidence:
+        return None
+    if len(state.sources) >= FIRST_REFLECTION_SOURCE_LIMIT:
+        return {
+            "required_action": "reflect",
+            "reason": (
+                f"{len(state.sources)} saved sources and {len(state.evidence)} evidence excerpts are available "
+                "but no finding has been created"
+            ),
+        }
+    if len(state.searches) >= FIRST_REFLECTION_DUPLICATE_STREAK and all(
+        attempt.outcome == "duplicate"
+        for attempt in state.searches[-FIRST_REFLECTION_DUPLICATE_STREAK:]
+    ):
+        unread = tuple(
+            candidate["url"] for candidate in state.candidates
+            if candidate.get("url") and candidate["url"] not in state.read_attempts
+            and allowed_url(candidate["url"], state)
+        )
+        if unread:
+            return {
+                "required_action": "read",
+                "reason": (
+                    f"the last {FIRST_REFLECTION_DUPLICATE_STREAK} searches returned only already-known URLs "
+                    f"while {len(unread)} discovered candidates remain unread"
+                ),
+                "allowed_urls": list(unread),
+            }
+        return {
+            "required_action": "reflect",
+            "reason": (
+                f"the last {FIRST_REFLECTION_DUPLICATE_STREAK} searches returned only already-known URLs "
+                "and saved evidence remains unsynthesized"
+            ),
+        }
+    return None
 
 
 class Validator:
@@ -53,6 +479,38 @@ class Validator:
         issue_id = getattr(decision, "issue_id", None)
         if issue_id is not None and issue_id not in issues:
             raise ValueError("unknown investigation question")
+        next_action = required_next_action(state)
+        if next_action is not None:
+            required_action = next_action["required_action"]
+            if required_action == "read" and not isinstance(decision, ReadDecision):
+                raise ValueError(
+                    "read is required before another search: " + next_action["reason"]
+                )
+            if required_action == "read" and decision.url not in next_action["allowed_urls"]:
+                raise ValueError(
+                    "read one of the discovered unread candidate URLs before another search"
+                )
+            if required_action == "reflect" and not isinstance(decision, ReflectDecision):
+                raise ValueError(
+                    "reflect is required before more search/read/retrieve work: " + next_action["reason"]
+                )
+            if required_action == "reflect" and next_action.get("allow_assessment_only"):
+                if not (
+                    decision.findings
+                    or decision.assessments
+                    or decision.retirements
+                    or decision.source_relations
+                ):
+                    raise ValueError(
+                        "the required synthesis reflection must dispose evidence: "
+                        "create findings or assessments, retire stale findings, or "
+                        "record source relations"
+                    )
+            elif required_action == "reflect" and not decision.findings:
+                raise ValueError(
+                    "the required first reflection must create at least one evidence-linked finding; "
+                    "leave assessments empty when current evidence cannot dispose a whole question"
+                )
         if isinstance(decision, SearchDecision):
             if any((x.issue_id, x.query.casefold(), x.page) == (decision.issue_id, decision.query.casefold(), decision.page) for x in state.searches):
                 raise ValueError("query/page already attempted; change the search direction")
@@ -105,8 +563,15 @@ class Validator:
             if len({x.issue_id for x in decision.assessments}) != len(decision.assessments):
                 raise ValueError("duplicate question assessments")
             for item in (*decision.findings, *decision.assessments):
-                if item.issue_id not in issues or not set(item.evidence_ids) <= evidence:
-                    raise ValueError("unknown issue or evidence reference")
+                if item.issue_id not in issues:
+                    raise ValueError(
+                        "unknown issue reference; copy issue_id exactly from memory.next_action_constraint"
+                    )
+                if not set(item.evidence_ids) <= evidence:
+                    raise ValueError(
+                        "unknown evidence reference; copy evidence_ids exactly from "
+                        "memory.next_action_constraint"
+                    )
             for item in decision.findings:
                 if not set(item.contradicting_ids) <= evidence or set(item.evidence_ids) & set(item.contradicting_ids):
                     raise ValueError("invalid contradiction evidence")
@@ -163,17 +628,28 @@ class Validator:
 
 
 def completion(state: State):
-    if any(x.required and x.status == "open" for x in state.issues):
-        return CompletionVerdict(disposition=Disposition.REJECT_AND_CONTINUE, reason="Required investigation questions remain open.")
+    open_required = [x for x in state.issues if x.required and x.status == "open"]
+    if open_required:
+        return CompletionVerdict(
+            disposition=Disposition.REJECT_AND_CONTINUE,
+            reason=_open_questions_guidance(state, open_required),
+        )
+    stale = _stale_negative_findings(state)
+    if stale:
+        return CompletionVerdict(
+            disposition=Disposition.REJECT_AND_CONTINUE,
+            reason=_stale_findings_guidance(stale),
+        )
     active = [x for x in state.findings if x.active]
     problems = [x for x in state.issues if x.required and x.status == "unavailable"]
     component_problems = [component for issue in state.issues if issue.required
                           for component in issue.components
-                          if component.status == "open"
+                          if component.status in {"open", "unavailable"}
                           or issue.status == "answered" and component.status != "answered"]
     unreviewed = [x for x in active if (r := accepted_review(state, x)) is None or r.verdict != "supported"]
     answered_without_findings = [q for q in state.issues if q.status in {"answered", "disputed"} and not any(f.issue_id == q.issue_id for f in active)]
-    if not active or not state.evidence or problems or component_problems or unreviewed or answered_without_findings:
+    module_gaps = required_module_gaps(state)
+    if not active or not state.evidence or problems or component_problems or unreviewed or answered_without_findings or module_gaps:
         return CompletionVerdict(disposition=Disposition.ACCEPT_PARTIAL, reason="Material or review limitations remain; inspect the issue-level caveats.")
     return CompletionVerdict(disposition=Disposition.ACCEPT_COMPLETE, reason="Required questions have explicit dispositions and active findings passed evidence review; this is not a truth guarantee.")
 
@@ -226,6 +702,61 @@ def merge(existing, additions, key):
     return tuple(values.values())
 
 
+def _auto_detect_syndicated_relations(
+    existing_sources: tuple,
+    new_sources: tuple,
+    all_evidence: tuple,
+    existing_relations: tuple,
+) -> list[SourceRelation]:
+    """Deterministically detect syndicated reposts across read sources via CJK bigram overlap."""
+
+    if not existing_sources or not new_sources or not all_evidence:
+        return []
+    ev_by_version: dict[str, list[Evidence]] = {}
+    for ev in all_evidence:
+        ev_by_version.setdefault(ev.version_id, []).append(ev)
+    known_pairs = {
+        frozenset((rel.source_version_id, rel.related_version_id))
+        for rel in existing_relations
+    }
+    detected: list[SourceRelation] = []
+    for new_src in new_sources:
+        new_evs = ev_by_version.get(new_src.version_id) or []
+        if not new_evs:
+            continue
+        new_bgs = _bigrams("\n".join(e.excerpt for e in new_evs))
+        if len(new_bgs) < 12:
+            continue
+        for old_src in existing_sources:
+            if old_src.version_id == new_src.version_id:
+                continue
+            pair = frozenset((old_src.version_id, new_src.version_id))
+            if pair in known_pairs:
+                continue
+            old_evs = ev_by_version.get(old_src.version_id) or []
+            if not old_evs:
+                continue
+            old_bgs = _bigrams("\n".join(e.excerpt for e in old_evs))
+            if len(old_bgs) < 12:
+                continue
+            jaccard = len(new_bgs & old_bgs) / max(len(new_bgs | old_bgs), 1)
+            if jaccard >= 0.75:
+                known_pairs.add(pair)
+                relation_kind = "same_text" if jaccard >= 0.92 else "repost"
+                rel_id = uid("relation", old_src.version_id, new_src.version_id, relation_kind)
+                detected.append(
+                    SourceRelation(
+                        relation_id=rel_id,
+                        source_version_id=old_src.version_id,
+                        related_version_id=new_src.version_id,
+                        relation=relation_kind,
+                        basis_evidence_ids=(old_evs[0].evidence_id, new_evs[0].evidence_id),
+                        explanation=f"程序自动同源聚类：核心摘录二元词重合度 {jaccard:.0%}，判定为同源转载/通稿。",
+                    )
+                )
+    return detected
+
+
 def reduce_state(state: State, delta: Delta):
     d, o = delta.decision, delta.observation
     changes = {}
@@ -258,7 +789,14 @@ def reduce_state(state: State, delta: Delta):
     if o.check is not None:
         changes["checks"] = (*state.checks, o.check)
     if o.evidence:
-        changes["evidence"] = merge(state.evidence, o.evidence, "evidence_id")
+        merged_evidence = merge(state.evidence, o.evidence, "evidence_id")
+        changes["evidence"] = merged_evidence
+        if o.sources:
+            auto_rels = _auto_detect_syndicated_relations(
+                state.sources, o.sources, merged_evidence, state.relations
+            )
+            if auto_rels:
+                changes["relations"] = merge(state.relations, auto_rels, "relation_id")
     if isinstance(d, ReflectDecision):
         retired_ids = {x.finding_id for x in d.retirements}
         findings = [f.model_copy(update={"active": False}) if f.finding_id in retired_ids else f for f in state.findings]

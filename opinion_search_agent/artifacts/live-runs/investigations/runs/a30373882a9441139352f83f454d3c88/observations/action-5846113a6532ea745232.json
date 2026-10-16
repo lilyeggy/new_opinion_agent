@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-675e209d603afa8583dc",
+      "url": "https://news.qq.com/rain/a/20260917A053VA00",
+      "focus": "钟薛高方面针对罗永浩言论的正式表态原文、回应渠道与时间，以及6.9-7.9元定价与重启时间线的原始表述",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.qq.com/rain/a/20260917A053VA00"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:20:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

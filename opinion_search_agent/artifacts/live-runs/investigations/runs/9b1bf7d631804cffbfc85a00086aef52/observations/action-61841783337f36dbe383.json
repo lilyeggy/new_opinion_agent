@@ -1,0 +1,101 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-b72eac24c07826e2b055",
+      "url": "https://news.china.com/socialgd/10000169/20260917/49748217.html",
+      "focus": "该篇评论对广告的具体批评理由与论证、署名媒体/作者归属，以及是否提供9月14日质疑、9月15日公司回应、9月16日下刊的时间线信息",
+      "role": "commentary"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.china.com/socialgd/10000169/20260917/49748217.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:15:attempt:1:action",
+      "tool_name": "read.web",
+      "payload": {
+        "url": "https://news.china.com/socialgd/10000169/20260917/49748217.html",
+        "title": "三九胃泰广告谁看了都不舒服 创意越界引争议",
+        "content": "## 三九胃泰广告谁看了都不舒服 创意越界引争议\n\n关键词：\n\n2026-09-17 12:34:20[央广网](https://baijiahao.baidu.com/s?id=1876482888436749782&wfr=spider&for=pc)\n\n中秋将至，三九胃泰一则线下广告因其内容“求‘你们’中秋别团圆了”引发争议。海报上大标题醒目，左下角小字写着“一家人要整整齐齐，但有些食物在胃里团圆对胃不好”。只有手动掀开海报才能看到“月饼和冷饮不要在胃里‘团圆’了”。\n\n![Image 1: 三九胃泰广告谁看了都不舒服](https://img3.utuku.imgcdc.com/650x0/news/20260917/6894de4e-e71c-43ac-a97e-5b0da89f4e98.jpg)\n\n这则广告原本是想提醒大家过节期间注意饮食健康，避免同时食用月饼和冷饮。然而，这种表达方式却冒犯了大众情感。中秋节在中国文化中象征着阖家团圆，承载着深厚的情感寄托。为了博取眼球，用违背大众情感的话语来玩梗，这样的广告创意显然不合适。\n\n![Image 2: 三九胃泰广告谁看了都不舒服 创意越界引争议](https://img1.utuku.imgcdc.com/650x0/news/20260917/92e56ee6-bc7e-447d-bf7a-b41ae881cce2.jpg)\n\n近期，类似的广告“翻车”事件屡见不鲜，从低俗营销到触碰生态保护红线，再到消解文化情感。这些广告往往陷入一个误区：认为唯有大胆、出位、反传统才能吸引注意力。但实际上，流量并不等同于口碑，博眼球也不等于获得认可。就此事而言，提醒肠胃健康可以有许多温情的表达方式，无需拿团圆来抖机灵。追求创新没有错，但如果缺乏对道德、文化和公共秩序的敬畏，再新颖的创意也会适得其反。好的广告创意应当尊重文化、共情人心，否则不仅无法实现品牌增值，反而会让品牌陷入舆论困境。\n\n![Image 3: 三九胃泰广告谁看了都不舒服 创意越界引争议](https://img0.utuku.imgcdc.com/650x0/news/20260917/d0adeb74-a9f6-4d14-ae5f-fb26c16a26b9.jpg)\n\n有网友对此表示不满，认为这是负面宣传、博眼球，并强调开玩笑时尺度需把握好。还有网友建议直接展示第二页的内容会更直观，指出创意不能让人感到不适。\n\n![Image 4: 三九胃泰广告谁看了都不舒服 创意越界引争议](https://img2.utuku.imgcdc.com/650x0/news/20260917/fefa85fb-42f3-46e2-adcf-573e6d46152d.jpg)\n\n(**责任编辑**：zhangxiaohua)\n\n[![Image 5](https://img2.utuku.imgcdc.com/650x0/news/20260917/1bb44e11-35b6-4d7d-b338-a8d6ec810a3e.jpg)](https://news.china.com/socialgd/10000169/20260917/49748216.html)\n\n[![Image 6](https://img0.utuku.imgcdc.com/650x0/news/20260917/a5d60b21-8341-4ac6-9369-5c04b9f7a59b.jpg)](https://news.china.com/socialgd/10000169/20260917/49748215.html)\n\n[![Image 7](https://img2.utuku.imgcdc.com/650x0/news/20260917/6974b80d-0539-4b7d-9736-8f24148b9edb.jpg)](https://news.china.com/socialgd/10000169/20260917/49748213.html)\n\n[![Image 8](https://img0.utuku.imgcdc.com/640x0/news/20260917/442cc422-1cd7-4958-a5d0-0849b6a1a5ef.jpg)](https://military.china.com/news/13004177/20260917/49747980.html)\n\n[![Image 9](https://img0.utuku.imgcdc.com/650x0/news/20260917/f9b019fe-97a6-46b2-a6e8-fd40aa5b485e.jpg)](https://military.china.com/news/13004177/20260917/49747961.html)\n\n[![Image 10](https://img1.utuku.imgcdc.com/650x0/military/20260917/bd793723-0fad-4d2d-920d-7f13d5558f37.jpg)](https://military.china.com/news/13004177/20260917/49747652.html)\n\n[![Image 11](https://img3.utuku.imgcdc.com/640x0/news/20260917/4a32a830-76cc-449c-a136-2feaddcc193b.jpg)](https://news.china.com/socialgd/10000169/20260917/49748206.html)\n\n[![Image 12](https://img2.utuku.imgcdc.com/650x0/news/20260917/1bb44e11-35b6-4d7d-b338-a8d6ec810a3e.jpg)](https://news.china.com/socialgd/10000169/20260917/49748216.html)\n\n[![Image 13](https://img1.utuku.imgcdc.com/314x0/news/20260917/1db1d347-a753-476c-b383-4fc589171b46.png)](https://military.china.com/news/13004177/20260917/49747796.html)\n\n[![Image 14](https://img2.utuku.imgcdc.com/640x0/news/20260917/4e1baffb-59bd-43ff-9a3a-b2ae35dce555.jpg)](https://military.china.com/news/13004177/20260917/49747732.html)\n\n[![Image 15](https://img1.utuku.imgcdc.com/640x0/news/20260917/06423cb5-33f4-452c-8977-2ee33c291393.jpg)](https://news.china.com/socialgd/10000169/20260917/49748194.html)\n\n[![Image 16](https://img2.utuku.imgcdc.com/650x0/news/20260917/6974b80d-0539-4b7d-9736-8f24148b9edb.jpg)](https://news.china.com/socialgd/10000169/20260917/49748213.html)\n\n[![Image 17](https://img3.utuku.imgcdc.com/650x0/news/20260917/82f1322d-3d87-4260-aaee-11a01bc67a68.jpg)](https://news.china.com/socialgd/10000169/20260917/49748209.html)\n\n[![Image 18](https://img0.utuku.imgcdc.com/647x0/news/20260917/20d1747e-49a9-48a0-9f7d-200745ae3349.jpg)](https://military.china.com/news/13004177/20260917/49747804.html)\n\n[![Image 19](https://img0.utuku.imgcdc.com/650x0/news/20260917/2c7b5e85-db7f-4cdc-bfa6-58e8699faef0.jpg)](https://news.china.com/socialgd/10000169/20260917/49748201.html)\n\n[![Image 20](https://img0.utuku.imgcdc.com/650x0/news/20260917/ded2a411-1768-4264-b197-bc2aee92d48e.jpg)](https://news.china.com/socialgd/10000169/20260917/49748198.html)\n\n[![Image 21](https://img2.utuku.imgcdc.com/650x0/news/20260917/b4bef287-dc59-40b9-bf0f-fa0eaf9d4af4.jpg)](https://military.china.com/news/13004177/20260917/49747589.html)\n\n[![Image 22](https://img3.utuku.imgcdc.com/650x0/news/20260917/ef3bc7a7-79da-4222-8828-c1246cda3c38.jpg)](https://military.china.com/news/13004177/20260917/49748057.html)\n\n[![Image 23](https://img2.utuku.imgcdc.com/650x0/news/20260917/403e376a-e0ac-462f-a72b-6b2aeb041d3a.jpg)](https://news.china.com/socialgd/10000169/20260917/49748212.html)\n\n[![Image 24](https://img0.utuku.imgcdc.com/650x0/news/20260917/5f3d78de-8cb9-4146-a467-439d793a7fcc.jpg)](https://military.china.com/news/13004177/20260917/49747527.html)\n\n[![Image 25](https://img3.utuku.imgcdc.com/650x0/news/20260917/94580796-4b91-4e34-97d6-12a5b1bc719c.jpg)](https://military.china.com/news/13004177/20260917/49747567.html)\n\n[![Image 26](https://img2.utuku.imgcdc.com/650x0/news/20260917/d8a4e1bb-294f-4465-adef-ead71f1077a8.jpg)](https://military.china.com/news/13004177/20260917/49747542.html)\n\n[![Image 27](https://img0.utuku.imgcdc.com/650x0/news/20260917/3f6d1c1d-0cb1-45a4-8049-fdb18b6597cf.jpg)](https://military.china.com/news/13004177/20260917/49747499.html)\n\n[![Image 28](https://img1.utuku.imgcdc.com/650x0/news/20260917/1dbd618b-0cba-4076-936d-a04a2175ec00.jpg)](https://military.china.com/news/13004177/20260917/49748019.html)\n\n[![Image 29](https://img3.utuku.imgcdc.com/380x0/news/20260917/ad79859e-9ceb-40bd-a7b3-635326e16fea.png)](https://military.china.com/news/13004177/20260917/49747521.html)\n\n[![Image 30](https://img0.utuku.imgcdc.com/650x0/news/20260917/c4e64e83-19cf-4aeb-80ca-c3b49d69cb44.jpg)](https://news.china.com/socialgd/10000169/20260917/49748196.html)\n\n[![Image 31](https://img1.utuku.imgcdc.com/640x0/news/20260917/6a765783-99ba-466b-bcbd-09e9c47e6048.jpg)](https://news.china.com/socialgd/10000169/20260917/49748191.html)\n\n[![Image 32](https://img0.utuku.imgcdc.com/650x0/news/20260917/a5d60b21-8341-4ac6-9369-5c04b9f7a59b.jpg)](https://news.china.com/socialgd/10000169/20260917/49748215.html)\n\n[![Image 33](https://img0.utuku.imgcdc.com/650x0/news/20260917/97fb005f-78c9-478b-8b21-9dbbb805e978.jpg)](https://news.china.com/socialgd/10000169/20260917/49748192.html)\n\n[![Image 34](https://img1.utuku.imgcdc.com/650x0/news/20260917/09750865-c62d-4ea8-8a51-c75e474f3302.jpg)](https://news.china.com/socialgd/10000169/20260917/49748210.html)\n\n[![Image 35](https://img0.utuku.imgcdc.com/650x0/military/20260917/c86a64ef-fb94-4646-b233-5184144e00f7.jpg)](https://military.china.com/news/13004177/20260917/49747705.html)\n\n[![Image 36](https://img2.utuku.imgcdc.com/550x0/news/20260917/2014fe3f-8294-48ba-a4c9-631bc290993e.jpg)](https://news.china.com/socialgd/10000169/20260917/49748193.html)\n\n[![Image 37](https://img0.utuku.imgcdc.com/650x0/news/20260917/0e0b3fd8-575d-4399-9ed3-844bbc156f41.jpg)](https://news.china.com/socialgd/10000169/20260917/49748203.html)\n\n[![Image 38](https://img1.utuku.imgcdc.com/650x0/news/20260917/5e96dfe3-c01f-4c57-88f9-554d6e0a00f6.jpg)](https://news.china.com/socialgd/10000169/20260917/49748199.html)\n\n[![Image 39](https://img3.utuku.imgcdc.com/650x0/news/20260917/5b09091a-c350-49f8-b978-ffe960580cbf.jpg)](https://military.china.com/news/13004177/20260917/49748131.html)\n\n### **相关新闻**\n\n*   ### [泰山拆改刀片网损失谁担？](https://news.china.com/socialgd/10000169/20260710/49602677.html)\n\n[泰山全域刀片式隔离网将逐步拆除，更换为柔性防护设施。泰安官方通报称，面对舆论集中反映的刀片铁丝网割裂山林生态、伤害野生动物等问题，当地迅速启动整改处置](https://news.china.com/socialgd/10000169/20260710/49602677.html)\n\n2026-07-10 20:02:40 泰山拆改刀片网损失谁担\n*   ### [媒体：翻越泰山 谁能终止海港连胜——泰山困境求胜难](https://news.china.com/socialgd/10000169/20240804/46972070.html)\n\n[山东泰山队近期在中超联赛中表现欠佳，七场比赛仅取得一胜，主教练崔康熙因故回国，引发外界关注。球队先后不敌河南队，并预计在与上海海港的对决中面临困境，缺少主心骨的队伍想要战胜领头羊显得尤为艰难](https://news.china.com/socialgd/10000169/20240804/46972070.html)\n\n2024-08-04 15:39:41 媒体：翻越泰山\n*   ### [阿里74亿卖银泰，谁亏谁赚？ 聚焦核心主业的决心](https://news.china.com/socialgd/10000169/20241218/47761979.html)\n\n[阿里对实体零售的“断舍离”有了实质性进展。12月17日，阿里巴巴集团发布公告称，同意将所持全部银泰股权以约74亿元人民币出售给雅戈尔集团和银泰管理团队成员组成的买方财团（约占银泰股权的99%）。这笔交易并不让外界意外](https://news.china.com/socialgd/10000169/20241218/47761979.html)\n\n2024-12-18 10:46:43 阿里74亿卖银泰\n*   ### [三九胃泰中秋广告惹争议 误导性宣传引不满](https://news.china.com/socialgd/10000169/20260916/49745731.html)\n\n[9月14日，江苏网民质疑三九胃泰张贴的一则广告，内容为“求‘你们’中秋别团圆了”，认为这则广告误导大众、博眼球。有网友还提到，此前三九胃泰发布的另一则广告“劝你们和平分手”也让人感到不适](https://news.china.com/socialgd/10000169/20260916/49745731.html)\n\n2026-09-16 13:48:41 三九胃泰中秋广告惹争议\n*   ### [三九胃泰中秋广告翻车 创意失敬引发争议](https://news.china.com/socialgd/10000169/20260916/49745073.html)\n\n[中秋将至，团圆是刻在国人骨子里的节日信仰。近日，三九胃泰一则“求‘你们’中秋别团圆了”的海报文案引爆舆论，最终品牌火速撤下争议广告，这场刻意的反套路营销彻底翻车。据视频画面显示，这则广告右下角写着“掀开看”](https://news.china.com/socialgd/10000169/20260916/49745073.html)\n\n2026-09-16 10:31:27 三九胃泰中秋广告翻车\n*   ### [三九胃泰广告 求你们中秋别团圆 广告引发争议](https://news.china.com/socialgd/10000169/20260915/49743457.html)\n\n[9月14日，江苏网民对三九胃泰张贴的广告内容表示质疑。该广告上写着“求‘你们’中秋别团圆了”，被认为有误导大众、博眼球之嫌。次日，华润三九工作人员回应称，相关广告内容是由公司总部策划的，目前已经收到反馈，并正在安排撤下该广告](https://news.china.com/socialgd/10000169/20260915/49743457.html)\n\n2026-09-15 16:06:42 三九胃泰广告求你们中秋别团圆",
+        "published_at": "2026-09-17T12:34:20",
+        "publication_time_status": "reported"
+      },
+      "artifact_refs": [
+        "artifact://sha256/7bc6454eabb3afcf02a30cf635a044e06eb4bbed99dc64d83e602103cb930dd0"
+      ],
+      "attempts": 1
+    },
+    "sources": [
+      {
+        "version_id": "source-fe567b5842ddf9824e10",
+        "url": "https://news.china.com/socialgd/10000169/20260917/49748217.html",
+        "final_url": "https://news.china.com/socialgd/10000169/20260917/49748217.html",
+        "title": "三九胃泰广告谁看了都不舒服 创意越界引争议",
+        "fetched_at": "2026-09-21T12:16:57.948249Z",
+        "published_at": "2026-09-17T12:34:20",
+        "updated_at": null,
+        "artifact_ref": "artifact://sha256/7bc6454eabb3afcf02a30cf635a044e06eb4bbed99dc64d83e602103cb930dd0",
+        "content_hash": "7bc6454eabb3afcf02a30cf635a044e06eb4bbed99dc64d83e602103cb930dd0",
+        "role": "commentary",
+        "duplicate_of": null,
+        "origin_url": null
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "evidence-8e44600e48d348dacfec",
+        "version_id": "source-fe567b5842ddf9824e10",
+        "excerpt": "[9月14日，江苏网民对三九胃泰张贴的广告内容表示质疑。该广告上写着“求‘你们’中秋别团圆了”，被认为有误导大众、博眼球之嫌。次日，华润三九工作人员回应称，相关广告内容是由公司总部策划的，目前已经收到反馈，并正在安排撤下该广告](https://news.china.com/socialgd/10000169/20260915/49743457.html)",
+        "start": 8774,
+        "end": 8953,
+        "locator": "Reader text chars 8774:8953"
+      },
+      {
+        "evidence_id": "evidence-a0992c099808e70426dc",
+        "version_id": "source-fe567b5842ddf9824e10",
+        "excerpt": "2026-09-15 16:06:42 三九胃泰广告求你们中秋别团圆",
+        "start": 8955,
+        "end": 8989,
+        "locator": "Reader text chars 8955:8989"
+      },
+      {
+        "evidence_id": "evidence-0c2d6e9e1d6bc9579ff4",
+        "version_id": "source-fe567b5842ddf9824e10",
+        "excerpt": "[9月14日，江苏网民质疑三九胃泰张贴的一则广告，内容为“求‘你们’中秋别团圆了”，认为这则广告误导大众、博眼球。有网友还提到，此前三九胃泰发布的另一则广告“劝你们和平分手”也让人感到不适](https://news.china.com/socialgd/10000169/20260916/49745731.html)",
+        "start": 8182,
+        "end": 8342,
+        "locator": "Reader text chars 8182:8342"
+      },
+      {
+        "evidence_id": "evidence-6f0da6f74ace94d11d99",
+        "version_id": "source-fe567b5842ddf9824e10",
+        "excerpt": "2024-08-04 15:39:41 媒体：翻越泰山\n*   ### [阿里74亿卖银泰，谁亏谁赚？ 聚焦核心主业的决心](https://news.china.com/socialgd/10000169/20241218/47761979.html)",
+        "start": 7750,
+        "end": 7877,
+        "locator": "Reader text chars 7750:7877"
+      },
+      {
+        "evidence_id": "evidence-89a7e65ac8e3d20eee09",
+        "version_id": "source-fe567b5842ddf9824e10",
+        "excerpt": "2026-09-16 10:31:27 三九胃泰中秋广告翻车\n*   ### [三九胃泰广告 求你们中秋别团圆 广告引发争议](https://news.china.com/socialgd/10000169/20260915/49743457.html)",
+        "start": 8644,
+        "end": 8772,
+        "locator": "Reader text chars 8644:8772"
+      }
+    ],
+    "reviews": [],
+    "check": {
+      "url": "https://news.china.com/socialgd/10000169/20260917/49748217.html",
+      "version_id": "source-fe567b5842ddf9824e10",
+      "checked_at": "2026-09-21T12:16:57.948271Z",
+      "changed": false
+    },
+    "verdict": null
+  }
+}

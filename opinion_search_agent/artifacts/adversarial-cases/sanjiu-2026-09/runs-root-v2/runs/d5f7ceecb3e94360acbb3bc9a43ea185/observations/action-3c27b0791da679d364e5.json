@@ -1,0 +1,100 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-af1a39c6e6767def4126",
+      "url": "https://www.sohu.com/a/1076772603_121443915",
+      "focus": "中新网评论对三九胃泰广告的具体批评立场、其定性用词，以及文中是否包含品牌方回应或监管信息",
+      "role": "commentary"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.sohu.com/a/1076772603_121443915"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "d5f7ceecb3e94360acbb3bc9a43ea185:step:12:attempt:1:action",
+      "tool_name": "read.web",
+      "payload": {
+        "url": "https://www.sohu.com/a/1076772603_121443915",
+        "final_url": "https://www.sohu.com/a/1076772603_121443915",
+        "title": "中新网评：三九胃泰的营销病，比胃病更该治",
+        "content": "## 中新网评：三九胃泰的营销病，比胃病更该治\n\n2026-09-16 13:47 来源: [搜狐网地方资讯](https://www.chinanews.com/cj/2026/09-16/10697437.shtml)\n\n发布于：北京市\n\n北京9月16日电(记者 查志远) 三九胃泰营销又在危险的边缘试探。中秋本是团聚的象征，三九胃泰却因为一则“求‘你们’中秋别团圆了”的广告，把自己送上热搜。\n\n网友质疑其误导公众、刻意博眼球，华润三九方面回应称，广告由总部策划，已收到反馈，正在安排撤下。\n\n但撤下不等于解释清楚。网传海报中，最抢眼的位置被“求‘你们’中秋别团圆了”占据，左下角才有一行小字：“一家人过节要整整齐齐。但有些食物在胃里团圆，对胃可不好。”\n\n翻到第二页，品牌想说的其实是月饼高油高糖，再配冷饮，容易让胃不舒服。所谓“你们”，指的是那些在胃里“团聚”的伤胃食物组合。\n\n从文案逻辑看，这个弯最终能绕回来。但广告不是谜语，不能指望受众先被冒犯，再耐心翻到角落找答案。绝大多数人第一眼看到的，就是对中秋团圆的否定，而不是什么健康提醒。\n\n把最刺激的字眼放在最大版面，把真正的意图缩在最小角落，这种做法可以叫语义后置。传播效果确实有了，但代价是公众先被刺痛。品牌收获了流量，受众却觉得被摆了一道。\n\n更值得注意的是，三九胃泰并非初犯。今年七夕，该品牌在重庆核心商圈投放“三九胃泰劝你们‘和平’分手”，表面像劝情侣分开，实际说的是火锅配冰饮、烧烤配啤酒这类“伤胃CP”。\n\n从情人节到七夕再到中秋，劝单、劝分、劝散，套路一脉相承。反向营销的路径越走越远，也越来越偏离品牌应有的分寸。\n\n创意当然可以反常规，但反常规不能反常识，更不能把公众最看重的节日情感当成流量杠杆。中秋团圆是中国人代代相传的情感寄托，不是营销人手里的开关。\n\n如果一定要靠“别团圆”来抓人，再靠小字把语义拉回，那说明创意本身已经站在冒犯的边缘。它消耗的不只是一次热搜，还有公众对传统节日情感的尊重。\n\n这类广告的结局往往只有两种：被赞有胆量，或被骂没分寸。就算一时赢了关注，也未必赢得尊重；就算翻了车，也可能很快被互联网遗忘。\n\n但品牌容易忽略，每一次靠冒犯换关注，都会在消费者心里留下一道痕。品牌与消费者之间的信任，经不起反复消耗。\n\n医药类广告还多一层特殊性，它面对的是健康诉求，也天然背负社会责任。《广告法》要求广告以健康的表现形式表达内容，符合社会主义精神文明建设，并弘扬中华民族优秀传统文化。对于医药品牌来说，这条要求不是装饰，而是底线。\n\n中秋的核心情感就是团圆，它不该被当成制造反差的道具。创意可以大胆，但不能把公共情感当作可燃烧的素材。\n\n对三九胃泰来说，这次玩笑开大了。该好好治治的，恐怕不只是消费者的胃，还有品牌做营销的“胃”。(完)\n\n【编辑:刘阳禾】 [返回搜狐，查看更多](https://www.sohu.com/?strategyid=00001 \"点击进入搜狐首页\")",
+        "published_at": "2026-09-16T13:47:00+08:00",
+        "updated_at": null
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [
+      {
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "url": "https://www.sohu.com/a/1076772603_121443915",
+        "final_url": "https://www.sohu.com/a/1076772603_121443915",
+        "title": "中新网评：三九胃泰的营销病，比胃病更该治",
+        "fetched_at": "2026-09-23T04:19:33.194388Z",
+        "published_at": "2026-09-16T13:47:00+08:00",
+        "updated_at": null,
+        "artifact_ref": "artifact://sha256/203e2f5eddc79198de9563ad406d50cfd000111715d8b44bd9bac1bc8462e7ff",
+        "content_hash": "203e2f5eddc79198de9563ad406d50cfd000111715d8b44bd9bac1bc8462e7ff",
+        "role": "commentary",
+        "duplicate_of": null,
+        "origin_url": null
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "evidence-80d7adf8c9995eb12482",
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "excerpt": "## 中新网评：三九胃泰的营销病，比胃病更该治",
+        "start": 0,
+        "end": 23,
+        "locator": "Reader text chars 0:23"
+      },
+      {
+        "evidence_id": "evidence-b709ad9109582074c71b",
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "excerpt": "对三九胃泰来说，这次玩笑开大了。该好好治治的，恐怕不只是消费者的胃，还有品牌做营销的“胃”。(完)",
+        "start": 1119,
+        "end": 1168,
+        "locator": "Reader text chars 1119:1168"
+      },
+      {
+        "evidence_id": "evidence-167139034f39ae379af9",
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "excerpt": "北京9月16日电(记者 查志远) 三九胃泰营销又在危险的边缘试探。中秋本是团聚的象征，三九胃泰却因为一则“求‘你们’中秋别团圆了”的广告，把自己送上热搜。",
+        "start": 122,
+        "end": 199,
+        "locator": "Reader text chars 122:199"
+      },
+      {
+        "evidence_id": "evidence-b5f0af8de2be37d3fa84",
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "excerpt": "网友质疑其误导公众、刻意博眼球，华润三九方面回应称，广告由总部策划，已收到反馈，正在安排撤下。",
+        "start": 201,
+        "end": 248,
+        "locator": "Reader text chars 201:248"
+      },
+      {
+        "evidence_id": "evidence-c0c87726f4065b42a693",
+        "version_id": "source-9b6502bcebbcfb0571dc",
+        "excerpt": "更值得注意的是，三九胃泰并非初犯。今年七夕，该品牌在重庆核心商圈投放“三九胃泰劝你们‘和平’分手”，表面像劝情侣分开，实际说的是火锅配冰饮、烧烤配啤酒这类“伤胃CP”。",
+        "start": 557,
+        "end": 641,
+        "locator": "Reader text chars 557:641"
+      }
+    ],
+    "reviews": [],
+    "check": {
+      "url": "https://www.sohu.com/a/1076772603_121443915",
+      "version_id": "source-9b6502bcebbcfb0571dc",
+      "checked_at": "2026-09-23T04:19:33.194410Z",
+      "changed": false
+    },
+    "verdict": null
+  }
+}

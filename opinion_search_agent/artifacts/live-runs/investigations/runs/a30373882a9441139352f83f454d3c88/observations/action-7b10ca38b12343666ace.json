@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-318e25582109f3bc656d",
+      "url": "https://www.worldjournal.com/wj/story/121617/9754948",
+      "focus": "罗永浩9月12日原帖的具体表述、时间、指控点，是否提及钟薛高与价格，以及事件如何发酵、还有哪些方（黄斌、西贝等）被卷入",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.worldjournal.com/wj/story/121617/9754948"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:4:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -8,6 +8,8 @@ const FACET_LABELS = { rule_change: "规则调整", service_change: "服务变�
 const RELATION_LABELS = { duplicate: "与已有版本正文重复", same_text: "与已有版本正文一致", repost: "转载/转述关系", excerpt: "摘录/引用关系", followup: "后续跟进材料", unverified: "来源关系未核实" };
 const MODULE_STATE_LABELS = { ready: "可查看", provisional: "待核查", insufficient: "材料不足", unavailable: "无法查看", not_applicable: "不适用" };
 const REVIEW_HINT = { supported: "引用支持", partial: "证据部分支持", contradicted: "与引用矛盾", insufficient: "证据不足", unreviewed: "尚未完成核查" };
+const DIAGNOSTIC_STATUS = { observed: "已观察", attention: "待处理", blocked: "阻塞", pending: "尚未开始" };
+const DIAGNOSTIC_SEVERITY = { critical: "阻塞", warning: "待处理", info: "说明" };
 const PROVISIONAL_STATES = new Set(["planning", "running", "finalizing", "needs_clarification"]);
 
 // Mirrors docs/design/professional-event-workbench.reference.html: left
@@ -53,6 +55,8 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
       el("span", { class: "os-demo", text: provisional ? "阶段投影 · 内容未经最终审查" : "已发布快照 · 与下载文件同源" }),
       connectionBox,
       report ? el("div", { class: "os-tools" }, [
+        el("a", { class: "os-text-button", href: api.dossierUrl(workbench.run_id, workbench.snapshot_id), target: "_blank", rel: "noopener noreferrer", text: "打开视觉档案" }),
+        el("a", { class: "os-text-button", href: api.dossierDownloadUrl(workbench.run_id, workbench.snapshot_id), text: "下载视觉档案" }),
         el("a", { class: "os-text-button", href: api.pageUrl(workbench.run_id, workbench.snapshot_id), target: "_blank", rel: "noopener noreferrer", text: "打开静态页" }),
         el("a", { class: "os-text-button", href: api.pageDownloadUrl(workbench.run_id, workbench.snapshot_id), text: "下载 HTML" }),
         el("a", { class: "os-text-button", href: api.reportUrl(workbench.run_id), text: "下载 Markdown" }),
@@ -246,8 +250,11 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
 
   function paintNav() {
     clear(navBox);
-    const items = [["overview", "事件总览"], ["coverage", "报道对照"], ["issues", "议题与核查"], ["citations", "引用与原文"]];
-    if (report) items.push(["report", "完整报告"]);
+    const planned = ((workbench.page_plan && workbench.page_plan.sections) || [])
+      .filter((section) => section.view !== "report" || report)
+      .map((section) => [section.view, section.title]);
+    const items = planned.length ? planned : [["overview", "事件总览"], ["coverage", "报道对照"], ["issues", "议题与核查"], ["citations", "引用与原文"], ["diagnostics", "链路诊断"]];
+    if (!planned.length && report) items.push(["report", "完整报告"]);
     navBox.append(el("p", { text: "当前调查" }));
     for (const [key, label] of items) {
       navBox.append(el("button", {
@@ -260,10 +267,13 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
 
   function paintContent() {
     clear(contentBox);
+    mainGrid.classList.toggle("diagnostics-view", state.view === "diagnostics");
     if (state.view === "overview") contentBox.append(overviewView());
+    else if (state.view === "focus") contentBox.append(focusView());
     else if (state.view === "coverage") contentBox.append(coverageView());
     else if (state.view === "issues") contentBox.append(issuesView());
     else if (state.view === "citations") contentBox.append(citationsView());
+    else if (state.view === "diagnostics") contentBox.append(diagnosticsView());
     else if (state.view === "report" && report) {
       renderReport(contentBox, report, handlers.reportHandlers || { onEvidence: (evidenceId) => select(evidenceId, { view: "citations" }) });
     }
@@ -272,7 +282,9 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
   function overviewView() {
     const overview = views.overview;
     const facetModules = (workbench.modules || []).filter((module) => module.facet);
-    const modules = (overview.highlights && overview.highlights.length) ? overview.highlights : facetModules;
+    // Historical projections keep their cards here. New PagePlan snapshots
+    // give event-specific analysis its own planned view.
+    const modules = workbench.page_plan ? [] : ((overview.highlights && overview.highlights.length) ? overview.highlights : facetModules);
     const timeline = overview.timeline || { events: [], unparsed: [] };
     const nodes = [...(timeline.events || []), ...(timeline.unparsed || [])];
     const limitations = workbench.limitations || {};
@@ -304,6 +316,34 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     ]);
   }
 
+  function focusView() {
+    const plan = workbench.page_plan || {};
+    const section = (plan.sections || []).find((item) => item.view === "focus") || {};
+    const moduleOrder = section.module_types || [];
+    const modulesByType = new Map((workbench.modules || []).filter((item) => item.facet)
+      .map((item) => [item.module_type, item]));
+    const modules = moduleOrder.map((type) => modulesByType.get(type)).filter(Boolean);
+    const knownTypes = new Set(modules.map((module) => module.module_type));
+    for (const module of (views.overview.highlights || [])) {
+      if (module.facet && !knownTypes.has(module.module_type)) modules.push(module);
+    }
+    const targets = plan.search_targets || [];
+    return el("div", {}, [
+      el("section", {}, [
+        el("div", { class: "os-section-head" }, [
+          el("h3", { text: section.title || "事件专项分析" }),
+          el("span", { class: "os-note", text: section.purpose || "按事件类型组织结构化事实与缺口。" }),
+        ]),
+        el("p", { class: "os-note", text: plan.rationale || "" }),
+        ...modules.map((module) => moduleCard(module)),
+        targets.length ? el("div", { class: "os-open-question" }, [
+          el("strong", { text: "仍需补查的专项内容：" }),
+          el("span", { text: targets.map((item) => item.target_gap).join("；") }),
+        ]) : el("p", { class: "os-note", text: "当前必需专项字段已经形成；是否可发布仍取决于证据审查结果。" }),
+      ]),
+    ]);
+  }
+
 
   function moduleCard(module) {
     const fields = module.fields || [];
@@ -330,6 +370,15 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
         return el("div", { class: "os-facet-field" }, [
           el("span", { class: "os-facet-label", text: field.label }),
           el("span", { class: "os-open-question", text: `字段冲突：${(field.values || []).join(" / ")}；待核查。` }),
+        ]);
+      }
+      if (field.state === "multiple") {
+        return el("div", { class: "os-facet-field" }, [
+          el("span", { class: "os-facet-label", text: field.label }),
+          el("span", { class: "os-open-question" }, [
+            el("span", { text: `多种有依据表述：${(field.values || []).join(" / ")}；需核对适用范围与时间。` }),
+            citationButtons(field.citations || []) || null,
+          ]),
         ]);
       }
       return el("div", { class: "os-facet-field" }, [
@@ -613,6 +662,72 @@ export function renderWorkbench(root, runId, workbench, snapshot, handlers = {})
     }
   }
 
+  function diagnosticsView() {
+    const diagnostics = views.diagnostics || {};
+    const summary = diagnostics.summary || {};
+    const stages = diagnostics.stages || [];
+    const signals = diagnostics.signals || [];
+    if (!diagnostics.format) {
+      return el("section", {}, [
+        el("div", { class: "os-section-head" }, [el("h3", { text: "生产链路诊断" })]),
+        el("p", { class: "os-open-question", text: "这个历史版本没有链路诊断数据；报告内容仍可查看，但无法回溯每个生产阶段。" }),
+      ]);
+    }
+    return el("div", { class: "os-diagnostics" }, [
+      el("section", {}, [
+        el("div", { class: "os-section-head" }, [
+          el("h3", { text: "生产链路诊断" }),
+          el("span", { class: summary.critical ? "os-tag danger" : summary.warnings ? "os-tag warn" : "os-tag ok",
+            text: `阻塞 ${summary.critical || 0}｜待处理 ${summary.warnings || 0}` }),
+        ]),
+        el("p", { class: "os-note", text: summary.disclaimer || "结构诊断不等于报告质量评分。" }),
+        el("div", { class: "os-diagnostic-grid" }, stages.map((stage) => el("article", {
+          class: `os-diagnostic-stage ${stage.status}`,
+        }, [
+          el("div", { class: "os-module-head" }, [
+            el("h4", { text: stage.label }),
+            el("span", { class: `os-tag ${stage.status === "blocked" ? "danger" : stage.status === "attention" ? "warn" : stage.status === "observed" ? "ok" : ""}`,
+              text: DIAGNOSTIC_STATUS[stage.status] || stage.status }),
+          ]),
+          el("p", { class: "os-note", text: diagnosticMetricLine(stage.id, stage.metrics || {}) }),
+        ]))),
+      ]),
+      el("section", {}, [
+        el("div", { class: "os-section-head" }, [
+          el("h3", { text: "需要处理的信号" }),
+          el("span", { class: "os-note", text: "按严重程度与工作链路排序" }),
+        ]),
+        ...signals.map((signal) => el("article", { class: `os-diagnostic-signal ${signal.severity}` }, [
+          el("div", {}, [
+            el("span", { class: `os-tag ${signal.severity === "critical" ? "danger" : signal.severity === "warning" ? "warn" : ""}`,
+              text: DIAGNOSTIC_SEVERITY[signal.severity] || signal.severity }),
+            el("span", { class: "os-diagnostic-code", text: signal.code }),
+          ]),
+          el("strong", { text: signal.message }),
+          el("p", { class: "os-note", text: `建议：${signal.action}` }),
+        ])),
+        signals.length ? null : el("p", { class: "os-note", text: "当前没有触发结构性告警；这不证明事实正确或材料具有代表性。" }),
+      ]),
+    ]);
+  }
+
+  function diagnosticMetricLine(stageId, metrics) {
+    if (stageId === "scope") return `问题 ${metrics.issues || 0}｜必答 ${metrics.required || 0}｜未解决 ${metrics.unresolved_required || 0}｜未解决子项 ${metrics.unresolved_components || 0}`;
+    if (stageId === "discovery") return `搜索 ${metrics.attempts || 0} 次｜候选 URL ${metrics.candidate_urls || 0}｜产生候选 ${(metrics.outcomes || {}).candidates || 0} 次｜失败 ${(metrics.outcomes || {}).error || 0} 次`;
+    if (stageId === "acquisition") return `读取 ${metrics.read_attempts || 0} 次｜正文版本 ${metrics.saved_versions || 0}｜未读候选 ${metrics.unread_candidates || 0}｜失败 ${metrics.read_errors || 0}`;
+    if (stageId === "sources") return `页面 ${metrics.documents || 0}｜版本 ${metrics.versions || 0}｜域名 ${Object.keys(metrics.domains || {}).length}｜关系未核实 ${metrics.relations_unverified || 0}`;
+    if (stageId === "evidence") return `证据 ${metrics.items || 0}｜被当前判断引用 ${metrics.cited_items || 0}｜有引用的来源 ${metrics.sources_with_cited_evidence || 0}`;
+    if (stageId === "analysis") return `有效判断 ${metrics.active_findings || 0}｜主体 ${(metrics.stakeholders || []).length}｜回应已分类 ${Object.entries(metrics.response_classes || {}).filter(([key]) => key !== "not_assessed").reduce((sum, [, value]) => sum + value, 0)}`;
+    if (stageId === "review") return `有效判断 ${metrics.active_findings || 0}｜通过 ${metrics.supported || 0}｜未审查 ${metrics.unreviewed || 0}｜未通过 ${metrics.not_supported || 0}`;
+    if (stageId === "completion") return `发布状态 ${metrics.publication_status || "未知"}｜策略判断 ${metrics.policy_disposition || "未知"}｜核心结论 ${metrics.conclusions || 0}`;
+    if (stageId === "runtime") {
+      const budget = (metrics.budget || {}).resources || {};
+      const budgetLine = ["search", "read", "model"].map((key) => budget[key] ? `${key} ${budget[key].used}/${budget[key].limit}` : null).filter(Boolean).join("｜");
+      return `已提交步骤 ${metrics.committed_steps || 0}｜决策重试 ${metrics.decision_retries || 0}${budgetLine ? `｜${budgetLine}` : ""}`;
+    }
+    return "暂无阶段计数。";
+  }
+
 
   async function paintInspector() {
     clear(inspectorBox);
@@ -731,7 +846,8 @@ function normalizeViewState(workbench, raw, defaultSelected) {
   const issues = (views.issues && views.issues.issues) || [];
   const materials = (views.coverage && views.coverage.materials) || [];
   const citationMap = (workbench && workbench.citations) || {};
-  const validViews = new Set(["overview", "coverage", "issues", "citations"]);
+  const plannedViews = (((workbench && workbench.page_plan) || {}).sections || []).map((section) => section.view);
+  const validViews = new Set(plannedViews.length ? plannedViews : ["overview", "coverage", "issues", "citations", "diagnostics", "report"]);
   const validIssues = new Set(issues.map((issue) => issue.issue_id));
   const validRoles = new Set(materials.map((material) => material.role));
   const validDates = new Set(materials.filter((material) => material.published_at)

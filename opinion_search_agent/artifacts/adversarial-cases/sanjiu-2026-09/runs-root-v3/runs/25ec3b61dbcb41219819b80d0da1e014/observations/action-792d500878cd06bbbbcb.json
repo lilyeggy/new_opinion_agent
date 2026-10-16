@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-6d6654073d7ae20daf6a",
+      "query": "三九胃泰中秋翻页广告外层大字、左下角小字与内页文案、高济再康药房活动信息与日期、七夕“劝你们和平分手”先例、记者核查客服的细节",
+      "version_id": "source-06fa95dd93fb791ab5f4"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-47e32fedf46511c50e79",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "# 三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息|大鱼财经",
+        "start": 69,
+        "end": 104,
+        "locator": "Reader text chars 69:104"
+      },
+      {
+        "evidence_id": "evidence-8237dd2794dcb8a98ad4",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息|大鱼财经",
+        "start": 5576,
+        "end": 5609,
+        "locator": "Reader text chars 5576:5609"
+      },
+      {
+        "evidence_id": "evidence-a123ff771fbd21c32d75",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息|大鱼财经",
+        "start": 5710,
+        "end": 5743,
+        "locator": "Reader text chars 5710:5743"
+      },
+      {
+        "evidence_id": "evidence-e91b187d15a68fcf8f37",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "将节日文案与药房活动结合，此前已出现在三九胃泰的七夕营销中。当时，品牌使用的文案是“劝你们‘和平’分手”。",
+        "start": 1308,
+        "end": 1361,
+        "locator": "Reader text chars 1308:1361"
+      },
+      {
+        "evidence_id": "evidence-ae4bb1250afb191046a6",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "外层写着“中秋别团圆了”，掀开后是月饼、冷饮和药房活动——三九胃泰的一则翻页广告，引发网友对节日文案的质疑。",
+        "start": 625,
+        "end": 679,
+        "locator": "Reader text chars 625:679"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -4,6 +4,45 @@ OpinionSearch Agent is an explicit single-agent Harness for public-Web opinion i
 
 The model proposes exactly one `search`, `read`, `reflect`, or `finish` decision. Runtime validation resolves accepted decisions into internal actions. Search and reader adapters return untrusted observations; only the OpinionSearch processor and pure reducer can add candidates, normalized sources, evidence, claims, stakeholder positions, or gap outcomes to authoritative state.
 
+> **Design decision (2026-09-21).** This Runtime AgentLoop is the single harness.
+> An experimental multi-role planner/research/analyst/reviewer pipeline was
+> evaluated and archived to `archive/harness-pipeline/`: it duplicated
+> capabilities the production path already provides (skeleton-driven rendering
+> via PagePlan plus targeted search) and bypassed the Runtime's reliability
+> mechanisms. See the archive README for the full decision record.
+
+## Project status (2026-09-22, archived)
+
+Feature-complete and frozen. The investigation workload is the verification
+vehicle; the technical substance is the Harness/Runtime and Tool/Context
+layers.
+
+**Verified end-to-end (live):** a real Chinese public-opinion event ran the
+full loop — 60 steps, 17 searches, 17 reads, 14 findings, 92 evidence
+citations, review phase executed (6 supported / 8 partial), and the
+completion gate rejected `finish` 18 times rather than close with unanswered
+required questions (honest `partial`).
+
+**Measured quality (see `../docs/舆情agent-质量三数字-D4-2026-09-21.html`):**
+
+- Retrieval recall 60% (6/10 human-labeled must-hit items; shortfall traced
+  to aggregator-domain bias — 66% of candidates from one portal — and
+  anti-scraping read failures).
+- Faithfulness 71% fully supported, 100% non-fabricated (14 findings
+  hand-checked; all 4 partials are excerpt-recall misses, not inventions).
+- Adversarial replay (7 real + 3 planted documents): correction adopted,
+  counter-narrative read but unused, wrong numbers did not propagate.
+
+**Known limitations:** single search engine (Brave). The legacy opinion path
+fixes 5 results per query; it passes the TaskFrame time window (`freshness`)
+and language (`search_lang`) to Brave, while domain scope is enforced by a
+post-acquisition candidate filter. The investigation workbench uses 10 results
+and prepends domain scope as `site:` operators. `country` is not used;
+evidence excerpt selection is the recall bottleneck; the model does not
+close evidence-starved questions as `not_found`; numeric claims are
+provenance-checked but not cross-checked for conflicts. Fix directions are
+documented and deliberately deferred.
+
 ## Requirements
 
 - Python 3.12+
@@ -42,20 +81,23 @@ Every terminal run writes a Run Bundle next to the checkpoint: `run.json`
 (cross-process success cache), and — when the reader produces artifacts —
 `artifacts/`.
 
-## Web demo console
+## Web server
 
-The demo website runs the same service from the browser: it accepts a
-question, executes a real investigation in the background, streams every
-step-transaction checkpoint over Server-Sent Events, supports cancellation,
-and renders the terminal brief. The server is stdlib-only (no new
-dependency): `http.server` for routing, `queue` for fan-out, and the existing
-`LoopHook` boundary for progress push.
+The server is stdlib-only (no new dependency): `http.server` for routing,
+`queue` for fan-out, and the existing `LoopHook` boundary for progress push.
+It serves three pages and two API surfaces.
 
 ```bash
 python -m opinion_search.web --port 8900
 ```
 
-Open `http://127.0.0.1:8900`. Pick a mode:
+| Page | Served at | What it is |
+|---|---|---|
+| Investigation workbench | `/` (also `/investigation`) | The main product page: clarification, live investigation progress, workbench modules, evidence drawer, page export, diagnostics |
+| Legacy opinion console | `/legacy` (also `/index.html`) | The earlier single-question demo console |
+| Developer console | `/dev` | Lists every run in this process, replays the full `CheckpointBoundary` timeline, shows snapshot JSON, exposes cancel |
+
+Both surfaces accept a **mode**:
 
 - **offline** — keyless, deterministic fake providers, finishes in seconds;
   ideal for rehearsing a demo or an interview walkthrough.
@@ -64,7 +106,28 @@ Open `http://127.0.0.1:8900`. Pick a mode:
   and `OPINION_MODEL_BASEURL`); one dotenv file is merged into `--env-file`,
   defaulting to `.env`. Live runs consume API quota.
 
-HTTP surface:
+The two surfaces are **different domain compositions over the same Runtime**:
+the workbench runs `domain/investigation` (6 actions, via
+`investigation/manager.py`), the legacy console runs `domain/opinion`
+(4 actions, via `app/service.py`). They share the AgentLoop, the Tool
+Registry/Executor, the checkpoint format, and the `ContextSection` model —
+but not the domain rules, and not the Context Compiler.
+
+Investigation API (`/api/investigations`):
+
+- `POST /api/investigations` creates a run and returns its id;
+- `POST /api/investigations/{id}/clarify` answers the planner's clarifying
+  questions (at most three per round);
+- `GET /api/investigations/{id}` returns the snapshot; `GET .../events`
+  streams progress as SSE, rebuilt from the persisted snapshot so late or
+  reconnecting subscribers create no new work;
+- `GET .../workbench`, `.../page`, `.../materials`, `.../diff`,
+  `.../versions`, `.../diagnostics` and `.../evidence/{evidence_id}` serve
+  the projections and evidence locators;
+- `POST .../cancel`, `.../resume` and `.../update` cancel the run, resume it
+  from its checkpoint, and start a targeted follow-up update.
+
+Legacy opinion API (`/api/runs`):
 
 - `POST /api/runs` `{mode, question, topic, focus, time_range, language}`
   validates a `SearchRequest` and returns `run_id`;
@@ -79,12 +142,6 @@ HTTP surface:
   `text/markdown` (404 until the run reaches a terminal state);
 - every run writes its standard Run Bundle under
   `<runs-dir>/<run_id>/` (default `.opinion_search_web/`).
-
-A dedicated developer console lives at **`/dev`**: it lists all runs in this
-process with live status polling, replays the full CheckpointBoundary event
-timeline per run, shows the snapshot JSON, exposes cancel, and links to the
-terminal `report.md`. The user-facing page stays product-shaped; raw runtime
-detail is confined to the developer console.
 
 Nothing in the Runtime or Domain layer is modified by the web front end;
 progress and cancellation use the same seams as the CLI. No secret is ever
@@ -164,7 +221,10 @@ python -m opinion_search resume \
 
 - Empty, refused, malformed, timed-out, rate-limited, and server-error model responses receive a bounded retry on the same stable step ID.
 - Authentication failures fail safely without exposing credentials.
-- Invalid decisions receive one repair attempt; repeated queries or reads stop with a meaningful partial result.
+- Invalid decisions are retried on the same `step_id` with an incremented
+  `attempt`, bounded by `max_decision_attempts` (default 3, so up to two
+  repairs; the offline composition pins it to 2); repeated queries or reads
+  stop with a meaningful partial result.
 - Tool timeout/rate-limit/server errors are retried by `ToolExecutor`; normalized failures are committed as control feedback, not domain evidence.
 - Required context overflow, cancellation, and the hard step limit preserve committed work as partial or cancelled output.
 - Checkpoints persist active step phase, attempt, typed failure feedback, observations, committed actions, and authoritative domain state.

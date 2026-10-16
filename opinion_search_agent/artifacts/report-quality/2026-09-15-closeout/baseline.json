@@ -1,0 +1,38 @@
+{
+  "schema": "opinion-search-closeout-baseline/1",
+  "captured_at": "2026-09-15T11:15:42+08:00",
+  "code": {
+    "head": "443ebf9e12103bd9f052772ba8b48b4ce83bda2d",
+    "working_diff_sha256_excluding_artifacts": "8c30000d829f36639319494e11b6a6e92abb10df6c20c664f54a49bdf2ec8752",
+    "working_tree_clean": false
+  },
+  "case": {
+    "case_id": "billing-dev-v1",
+    "manifest": "../2026-09-13-s1/cases/billing-dev-v1/manifest.json",
+    "material_count": 8,
+    "snapshot_hashes_verified": true,
+    "annotation_status": "UNREVIEWED"
+  },
+  "safe_config_probe": {
+    "model_key_configured": true,
+    "brave_key_configured": true,
+    "jina_key_configured": false,
+    "model_name": "deepseek-flash",
+    "model_host": "opencode.ai",
+    "model_https": true,
+    "configured_output_tokens": 4096,
+    "max_steps": 20,
+    "max_decision_attempts": 3,
+    "secrets_printed": false
+  },
+  "validation": {
+    "targeted_convergence_and_contract_tests": "38 passed",
+    "python_compileall": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "known_quality_baseline": {
+    "S3": "FAIL: 8 sources and 44 evidence excerpts, 0 findings",
+    "S4": "FAIL: convergence gate triggered, decision recovery exhausted, 0 findings",
+    "second_fix_live_model_status": "NOT_RUN"
+  }
+}

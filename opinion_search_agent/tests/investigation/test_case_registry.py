@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from hashlib import sha256
 from pathlib import Path
 
 import pytest
@@ -44,6 +45,24 @@ def test_materials_are_never_fabricated(registry):
             for material in case["materials"]:
                 assert material.get("snapshot_path") and material.get("sha256")
                 assert len(material["sha256"]) == 64
+                snapshot = REGISTRY_PATH.parent / material["snapshot_path"]
+                if snapshot.is_file():
+                    assert sha256(snapshot.read_bytes()).hexdigest() == material["sha256"]
+                else:
+                    assert case.get("material_storage") == "local_untracked"
+                assert material.get("source_role") in {"original", "reporting", "commentary", "unknown"}
+                assert isinstance(material.get("dependency_relations"), list)
+
+
+def test_unreviewed_material_case_is_not_treated_as_gold(registry):
+    collected = [case for case in registry["cases"] if case["status"] != "blocked"]
+    assert {case["case_id"] for case in collected} == {"response-dev", "rules-dev"}
+    for case in collected:
+        assert case["material_storage"] == "local_untracked"
+        assert case["annotation"]["author_kind"] == "model_preannotation"
+        assert case["annotation"]["reviewed_by_human"] is False
+        assert case["annotation"]["status"] == "UNREVIEWED"
+        assert case["expected"] == {}
 
 
 def test_holdout_answers_do_not_leak_into_production_code(registry):

@@ -376,7 +376,7 @@ def _select_evidence_excerpts(
         return ()
 
     focus_terms = _focus_terms(focus)
-    scores = tuple(_evidence_relevance_score(block.text, focus_terms) for block in blocks)
+    scores = tuple(_evidence_relevance_score(block.text, focus_terms, focus) for block in blocks)
     ranked = sorted(
         range(len(blocks)),
         key=lambda index: (
@@ -384,7 +384,21 @@ def _select_evidence_excerpts(
             index,
         ),
     )
-    selected = [index for index in ranked if scores[index] > 0][:max_blocks]
+    selected: list[int] = []
+    for index in ranked:
+        if scores[index] <= 0:
+            continue
+        candidate_bigrams = _cjk_bigrams(blocks[index].text)
+        if any(
+            len(candidate_bigrams & _cjk_bigrams(blocks[prev].text))
+            / max(len(candidate_bigrams | _cjk_bigrams(blocks[prev].text)), 1)
+            >= 0.8
+            for prev in selected
+        ):
+            continue
+        selected.append(index)
+        if len(selected) >= max_blocks:
+            break
     if not selected:
         if len({block.block_index for block in blocks}) == 1:
             return tuple(blocks[:max_blocks])
@@ -412,6 +426,20 @@ _BOILERPLATE_PREFIXES = (
     "privacy policy",
 )
 
+_GENERIC_FOCUS_STOPTERMS = frozenset({
+    "目前", "相关", "情况", "什么", "哪些", "如何", "是否", "关于", "事件",
+    "问题", "调查", "可以", "进行", "一个", "我们", "没有", "已经", "表示",
+})
+_HIGH_SIGNAL_MARKERS = (
+    "回应", "声明", "通报", "公告", "致歉", "表示", "指出", "披露", "承认",
+    "否认", "质疑", "投诉", "争议", "决定", "调整", "恢复", "赔偿", "退费",
+)
+
+
+def _cjk_bigrams(text: str) -> set[str]:
+    runs = re.findall(r"[\u4e00-\u9fff]{2,}", text)
+    return {run[i : i + 2] for run in runs for i in range(len(run) - 1)}
+
 
 def _is_low_quality_content_block(text: str) -> bool:
     lowered = text.casefold().lstrip("#>*-• ")
@@ -428,23 +456,37 @@ def _is_low_quality_content_block(text: str) -> bool:
 def _focus_terms(focus: str) -> frozenset[str]:
     terms = {
         token.casefold()
-        for token in re.findall(r"[A-Za-z0-9_]{3,}", focus)
+        for token in re.findall(r"[A-Za-z0-9_]{2,}", focus)
         if token.casefold() not in {"the", "and", "for", "what", "which", "find"}
     }
     for sequence in re.findall(r"[\u4e00-\u9fff]{2,}", focus):
         for width in (2, 3, 4):
-            terms.update(
-                sequence[index : index + width]
-                for index in range(len(sequence) - width + 1)
-            )
+            for index in range(len(sequence) - width + 1):
+                gram = sequence[index : index + width]
+                if gram not in _GENERIC_FOCUS_STOPTERMS:
+                    terms.add(gram)
     return frozenset(terms)
 
 
-def _evidence_relevance_score(text: str, focus_terms: frozenset[str]) -> int:
+def _evidence_relevance_score(text: str, focus_terms: frozenset[str], raw_focus: str = "") -> int:
     lowered = text.casefold()
-    overlap = sum(term in lowered for term in focus_terms)
-    information_bonus = int(bool(re.search(r"\d", text)))
-    return overlap * 4 + information_bonus
+    overlap = 0
+    for term in focus_terms:
+        if term in lowered:
+            overlap += 6 if len(term) >= 3 or term.isdigit() else 4
+    if overlap == 0 and raw_focus:
+        fallback_runs = [
+            seq[i : i + 2]
+            for seq in re.findall(r"[\u4e00-\u9fff]{2,}", raw_focus)
+            for i in range(len(seq) - 1)
+        ]
+        overlap = sum(2 for bg in set(fallback_runs) if bg in lowered)
+    if overlap == 0:
+        return 0
+    quote_bonus = 3 if re.search(r"[“「『\"][^”」』\"]{4,160}[”」』\"]", text) else 0
+    measure_bonus = 3 if re.search(r"\d+(?:\.\d+)?\s*(?:%|％|元|万元|亿元|人|户|条|件|年|月|日|时|分)", text) else int(bool(re.search(r"\d", text)))
+    marker_bonus = min(4, sum(1 for m in _HIGH_SIGNAL_MARKERS if m in text))
+    return overlap + quote_bonus + measure_bonus + marker_bonus
 
 
 @dataclass(frozen=True)

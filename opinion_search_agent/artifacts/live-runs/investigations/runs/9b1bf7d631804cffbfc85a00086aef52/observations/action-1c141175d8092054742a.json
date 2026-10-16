@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-97cfac9a8a2f2c93f0af",
+      "url": "https://news.qq.com/rain/a/20260916A0BLYR00",
+      "focus": "该广告的完整文案与画面设计（含海报角落‘掀开看’等细节）、品牌方对创意的解释、争议集中在哪些表述、发布时间与投放形式",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.qq.com/rain/a/20260916A0BLYR00"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:2:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "Jina Reader denied permission with HTTP status 403.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

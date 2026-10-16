@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-31e513537ec6af736eb8",
+      "query": "成本监审结论 单位运营成本 配套优惠措施 两套票价方案 意见征集渠道 月均支出测算",
+      "version_id": "source-7f7e0c3c5c2ad3f7e963"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-ee12dd3b3f79019a6b03",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "（五）配套优惠措施",
+        "start": 2997,
+        "end": 3006,
+        "locator": "Reader text chars 2997:3006"
+      },
+      {
+        "evidence_id": "evidence-dcb475240f66b6b8ca2e",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "2023年3月至2024年2月，运营企业累计优惠6.99亿元，通过测算，方案一、方案二年优惠金额分别增加1.90亿元、1.86亿元。根据城市轨道交通乘车消费记录，剔除免费乘客，付费乘客人次平均支出为3.21元（含税），实施配套优惠措施后，方案一、方案二的付费乘客人次平均支出分别增加至3.76元（提高0.55元）、3.79元（提高0.58元）；按月均出行10.81次计，方案一、方案二人均月支出分别增加5.95元、6.27元；通勤乘客按每月22个工作日、出行44次计，方案一、方案二人均月支出分别增加24.20元、25.52元。",
+        "start": 3705,
+        "end": 3969,
+        "locator": "Reader text chars 3705:3969"
+      },
+      {
+        "evidence_id": "evidence-5a314a5238623d34916a",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "七、与制定价格有关的成本监审的办法和结论",
+        "start": 3971,
+        "end": 3991,
+        "locator": "Reader text chars 3971:3991"
+      },
+      {
+        "evidence_id": "evidence-23c50698ff62da5670a7",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "按照《中华人民共和国价格法》《政府制定价格成本监审办法》等规定，重庆市发展和改革委员会对我市城市轨道交通运营成本进行了监审。监审范围选取我市城市轨道交通全部正式运营线段。城市 轨道交通运营成本由与运营相关的主营业务成本和财务费用构成。严格按照书面通知、资料初审、实地审核、意见告知、出具报告的监审程序，经合法性、相关性、合理性审核，核定我市城市轨道交通单位运营成本为15.13元/人次。",
+        "start": 3993,
+        "end": 4186,
+        "locator": "Reader text chars 3993:4186"
+      },
+      {
+        "evidence_id": "evidence-e45b53e2eee5f7e9314e",
+        "version_id": "source-7f7e0c3c5c2ad3f7e963",
+        "excerpt": "（三）票价方案",
+        "start": 2383,
+        "end": 2390,
+        "locator": "Reader text chars 2383:2390"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

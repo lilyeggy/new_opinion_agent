@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-d8e634b4d9c381e9b8a1",
+      "url": "https://news.qq.com/rain/a/20260915A0BC4700",
+      "focus": "华润三九证券部/总部就争议的正式回应口径：是否致歉、是否说明撤下安排与时限、是否回应采访请求，以及信息来源（南都湾财社等）与发布时间",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.qq.com/rain/a/20260915A0BC4700"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:23:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "Jina Reader denied permission with HTTP status 403.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

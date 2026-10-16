@@ -1,12 +1,21 @@
 # OpinionSearch Agent 5 天高强度实施计划
 
+> **2026-09-14 两天收尾入口**：后续执行顺序改用 [两天收尾执行计划](./opinionsearch-two-day-closeout-plan-2026-09-14.md)，截止北京时间 2026-09-15 18:00，14:30 功能冻结。本文件保留历史实施履历；V1 门槛不降低，未达标按实验版或工程版收尾。完整蓝图框架进入 Backlog，先验证已实施收敛修复。计划编制不代表模型、浏览器或人工验收已经执行。
+
 > 计划状态：当前执行计划  
 > 计划周期：连续 5 个高强度开发日  
 > 最后更新：2026-08-20  
 > Canonical：[OpinionSearch Agent 项目设计](./public-opinion-search-agent-design.md)
 
 > **2026-09-11 执行入口更新**：下文保留原五天 Harness 实施基线；后续 Web 产品工作以 canonical design §18–19、[Web 调查计划](./superpowers/plans/2026-09-10-web-event-investigation.md)和[按事件组织的工作台实施指南](./opinionsearch-adaptive-workbench-implementation-plan-2026-09-11.md)为准。原 §2 对 Web UI/HTTP API 的排除仅适用于早期五天范围，已被用户后续 Web 委托扩展；多 Agent、社交采集、框架迁移和平台化仍不进入本轮。
-> **2026-09-12 状态修正**：工作台阶段 P0–P3 与 P4-1/4-2/4-3 已实施并经机制测试 + 浏览器主路径验证（实现记录 §21–§26）；P4-4 观点构成按启用条件保持 pending；P5（固定材料回放、真实联网对比、人工 90%/95% 评分）blocked 于案例材料（registry 10 槽位全部 blocked）与额度，不得以 P0–P4 完成宣称 P5 通过。
+> **2026-09-12 状态修正（2026-09-13 更新）**：工作台阶段 P0–P3 与 P4-1/4-2/4-3 已实施并经机制测试 + 浏览器主路径验证（实现记录 §21–§26）；P4-4 观点构成按启用条件保持 pending。P5 已完成无付费语义预修，并登记一个本地真实材料候选；但该案例仍为 `UNREVIEWED`，另 9 个槽位 blocked，冻结材料真实模型对照、真实联网对比和人工 90%/95% 评分均未执行，不得以此宣称 P5 通过。
+> **2026-09-13 下一阶段入口**：[真实报告质量执行指南](./opinionsearch-report-quality-next-stage-guide-2026-09-13.md)。按 S0→S6 从已知语义缺口、真实材料冻结和单案例模型对照推进，再验收更新与 Web、扩大案例和联网发现。已有专项字段、回放工具和机制回归不等于真实质量通过；额度状态须按本批次确认，不能沿用历史故障判断。本文档发布未启动付费运行或实施其中修复。
+> **2026-09-14 链路诊断增量**：在既有 LoopHook/checkpoint/report/workbench 上增加单次调查的确定性生产链路诊断，覆盖规划、搜索、读取、来源、证据、分析、审查、结束和预算；不增加 CLI 产品功能，不建立跨 run Observability/Eval 平台，也不把结构信号称为报告质量分数。实现与边界见 canonical design §19.11、实现记录 §39。
+> **2026-09-14 PagePlan 增量**：新增可重建的 `opinion-page-plan/1`，把统一可信框架、事件专项模块、必需字段缺口和定向搜索 target 连接到同一契约；Agent Context、completion、在线 workbench 和静态 HTML 共同消费该计划。PagePlan 不写入 checkpoint、不允许模型生成 HTML，且只有关联必答问题的专项缺口会使终态降为 partial。详见 canonical design §19.12、实现记录 §40。
+> **V1 范围冻结（2026-09-14）**：[OpinionSearch V1 产品边界与完成标准](./opinionsearch-v1-scope-and-acceptance.md) 是新增工作的准入规则和最终停止条件。后续只处理正确性、真实质量证据和 Web 主路径可用性；持续监测、社交采集、代表性观点比例、多 Agent、RAG 平台及框架迁移进入 Backlog。
+> **范围内首项修复（2026-09-14）**：PagePlan 的专项必填字段改为由关联用户问题确定性触发，保留每类模块一个语义锚点；模板可选字段为空不再扩大调查或使报告降为 partial。字段要求保留依据问题，定向搜索和完成判断消费同一结果。详见 canonical design §19.12、实现记录 §41。
+> **首次真实模型失败与收敛修复（2026-09-14）**：`billing-dev-v1` 冻结回放实际消耗 Agent 40 次模型请求，读取 8 份正文并保存 44 个可定位证据，但没有生成 Finding/Review/Conclusion，最终为 partial；同模型摘要基线又因 4096→8192 输出上限均被推理耗尽而失败。已增加首次研判闸门并修复 max steps、decision attempts 和 output tokens 的生产配置 wiring。机制测试已通过，真实模型复跑为 `NOT_RUN`。详见 canonical design §19.13、实现记录 §43 和批次 `artifacts/report-quality/2026-09-14-s3-live/`。
+> **收敛修复真实复跑（2026-09-14）**：S4 复跑使用 9 次模型请求，首次闸门真实触发并使模型尝试带 Finding 的 reflect，但一次 schema 错误及一次不满足搜索前提的 not_found 导致决策恢复耗尽，仍为 partial。策略已细化为 duplicate 时先读取已知候选、达到 4 份材料后再强制首次 reflect，并明确只处置当前证据覆盖的问题。第二版机制回归通过，真实模型复跑为 `NOT_RUN`；本阶段停止追加调用。详见实现记录 §44 和批次 `artifacts/report-quality/2026-09-14-s4-convergence-rerun/`。
 
 除非明确说明，本计划中的命令从 `opinion_search_agent/` 执行。
 
@@ -633,3 +642,9 @@ Day 3 和 Day 4 在 Day 2 闸门通过后可以并行推进，但用户同一时
 ## 14. 五天后如何继续
 
 五天后只在前两层内深化。优先根据 recovery matrix 和真实 workload 选择：更严格的 transaction/idempotency、更多 MCP compatibility、context selection 改进、memory refresh 策略或 tool concurrency。不要自然扩展到 Control Plane、Observability、Evaluation 或 Model Infra；如果以后要做，应作为独立项目立项。
+
+## 15. 2026-09-15 收尾状态覆盖
+
+当前唯一执行入口改为 `docs/opinionsearch-two-day-closeout-plan-2026-09-14.md` 与 `docs/opinionsearch-v1-scope-and-acceptance.md`。历史 Day 5 的 CLI 闸门不再作为当前产品验收；产品新增与验收均以 Web 为入口。
+
+真实模型冻结回放已经从 0 Finding 推进到 reviewed Finding，并增加 partial 阶段性判断、模型预算发布保留段、第二个规则调整开发案例和关联更新回放入口。但 A、B、T0 三批均未形成完整 Conclusion；T1 因父版无判断停止。当前证据支持“调查链路可审计且能产生局部可核查判断”，尚不支持“稳定形成深度有价值的完整舆情报告”。最终等级必须继续由保留案例真实联网、浏览器主路径和人工 90%/95% 评分决定。

@@ -59,19 +59,18 @@ def render_page(workbench: dict, report: dict | None = None, evidence_context: d
     offline = overview.get("mode") == "offline"
     state = workbench.get("publication_state", "")
     limitations = workbench.get("limitations", {})
+    rendered_sections = _planned_sections(workbench, overview, coverage, issues, citations,
+                                          evidence_index, sources, contexts)
 
     body = [
         _header(offline),
         '<div class="os-frame">',
-        _nav(state),
+        _nav(workbench, state),
         "<main>",
         _heading(workbench, overview, coverage),
         _summary(overview, citations),
         '<div class="os-main-grid"><div class="os-content">',
-        _overview_section(workbench, overview, citations),
-        _coverage_section(coverage, citations),
-        _issues_section(issues, citations),
-        _citations_section(citations, evidence_index, sources, contexts),
+        *rendered_sections,
         "</div>",
         _inspector(workbench, overview, citations, evidence_index, sources, contexts),
         "</div>",
@@ -134,16 +133,46 @@ def _header(offline: bool) -> str:
             f'<small> / 事件工作台</small></div><span class="os-demo">{badge}</span></header>')
 
 
-def _nav(state: str) -> str:
+def _nav(workbench: dict, state: str) -> str:
     provisional = state not in {"completed", "partial", "failed", "cancelled"}
     note = "（阶段投影，待核查）" if provisional else ""
+    planned = [section for section in workbench.get("page_plan", {}).get("sections", [])
+               if section.get("view") in {"overview", "focus", "issues", "coverage", "citations", "diagnostics"}]
+    if planned:
+        links = "".join(
+            f'<a href="#sec-{_esc(section["section_id"])}"'
+            + (' aria-current="true"' if section["view"] == "overview" else "")
+            + f'>{_esc(section["title"])}{note if section["view"] == "overview" else ""}</a>'
+            for section in planned
+        )
+        return f'<nav class="os-nav" aria-label="调查视图"><p>当前调查</p>{links}</nav>'
     return (
         '<nav class="os-nav" aria-label="调查视图"><p>当前调查</p>'
         f'<a href="#sec-overview" aria-current="true">事件总览{note}</a>'
         '<a href="#sec-coverage">报道对照</a>'
         '<a href="#sec-issues">议题与核查</a>'
+        '<a href="#sec-diagnostics">链路诊断</a>'
         '<a href="#sec-citations">引用与原文</a>'
         "</nav>")
+
+
+def _planned_sections(workbench, overview, coverage, issues, citations,
+                      evidence_index, sources, contexts) -> list[str]:
+    renderers = {
+        "overview": lambda: _overview_section(workbench, overview, citations),
+        "focus": lambda: _focus_section(workbench, citations),
+        "issues": lambda: _issues_section(issues, citations),
+        "coverage": lambda: _coverage_section(coverage, citations),
+        "citations": lambda: _citations_section(citations, evidence_index, sources, contexts),
+        "diagnostics": lambda: _diagnostics_section(workbench.get("views", {}).get("diagnostics", {})),
+    }
+    plan = workbench.get("page_plan", {})
+    if not plan.get("sections"):
+        order = ("overview", "coverage", "issues", "diagnostics", "citations")
+    else:
+        order = tuple(section.get("view") for section in plan["sections"]
+                      if section.get("view") in renderers)
+    return [renderers[view]() for view in order]
 
 
 def _heading(workbench, overview, coverage) -> str:
@@ -200,14 +229,18 @@ def _summary(overview, citations) -> str:
                 '</div><p class="os-note">本轮材料不足以形成已核查的核心判断，未完成问题保持未知。</p></section>')
     lead = judgments[0]
     rest = judgments[1:]
+    interim = overview.get("judgment_mode") == "interim"
+    label = "已核查阶段性判断" if interim else "当前研判"
+    note = ("调查尚未完成；以下判断通过了引用审查，但尚未被 Agent 选为完整报告核心结论。"
+            if interim else "每条判断都可下钻到保存的原文与核查状态")
     rest_html = "".join(
         f'<div><p>{_esc(item["text"])} {_cite_links(citations, item.get("citation_ids"))}</p>'
         f'<div class="os-note">核查：{_esc(REVIEW_LABELS.get(item.get("review", ""), item.get("review", "")))}</div></div>'
         for item in rest)
     return (
         '<section class="os-summary">'
-        '<div class="os-summary-title"><span class="os-tag">当前研判</span>'
-        '<span class="os-meta">每条判断都可下钻到保存的原文与核查状态</span></div>'
+        f'<div class="os-summary-title"><span class="os-tag">{_esc(label)}</span>'
+        f'<span class="os-meta">{_esc(note)}</span></div>'
         f'<h3>{_esc(lead["text"])}</h3>'
         f'<p>{_cite_links(citations, lead.get("citation_ids"), prefix="依据：")}</p>'
         f'<div class="os-note">核查：{_esc(REVIEW_LABELS.get(lead.get("review", ""), lead.get("review", "")))}</div>'
@@ -238,7 +271,9 @@ def _overview_section(workbench, overview, citations) -> str:
     highlighted = [m for m in overview.get("highlights", []) if m.get("facet")]
     all_facets = [m for m in workbench.get("modules", []) if m.get("facet")]
     modules = highlighted or all_facets
-    cards = "".join(_module_card(module, citations) for module in modules)
+    # Historical snapshots keep specialty cards in the overview. PagePlan
+    # snapshots render them in their own planned section below.
+    cards = "" if workbench.get("page_plan") else "".join(_module_card(module, citations) for module in modules)
     timeline = overview.get("timeline", {})
     events = timeline.get("events", []) + timeline.get("unparsed", [])
     nodes = "".join(f'<div>{_esc(node.get("event_time", ""))} {_esc(node["text"])} '
@@ -263,6 +298,29 @@ def _overview_section(workbench, overview, citations) -> str:
         + "</section>")
 
 
+def _focus_section(workbench, citations) -> str:
+    plan = workbench.get("page_plan", {})
+    section = next((item for item in plan.get("sections", []) if item.get("view") == "focus"), {})
+    by_type = {module.get("module_type"): module for module in workbench.get("modules", [])
+               if module.get("facet")}
+    modules = [by_type[module_type] for module_type in section.get("module_types", [])
+               if module_type in by_type]
+    known_types = {module.get("module_type") for module in modules}
+    modules.extend(module for module in workbench.get("views", {}).get("overview", {}).get("highlights", [])
+                   if module.get("facet") and module.get("module_type") not in known_types)
+    cards = "".join(_module_card(module, citations) for module in modules)
+    targets = plan.get("search_targets", [])
+    if targets:
+        gap_text = "；".join(item.get("target_gap", "") for item in targets)
+        gaps = f'<p class="os-open-question"><b>仍需补查的专项内容：</b>{_esc(gap_text)}</p>'
+    else:
+        gaps = '<p class="os-note">当前必需专项字段已经形成；是否可发布仍取决于证据审查结果。</p>'
+    return ('<section class="os-section" id="sec-focus">'
+            f'<div class="os-section-head"><h3>{_esc(section.get("title", "事件专项分析"))}</h3>'
+            f'<span class="os-note">{_esc(section.get("purpose", "按事件类型组织结构化事实与缺口。"))}</span></div>'
+            f'<p class="os-note">{_esc(plan.get("rationale", ""))}</p>{cards}{gaps}</section>')
+
+
 def _module_field_html(field, citations) -> str:
     label = _esc(field.get("label", ""))
     state = field.get("state", "")
@@ -273,6 +331,12 @@ def _module_field_html(field, citations) -> str:
         values = " / ".join(_esc(value) for value in field.get("values", []))
         return (f'<div class="os-facet-field"><span class="os-facet-label">{label}</span>'
                 f'<span class="os-open-question">字段冲突：{values}；待核查。</span></div>')
+    if state == "multiple":
+        values = " / ".join(_esc(value) for value in field.get("values", []))
+        citations_html = _cite_links(citations, field.get("citations"))
+        return (f'<div class="os-facet-field"><span class="os-facet-label">{label}</span>'
+                f'<span class="os-open-question">多种有依据表述：{values}；需核对适用范围与时间。 '
+                f'{citations_html}</span></div>')
     return f'<div class="os-facet-field"><span class="os-facet-label">{label}</span><span class="os-note">未知</span></div>'
 
 
@@ -425,6 +489,59 @@ def _issues_section(issues, citations) -> str:
             + ("".join(blocks) or '<p class="os-note">尚未形成可展示的调查问题。</p>') + "</section>")
 
 
+def _diagnostic_metric_line(stage: dict) -> str:
+    stage_id, metrics = stage.get("id"), stage.get("metrics") or {}
+    if stage_id == "scope":
+        return f'问题 {metrics.get("issues", 0)}｜必答 {metrics.get("required", 0)}｜未解决 {metrics.get("unresolved_required", 0)}｜未解决子项 {metrics.get("unresolved_components", 0)}'
+    if stage_id == "discovery":
+        outcomes = metrics.get("outcomes") or {}
+        return f'搜索 {metrics.get("attempts", 0)} 次｜候选 URL {metrics.get("candidate_urls", 0)}｜失败 {outcomes.get("error", 0)} 次'
+    if stage_id == "acquisition":
+        return f'读取 {metrics.get("read_attempts", 0)} 次｜正文版本 {metrics.get("saved_versions", 0)}｜未读候选 {metrics.get("unread_candidates", 0)}｜失败 {metrics.get("read_errors", 0)}'
+    if stage_id == "sources":
+        return f'页面 {metrics.get("documents", 0)}｜版本 {metrics.get("versions", 0)}｜域名 {len(metrics.get("domains") or {})}｜关系未核实 {metrics.get("relations_unverified", 0)}'
+    if stage_id == "evidence":
+        return f'证据 {metrics.get("items", 0)}｜被当前判断引用 {metrics.get("cited_items", 0)}｜有引用的来源 {metrics.get("sources_with_cited_evidence", 0)}'
+    if stage_id == "analysis":
+        classified = sum(value for key, value in (metrics.get("response_classes") or {}).items() if key != "not_assessed")
+        return f'有效判断 {metrics.get("active_findings", 0)}｜主体 {len(metrics.get("stakeholders") or [])}｜回应已分类 {classified}'
+    if stage_id == "review":
+        return f'有效判断 {metrics.get("active_findings", 0)}｜通过 {metrics.get("supported", 0)}｜未审查 {metrics.get("unreviewed", 0)}｜未通过 {metrics.get("not_supported", 0)}'
+    if stage_id == "completion":
+        return f'发布状态 {metrics.get("publication_status", "未知")}｜策略判断 {metrics.get("policy_disposition", "未知")}｜核心结论 {metrics.get("conclusions", 0)}'
+    if stage_id == "runtime":
+        return f'已提交步骤 {metrics.get("committed_steps", 0)}｜决策重试 {metrics.get("decision_retries", 0)}'
+    return "暂无阶段计数。"
+
+
+def _diagnostics_section(diagnostics: dict) -> str:
+    if not diagnostics.get("format"):
+        return ('<section class="os-section" id="sec-diagnostics"><div class="os-section-head">'
+                '<h3>生产链路诊断</h3></div><p class="os-open-question">这个历史版本没有链路诊断数据。</p></section>')
+    summary = diagnostics.get("summary") or {}
+    stages = "".join(
+        '<article class="os-diagnostic-stage ' + _esc(stage.get("status", "pending")) + '">'
+        '<div class="os-module-head"><h4>' + _esc(stage.get("label", stage.get("id", ""))) + '</h4>'
+        '<span class="os-tag">' + _esc({"observed": "已观察", "attention": "待处理", "blocked": "阻塞", "pending": "尚未开始"}.get(stage.get("status"), stage.get("status", ""))) + '</span></div>'
+        '<p class="os-note">' + _esc(_diagnostic_metric_line(stage)) + '</p></article>'
+        for stage in diagnostics.get("stages", []))
+    signals = "".join(
+        '<article class="os-diagnostic-signal ' + _esc(item.get("severity", "info")) + '">'
+        '<div><span class="os-tag">' + _esc({"critical": "阻塞", "warning": "待处理", "info": "说明"}.get(item.get("severity"), item.get("severity", ""))) + '</span>'
+        '<span class="os-diagnostic-code">' + _esc(item.get("code", "")) + '</span></div>'
+        '<strong>' + _esc(item.get("message", "")) + '</strong>'
+        '<p class="os-note">建议：' + _esc(item.get("action", "")) + '</p></article>'
+        for item in diagnostics.get("signals", []))
+    return ('<section class="os-section" id="sec-diagnostics">'
+            '<div class="os-section-head"><h3>生产链路诊断</h3>'
+            f'<span class="os-tag">阻塞 {summary.get("critical", 0)}｜待处理 {summary.get("warnings", 0)}</span></div>'
+            f'<p class="os-note">{_esc(summary.get("disclaimer", "结构诊断不等于报告质量评分。"))}</p>'
+            f'<div class="os-diagnostic-grid">{stages}</div>'
+            '<div class="os-section-head"><h3>需要处理的信号</h3><span class="os-note">按严重程度与工作链路排序</span></div>'
+            + (signals or '<p class="os-note">当前没有触发结构性告警；这不证明事实正确或材料具有代表性。</p>')
+            + '</section>')
+
+
 def _excerpt_block(evidence: dict, context: dict | None) -> str:
     """Render a saved excerpt together with its archive-verification status.
 
@@ -486,8 +603,6 @@ def _inspector(workbench, overview, citations, evidence_index, sources, contexts
     evidence = evidence_index.get(first)
     source = sources.get(citation.get("version_id", ""), {})
     context = contexts.get(first)
-    url = _safe_url(source.get("final_url") or source.get("url"))
-    link = f'<a href="{_esc(url)}" target="_blank" rel="noopener noreferrer">{_esc(url)}</a>' if url else "来源地址不可用"
     excerpt = _excerpt_block(evidence, context) if evidence else ""
     gaps = [module["gap"] for module in workbench.get("modules", [])
             if module.get("facet") and module.get("state") == "insufficient" and module.get("gap")]

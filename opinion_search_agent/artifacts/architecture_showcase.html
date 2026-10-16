@@ -1,0 +1,877 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpinionSearch Agent · 系统完整架构与数据流全景图谱</title>
+<style>
+:root {
+  --bg: #f4efe6;
+  --bg-page: #fbf8f1;
+  --card: #ffffff;
+  --card-subtle: #f7f3ea;
+  --ink: #1c1917;
+  --ink-sec: #38332e;
+  --muted: #6e655b;
+  --line: #d8cfc0;
+  --line-strong: #1c1917;
+  --navy: #0d2d44;
+  --navy-soft: #edf4f9;
+  --navy-border: #9ec3de;
+  --crimson: #8b1e1e;
+  --crimson-soft: #fdf2f2;
+  --crimson-border: #fca5a5;
+  --green: #14532d;
+  --green-soft: #f0fdf4;
+  --green-border: #86efac;
+  --amber: #92400e;
+  --amber-soft: #fefce8;
+  --amber-border: #fde047;
+  --purple: #581c87;
+  --purple-soft: #faf5ff;
+  --purple-border: #d8b4fe;
+  --font-serif: "Songti SC", "SimSun", "Noto Serif SC", Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+body.dark {
+  --bg: #0b0f17;
+  --bg-page: #111824;
+  --card: #161f2e;
+  --card-subtle: #1c273a;
+  --ink: #f1f5f9;
+  --ink-sec: #cbd5e1;
+  --muted: #94a3b8;
+  --line: #28364d;
+  --line-strong: #60a5fa;
+  --navy: #60a5fa;
+  --navy-soft: #172554;
+  --navy-border: #1e40af;
+  --crimson: #f87171;
+  --crimson-soft: #3b1219;
+  --crimson-border: #7f1d1d;
+  --green: #4ade80;
+  --green-soft: #062814;
+  --green-border: #14532d;
+  --amber: #fbbf24;
+  --amber-soft: #382305;
+  --amber-border: #78350f;
+  --purple: #c084fc;
+  --purple-soft: #2e1065;
+  --purple-border: #581c87;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  line-height: 1.65;
+}
+.container {
+  max-width: 1260px;
+  margin: 0 auto;
+  padding: 28px 28px 80px;
+}
+.masthead {
+  border-bottom: 3px double var(--line-strong);
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+.masthead-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+}
+.badge-navy { background: var(--navy-soft); color: var(--navy); border: 1px solid var(--navy-border); }
+.badge-crimson { background: var(--crimson-soft); color: var(--crimson); border: 1px solid var(--crimson-border); }
+.badge-green { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
+.badge-amber { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border); }
+.badge-purple { background: var(--purple-soft); color: var(--purple); border: 1px solid var(--purple-border); }
+
+h1 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 900;
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+.subtitle {
+  font-size: 15px;
+  color: var(--ink-sec);
+  margin: 0;
+}
+.kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-top: 4px solid var(--navy);
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+.kpi-val {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--navy);
+}
+.kpi-lbl {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-top: 2px;
+}
+.kpi-desc {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--line-strong);
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+.tab-btn {
+  background: var(--card-subtle);
+  color: var(--ink-sec);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  padding: 10px 18px;
+  font-size: 13.5px;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+  white-space: nowrap;
+}
+.tab-btn.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+.panel { display: none; }
+.panel.active { display: block; }
+
+.section-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  padding: 22px 24px;
+  margin-bottom: 22px;
+}
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1.5px solid var(--line);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 900;
+  margin: 0;
+}
+.svg-wrap {
+  background: var(--bg-page);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+}
+.inspector-box {
+  margin-top: 14px;
+  background: var(--navy-soft);
+  border: 1.5px solid var(--navy-border);
+  border-left: 5px solid var(--navy);
+  border-radius: 4px;
+  padding: 14px 18px;
+}
+.inspector-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--navy);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.inspector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+.inspector-cell {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+}
+.inspector-cell strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.layer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.layer-row {
+  border: 1.5px solid var(--line);
+  border-left: 6px solid var(--navy);
+  border-radius: 5px;
+  background: var(--bg-page);
+  padding: 14px 18px;
+}
+.layer-row.crimson { border-left-color: var(--crimson); }
+.layer-row.green { border-left-color: var(--green); }
+.layer-row.purple { border-left-color: var(--purple); }
+.layer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.layer-name {
+  font-size: 16px;
+  font-weight: 900;
+}
+.module-pills {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.mod-pill {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.mod-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--navy);
+}
+.mod-pill-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+.mod-pill-desc {
+  font-size: 12px;
+  color: var(--ink-sec);
+}
+table.arch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table.arch-table th, table.arch-table td {
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+table.arch-table th {
+  background: var(--card-subtle);
+  font-weight: 800;
+}
+.code-tag {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: var(--card-subtle);
+  border: 1px solid var(--line);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.theme-btn {
+  background: var(--card);
+  color: var(--ink);
+  border: 1.5px solid var(--line-strong);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.node-clickable { cursor: pointer; transition: opacity .15s ease; }
+.node-clickable:hover { opacity: 0.88; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
+        <span class="badge badge-navy">OPINIONSEARCH AGENT INFRA</span>
+        <span>PROFILE: public-event-investigation-v2</span>
+        <span>｜</span>
+        <span>SINGLE-LOOP TRANSACTIONAL RUNTIME</span>
+      </div>
+      <button class="theme-btn" onclick="document.body.classList.toggle('dark')">切换深色 / 报刊主题</button>
+    </div>
+    <h1>OpinionSearch 舆情深度调查 Agent · 系统完整架构与数据流全景</h1>
+    <p class="subtitle">以真实公共舆情调查痛点（反回声室、零幻觉引用核验、长文多视角召回、预算收敛防死锁）驱动的四层 Agent 架构设计</p>
+  </header>
+
+  <section class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-val">10 Boundaries</div>
+      <div class="kpi-lbl">细粒度事务级 Checkpoint 状态机</div>
+      <div class="kpi-desc">支持任意时刻崩溃恢复（classify_resume）与确定性重放（Deterministic Replay）</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">3-Tier Compaction</div>
+      <div class="kpi-lbl">证据生命周期驱动的 Context 编译</div>
+      <div class="kpi-desc">核心与反方证据 NEVER 保护 → 边缘长摘录 TRUNCATE 截断 → 未读候选 DROP</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">&ge;75% Jaccard</div>
+      <div class="kpi-lbl">确定性同源通稿去重与聚类</div>
+      <div class="kpi-desc">基于 CJK 2-gram 自动识别洗稿/转载（repost/same_text），按独立信源簇计权</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">0 Unbacked Nums</div>
+      <div class="kpi-lbl">双层零幻觉数值与字符区间护栏</div>
+      <div class="kpi-desc">verify_evidence 原文偏移强校验 + unbacked_specifics 确定性量纲降级护栏</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-val">270+ Tests</div>
+      <div class="kpi-lbl">全链路单元/契约/真实案例验证</div>
+      <div class="kpi-desc">覆盖罗永浩吐槽野人先生、三九胃泰广告争议及对抗注入样本</div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="switchTab('tab-loop', this)">1. AgentLoop 事务状态机与单步闭环</button>
+    <button class="tab-btn" onclick="switchTab('tab-dataflow', this)">2. 端到端数据流管道 (Dataflow Pipeline)</button>
+    <button class="tab-btn" onclick="switchTab('tab-layers', this)">3. 四层代码架构全景 (4-Layer Architecture)</button>
+    <button class="tab-btn" onclick="switchTab('tab-painpoints', this)">4. 舆情业务痛点 ↔ Agent Infra 机制映射</button>
+  </nav>
+
+  <!-- TAB 1: AGENT LOOP -->
+  <div id="tab-loop" class="panel active">
+    <div class="section-card">
+      <div class="section-head">
+        <h2 class="section-title">AgentLoop 单步事务闭环与 10 阶段 Checkpoint 状态机</h2>
+        <span class="badge badge-navy">点击图中任意阶段节点查看底层代码契约与恢复策略</span>
+      </div>
+      <div class="svg-wrap">
+        <svg viewBox="0 0 1120 430" width="100%" height="auto" role="img" aria-label="AgentLoop 状态机图">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#0d2d44"/>
+            </marker>
+            <marker id="arr-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#8b1e1e"/>
+            </marker>
+          </defs>
+
+          <!-- Top Main Pipeline -->
+          <path d="M 145 95 L 205 95" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 355 95 L 415 95" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 565 95 L 625 95" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 775 95 L 835 95" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Downward to Bottom Pipeline -->
+          <path d="M 915 135 L 915 245" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 835 285 L 775 285" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 625 285 L 565 285" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 415 285 L 355 285" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+          <path d="M 205 285 L 145 285" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Loop Back for Next Step -->
+          <path d="M 280 245 C 280 185, 280 185, 280 135" stroke="#14532d" stroke-width="2.2" stroke-dasharray="5,4" marker-end="url(#arr)"/>
+          <text x="292" y="195" font-size="11" font-weight="800" fill="#14532d">未达终态 → 开启下一 Step</text>
+
+          <!-- Self-Heal Retry Loop -->
+          <path d="M 490 55 C 490 15, 700 15, 700 55" fill="none" stroke="#8b1e1e" stroke-width="2" stroke-dasharray="4,3" marker-end="url(#arr-red)"/>
+          <text x="595" y="24" text-anchor="middle" font-size="11" font-weight="800" fill="#8b1e1e">Validation 失败 → 写入 step.failures 触发同歩自愈重试 (最多 3 次)</text>
+
+          <!-- Nodes Row 1 -->
+          <g class="node-clickable" onclick="showLoopStage('run_started')">
+            <rect x="20" y="55" width="125" height="80" rx="6" fill="#edf4f9" stroke="#0d2d44" stroke-width="2"/>
+            <text x="82" y="82" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0d2d44">1. RUN_STARTED</text>
+            <text x="82" y="102" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">初始化领域状态</text>
+            <text x="82" y="120" text-anchor="middle" font-size="10" fill="#575047">PlanProposal &amp; Frame</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('step_opened')">
+            <rect x="205" y="55" width="150" height="80" rx="6" fill="#ffffff" stroke="#0d2d44" stroke-width="2"/>
+            <text x="280" y="80" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0d2d44">2. STEP_OPENED</text>
+            <text x="280" y="100" text-anchor="middle" font-size="12.5" font-weight="900" fill="#1c1917">ContextCompiler.compile</text>
+            <text x="280" y="118" text-anchor="middle" font-size="10" fill="#575047">注入信号 + 三级生命周期压缩</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('deciding')">
+            <rect x="415" y="55" width="150" height="80" rx="6" fill="#fefce8" stroke="#92400e" stroke-width="2"/>
+            <text x="490" y="80" text-anchor="middle" font-size="10.5" font-weight="800" fill="#92400e">3. DECIDING</text>
+            <text x="490" y="100" text-anchor="middle" font-size="12.5" font-weight="900" fill="#1c1917">ModelClient.decide</text>
+            <text x="490" y="118" text-anchor="middle" font-size="10" fill="#575047">search|read|retrieve|reflect|review|finish</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('decision_accepted')">
+            <rect x="625" y="55" width="150" height="80" rx="6" fill="#fdf2f2" stroke="#8b1e1e" stroke-width="2"/>
+            <text x="700" y="80" text-anchor="middle" font-size="10.5" font-weight="800" fill="#8b1e1e">4. DECISION_ACCEPTED</text>
+            <text x="700" y="100" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">ConsolidationValidator</text>
+            <text x="700" y="118" text-anchor="middle" font-size="10" fill="#575047">动作约束 + 1/3 收敛储备强校验</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('action_running')">
+            <rect x="835" y="55" width="160" height="80" rx="6" fill="#faf5ff" stroke="#581c87" stroke-width="2"/>
+            <text x="915" y="80" text-anchor="middle" font-size="10.5" font-weight="800" fill="#581c87">5. ACTION_RUNNING</text>
+            <text x="915" y="100" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">Resolver &amp; Executor</text>
+            <text x="915" y="118" text-anchor="middle" font-size="10" fill="#575047">Brave/Jina/FTS5/独立Reviewer</text>
+          </g>
+
+          <!-- Nodes Row 2 -->
+          <g class="node-clickable" onclick="showLoopStage('observation_ready')">
+            <rect x="835" y="245" width="160" height="80" rx="6" fill="#faf5ff" stroke="#581c87" stroke-width="2"/>
+            <text x="915" y="270" text-anchor="middle" font-size="10.5" font-weight="800" fill="#581c87">6. OBSERVATION_READY</text>
+            <text x="915" y="290" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">原文锚定与数值核验</text>
+            <text x="915" y="308" text-anchor="middle" font-size="10" fill="#575047">verify_evidence &amp; unbacked_specifics</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('reducing')">
+            <rect x="625" y="245" width="150" height="80" rx="6" fill="#f0fdf4" stroke="#14532d" stroke-width="2"/>
+            <text x="700" y="270" text-anchor="middle" font-size="10.5" font-weight="800" fill="#14532d">7. REDUCING</text>
+            <text x="700" y="290" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">reduce_state 纯函数归约</text>
+            <text x="700" y="308" text-anchor="middle" font-size="10" fill="#575047">自动同源通稿聚类 (repost)</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('step_committed')">
+            <rect x="415" y="245" width="150" height="80" rx="6" fill="#f0fdf4" stroke="#14532d" stroke-width="2"/>
+            <text x="490" y="270" text-anchor="middle" font-size="10.5" font-weight="800" fill="#14532d">8. STEP_COMMITTED</text>
+            <text x="490" y="290" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">原子落盘 run.json</text>
+            <text x="490" y="308" text-anchor="middle" font-size="10" fill="#575047">刷新阶段投影 workbench-provisional</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('continuation')">
+            <rect x="205" y="245" width="150" height="80" rx="6" fill="#ffffff" stroke="#0d2d44" stroke-width="2"/>
+            <text x="280" y="270" text-anchor="middle" font-size="10" font-weight="800" fill="#0d2d44">9. CONTINUATION_APPLIED</text>
+            <text x="280" y="290" text-anchor="middle" font-size="12" font-weight="900" fill="#1c1917">CompletionEvaluator</text>
+            <text x="280" y="308" text-anchor="middle" font-size="10" fill="#575047">拦截陈旧未回应判断 / 开放必答项</text>
+          </g>
+
+          <g class="node-clickable" onclick="showLoopStage('run_terminated')">
+            <rect x="20" y="245" width="125" height="80" rx="6" fill="#0d2d44" stroke="#1c1917" stroke-width="2"/>
+            <text x="82" y="270" text-anchor="middle" font-size="10" font-weight="800" fill="#9ec3de">10. RUN_TERMINATED</text>
+            <text x="82" y="290" text-anchor="middle" font-size="12" font-weight="900" fill="#ffffff">发布报告与视觉档案</text>
+            <text x="82" y="308" text-anchor="middle" font-size="10" fill="#cbd5e1">LlmPresentationPlanner</text>
+          </g>
+
+          <!-- Bottom Legend -->
+          <rect x="20" y="355" width="1075" height="52" rx="4" fill="#f7f3ea" stroke="#d8cfc0"/>
+          <text x="38" y="378" font-size="12" font-weight="800" fill="#1c1917">核心设计原则（Single-Loop Transaction Invariant）：</text>
+          <text x="38" y="396" font-size="11.5" fill="#38332e">每一轮迭代严格经历「编译上下文 → 結構化决策 → 动作护栏校验 → 外部工具/本地检索/独立审查 → 原文偏移验证 → 纯函数状态归约 → 原子落盘」7 个确定性子阶段。</text>
+        </svg>
+      </div>
+
+      <div id="loop-inspector" class="inspector-box">
+        <div class="inspector-title">
+          <span class="badge badge-navy" id="insp-badge">STAGE 02 · STEP_OPENED</span>
+          <span id="insp-name">ContextCompiler.compile — 舆情信号注入与证据生命周期三级压缩</span>
+        </div>
+        <div id="insp-desc" style="font-size:13.5px;color:var(--ink-sec)">
+          在每步开始时，编译器从不可变领域状态（State）构建受信任边界隔离的 CompiledContext。自动运行确定性分析引擎提取四大舆情质量信号，并按证据引用生命周期执行 NEVER / TRUNCATE / DROP 三级压缩。
+        </div>
+        <div class="inspector-grid">
+          <div class="inspector-cell">
+            <strong>代码位置 (Source Location)</strong>
+            <span id="insp-code" class="code-tag">investigation/context.py :: Compiler.compile</span>
+          </div>
+          <div class="inspector-cell">
+            <strong>核心输入与状态约束 (Inputs &amp; Guards)</strong>
+            <span id="insp-in">RunState.domain_state + Budget 剩余时间与模型调用配额</span>
+          </div>
+          <div class="inspector-cell">
+            <strong>崩溃恢复语义 (Crash-Resume Behavior)</strong>
+            <span id="insp-resume">classify_resume 识别 STEP_OPENED → 重新编译 Context 发起模型决策，无副作用残留</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: DATAFLOW PIPELINE -->
+  <div id="tab-dataflow" class="panel">
+    <div class="section-card">
+      <div class="section-head">
+        <h2 class="section-title">端到端数据流管道（从用户舆情提问到零幻觉视觉档案）</h2>
+        <span class="badge badge-green">全链路不可变证据溯源 (Immutable Provenance)</span>
+      </div>
+      <div class="svg-wrap">
+        <svg viewBox="0 0 1120 520" width="100%" height="auto" role="img" aria-label="系统数据流图">
+          <!-- Stage 1 -->
+          <rect x="20" y="30" width="230" height="125" rx="6" fill="#edf4f9" stroke="#0d2d44" stroke-width="2"/>
+          <text x="35" y="55" font-size="11" font-weight="800" fill="#0d2d44">STAGE A · 任务定框与议题拆解</text>
+          <text x="35" y="76" font-size="13" font-weight="900" fill="#1c1917">InvestigationRequest → State</text>
+          <text x="35" y="96" font-size="11" fill="#38332e">• 提取用户必答子问题 (required_questions)</text>
+          <text x="35" y="114" font-size="11" fill="#38332e">• 顿号/分号复合问题拆分为 QuestionComponent</text>
+          <text x="35" y="132" font-size="11" fill="#38332e">• 锁定时间窗口 (TemporalScope → freshness)</text>
+
+          <path d="M 250 92 L 295 92" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Stage 2 -->
+          <rect x="295" y="30" width="245" height="125" rx="6" fill="#ffffff" stroke="#0d2d44" stroke-width="2"/>
+          <text x="310" y="55" font-size="11" font-weight="800" fill="#0d2d44">STAGE B · 定向多源发现与正文归档</text>
+          <text x="310" y="76" font-size="13" font-weight="900" fill="#1c1917">Brave Search + Jina Reader</text>
+          <text x="310" y="96" font-size="11" fill="#38332e">• 强制排除社交平台域名 (SOCIAL_DOMAINS)</text>
+          <text x="310" y="114" font-size="11" fill="#38332e">• 原文落盘 LocalTextArtifactStore + SHA256</text>
+          <text x="310" y="132" font-size="11" fill="#38332e">• 过滤 Markdown 图片/链接噪音 (_is_noise_chunk)</text>
+
+          <path d="M 540 92 L 585 92" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Stage 3 -->
+          <rect x="585" y="30" width="250" height="125" rx="6" fill="#fefce8" stroke="#92400e" stroke-width="2"/>
+          <text x="600" y="55" font-size="11" font-weight="800" fill="#92400e">STAGE C · 多视角检索与同源通稿聚类</text>
+          <text x="600" y="76" font-size="13" font-weight="900" fill="#1c1917">Corpus FTS5 + Provenance Cluster</text>
+          <text x="600" y="96" font-size="11" fill="#38332e">• 增量 FTS5 + 引语/日期/数值密度重排</text>
+          <text x="600" y="114" font-size="11" fill="#38332e">• 首读联合匹配 focus + question + components</text>
+          <text x="600" y="132" font-size="11" fill="#8b1e1e" font-weight="700">• 二元词 Jaccard &ge;75% 自动归并 repost 关系</text>
+
+          <path d="M 835 92 L 875 92" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Stage 4 -->
+          <rect x="875" y="30" width="225" height="125" rx="6" fill="#fdf2f2" stroke="#8b1e1e" stroke-width="2"/>
+          <text x="890" y="55" font-size="11" font-weight="800" fill="#8b1e1e">STAGE D · 舆情质量信号反馈</text>
+          <text x="890" y="76" font-size="13" font-weight="900" fill="#1c1917">evidence_quality_signals</text>
+          <text x="890" y="96" font-size="11" fill="#38332e">1. domain_saturation (单域名饱和)</text>
+          <text x="890" y="114" font-size="11" fill="#38332e">2. undisposed_counter_evidence</text>
+          <text x="890" y="132" font-size="11" fill="#38332e">3. numeric_conflicts (同单位倍差冲突)</text>
+
+          <!-- Downward arrow from Stage D to Stage E -->
+          <path d="M 985 155 L 985 220 L 840 220 L 840 250" fill="none" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Stage 5 -->
+          <rect x="650" y="250" width="450" height="130" rx="6" fill="#f0fdf4" stroke="#14532d" stroke-width="2"/>
+          <text x="668" y="275" font-size="11" font-weight="800" fill="#14532d">STAGE E · 原子判断合成与独立 Reviewer 数值锚定核查</text>
+          <text x="668" y="296" font-size="13.5" font-weight="900" fill="#1c1917">Reflect (Finding + IssueAssessment) → Review (unbacked_specifics Guard)</text>
+          <text x="668" y="318" font-size="11.5" fill="#38332e">• 强制区分事实 (fact)、归因表态 (attributed)、诉求 (concern) 及回应覆盖度 (direct / partial / non_substantive)</text>
+          <text x="668" y="338" font-size="11.5" fill="#38332e">• 独立 Reviewer 模型逐条核对 Finding 与支持 Evidence 原文摘录</text>
+          <text x="668" y="358" font-size="11.5" fill="#8b1e1e" font-weight="700">• 程序确定性守卫 unbacked_specifics：凡 Finding 中出现的数字/金额/百分比未在引用摘录出现，强制降级为 partial</text>
+
+          <path d="M 650 315 L 580 315" stroke="#0d2d44" stroke-width="2.5" marker-end="url(#arr)"/>
+
+          <!-- Stage 6 -->
+          <rect x="20" y="250" width="560" height="130" rx="6" fill="#faf5ff" stroke="#581c87" stroke-width="2"/>
+          <text x="38" y="275" font-size="11" font-weight="800" fill="#581c87">STAGE F · 契约驱动投影与自主视觉档案渲染 (Contract-Driven Visual Dossier)</text>
+          <text x="38" y="296" font-size="13.5" font-weight="900" fill="#1c1917">Report &amp; Workbench → ContentDocument → LlmPresentationPlanner → dossier.html</text>
+          <text x="38" y="318" font-size="11.5" fill="#38332e">• 相对时间自动锚定 (_anchor_relative_time)：结合 SourceVersion.published_at 将“昨日/10月13日”换算为标准 ISO 日期</text>
+          <text x="38" y="338" font-size="11.5" fill="#38332e">• 独立信源簇加权 (_independent_cluster_count)：拔河权重条与关系拓扑图按去重后独立信源簇计权，免疫洗稿放大</text>
+          <text x="38" y="358" font-size="11.5" fill="#581c87" font-weight="700">• 交付四大交互视觉视图：三层 SVG 节点关系拓扑图 + 正反证据拔河竞技场 + 三栏立场光谱泳道 + 回应覆盖度核查卡</text>
+
+          <!-- Data Artifact Strip at Bottom -->
+          <rect x="20" y="415" width="1080" height="80" rx="6" fill="#ffffff" stroke="#1c1917" stroke-width="1.5"/>
+          <text x="38" y="440" font-size="12" font-weight="900" fill="#0d2d44">落盘不可变产物链 (Immutable On-Disk Artifacts per Run)：</text>
+          <text x="38" y="465" font-family="monospace" font-size="12" fill="#1c1917">
+            draft.json (任务元数据) ➔ budget.json (计量账本) ➔ run.json (10阶段事务Checkpoint) ➔ corpus.sqlite3 (增量FTS5索引) ➔ report.json / workbench.json ➔ presentation_plan.json ➔ dossier.html
+          </text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: 4-LAYER ARCHITECTURE -->
+  <div id="tab-layers" class="panel">
+    <div class="section-card">
+      <div class="section-head">
+        <h2 class="section-title">四层代码架构全景与核心模块职责</h2>
+        <span class="badge badge-purple">严格单向依赖 · 领域纯函数与外部 I/O 彻底分离</span>
+      </div>
+      <div class="layer-stack">
+        <div class="layer-row purple">
+          <div class="layer-header">
+            <span class="layer-name">Layer 4 · 契约驱动视觉呈现与 Web 交付层 (Report Contract &amp; Presentation Skill)</span>
+            <span class="badge badge-purple">report_contract/ · presentation_skill/ · web/</span>
+          </div>
+          <div class="module-pills">
+            <div class="mod-pill">
+              <div class="mod-pill-title">report_contract/projector.py</div>
+              <div class="mod-pill-desc">将调查结果投影为 ContentDocument，执行独立信源簇合并（Union-Find）与相对时间锚定。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">presentation_skill/llm_planner.py</div>
+              <div class="mod-pill-desc">自主视觉编排 Agent，支持动态交锋模块提案，并由 unbacked_specifics 拦截任何未锚定数值。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">report_contract/renderer.py</div>
+              <div class="mod-pill-desc">生成自包含 dossier.html：渲染三层交互式 SVG 关系拓扑图、正反拔河条、三栏立场泳道与横向时间链。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">web/server.py &amp; workbench.js</div>
+              <div class="mod-pill-desc">暴露 /dossier、/presentation-plan、/workbench 与 SSE 实时进度流接口。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-row crimson">
+          <div class="layer-header">
+            <span class="layer-name">Layer 3 · 舆情深度调查领域引擎层 (Public-Event Investigation Domain Engine)</span>
+            <span class="badge badge-crimson">domain/investigation/ · investigation/</span>
+          </div>
+          <div class="module-pills">
+            <div class="mod-pill">
+              <div class="mod-pill-title">domain/investigation/engine.py</div>
+              <div class="mod-pill-desc">领域核心纯函数：Validator、CompletionEvaluator、reduce_state、同源通稿自动检测与四大质量信号计算。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">investigation/service.py</div>
+              <div class="mod-pill-desc">ConsolidationValidator（最后 1/3 预算收敛保护）、多视角首读摘录提取、独立 Reviewer 与 unbacked_specifics。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">investigation/context.py</div>
+              <div class="mod-pill-desc">领域 Context 编译器：注入 next_action_constraint、coverage 信号，并对证据执行 NEVER/TRUNCATE 分级保护。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">investigation/storage.py</div>
+              <div class="mod-pill-desc">Corpus 增量 FTS5 全文检索、页面噪音清洗、引语/日期/数值重排与 verify_evidence 字符偏移核验。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-row">
+          <div class="layer-header">
+            <span class="layer-name">Layer 2 · 上下文编译与工具执行基建层 (Context Engineering &amp; Tool Execution Infra)</span>
+            <span class="badge badge-navy">context/ · tools/ · models/</span>
+          </div>
+          <div class="module-pills">
+            <div class="mod-pill">
+              <div class="mod-pill-title">context/compactor.py &amp; models.py</div>
+              <div class="mod-pill-desc">受 TrustBoundary 约束的上下文预算管理器，按优先级执行 NEVER → TRUNCATE → DROP 确定性降级。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">tools/executor.py &amp; circuit.py</div>
+              <div class="mod-pill-desc">统一管理参数校验、同源重试、跨 Provider 降级、熔断器与 JsonActionResultCache 持久化结果缓存。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">tools/adapters/{brave,jina}.py</div>
+              <div class="mod-pill-desc">Brave 搜索与 Jina 正文提取适配器，支持 freshness 时间窗口下发与本地不可变正文归档。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">models/openai_compatible.py</div>
+              <div class="mod-pill-desc">结构化 JSON Schema 决策客户端，内置传输层重试与 MeteredTransport 预算记账。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-row green">
+          <div class="layer-header">
+            <span class="layer-name">Layer 1 · 事务级单循环运行时内核 (Transactional AgentLoop Runtime Kernel)</span>
+            <span class="badge badge-green">runtime/</span>
+          </div>
+          <div class="module-pills">
+            <div class="mod-pill">
+              <div class="mod-pill-title">runtime/loop.py</div>
+              <div class="mod-pill-desc">单循环状态机内核 AgentLoop，编排 10 个 CheckpointBoundary、取消信号竞态处理与验证失败自愈重试。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">runtime/transaction.py</div>
+              <div class="mod-pill-desc">不可变事务状态转换纯函数（open_step, accept_decision, record_observation, commit_step, classify_resume）。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">runtime/checkpoint.py</div>
+              <div class="mod-pill-desc">JsonCheckpointStore：基于 tempfile + fsync + os.replace 的崩溃安全落盘与 execution_profile 版本门控。</div>
+            </div>
+            <div class="mod-pill">
+              <div class="mod-pill-title">runtime/completion.py</div>
+              <div class="mod-pill-desc">定义 ACCEPT_COMPLETE、ACCEPT_PARTIAL 与 REJECT_AND_CONTINUE 三态结束语义。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PAIN POINTS MAPPING -->
+  <div id="tab-painpoints" class="panel">
+    <div class="section-card">
+      <div class="section-head">
+        <h2 class="section-title">舆情调查真实业务痛点 ↔ Agent Infra 底层机制设计对照表</h2>
+        <span class="badge badge-amber">面试核心叙事：为什么通用 ReAct 无法胜任深度舆情核查？</span>
+      </div>
+      <table class="arch-table">
+        <thead>
+          <tr>
+            <th style="width:20%">舆情调查真实痛点</th>
+            <th style="width:24%">通用 ReAct / 普通 RAG 的典型失效模式</th>
+            <th style="width:34%">OpinionSearch 的底层机制设计 (Infra for Domain)</th>
+            <th style="width:22%">代码落点与验证指标</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>1. 舆论场“通稿洗稿”回声室效应</strong><br><span style="color:var(--muted);font-size:12px">10 家媒体转发同一篇公关稿或爆料贴</span></td>
+            <td>把 10 篇转载当成 10 份独立证据，浪费读取预算并在正反对比中严重夸大单方证据权重。</td>
+            <td><strong>确定性同源聚类 + 独立信源簇计权</strong>：入库归约时计算核心摘录 CJK 2-gram Jaccard，&ge;75% 自动建立 <span class="code-tag">repost/same_text</span> 关系；视觉拔河条与拓扑图通过 Union-Find 按<strong>独立信源簇</strong>计权。</td>
+            <td><span class="code-tag">engine.py :: _auto_detect_syndicated_relations</span><br><span class="code-tag">projector.py :: _build_source_cluster_map</span></td>
+          </tr>
+          <tr>
+            <td><strong>2. 长篇报道“首读漏抽”与上下文淹没</strong><br><span style="color:var(--muted);font-size:12px">长文前 70% 铺陈背景，后 30% 才有核心回应与反转数字</span></td>
+            <td>单一查询 Top-K 切片只取到开头背景段；20 步后大量未引用边缘摘录撑爆 Context 或稀释关键反方证据。</td>
+            <td><strong>多视角首读提取 + 三级生命周期压缩</strong>：首读联合匹配 <span class="code-tag">focus + question + open components</span> 并叠加引语/日期/数值密度重排；已引用证据与未处置反方证据设为 <span class="code-tag">NEVER</span>，边缘旧摘录设为 <span class="code-tag">TRUNCATE</span>。</td>
+            <td><span class="code-tag">service.py :: _read_material</span><br><span class="code-tag">storage.py :: Corpus.retrieve</span><br><span class="code-tag">context.py :: Compiler.compile</span></td>
+          </tr>
+          <tr>
+            <td><strong>3. 细粒度数值编造与“伪精确”幻觉</strong><br><span style="color:var(--muted);font-size:12px">模型把 316.03 亿写成 3160.3 亿，或在总结时脑补百分比</span></td>
+            <td>普通 LLM Self-Check 极易放过数字小数点移位或单位换算错误，导致报告出现致命事实错误。</td>
+            <td><strong>原文字符偏移强校验 + 确定性数值守卫</strong>：<span class="code-tag">verify_evidence</span> 强制校验 <span class="code-tag">content[start:end] == excerpt</span>；Reviewer 之后运行 <span class="code-tag">unbacked_specifics</span> 正则量纲比对，未锚定数字一律降级为 <span class="code-tag">partial</span>。</td>
+            <td><span class="code-tag">storage.py :: verify_evidence</span><br><span class="code-tag">service.py :: unbacked_specifics</span><br><span class="code-tag">llm_planner.py</span></td>
+          </tr>
+          <tr>
+            <td><strong>4. “暂未回应”陈旧结论与预算耗尽死锁</strong><br><span style="color:var(--muted);font-size:12px">早期下了“未回应”结论，后期读到回应却未更新；或收敛期卡死</span></td>
+            <td>早期结论一直留在列表中直至发布；或者最后几步因页面 403 读取失败在 <span class="code-tag">finish</span> 门控前无限死循环。</td>
+            <td><strong>陈旧否定结论拦截 + 收敛储备期有界放行</strong>：<span class="code-tag">_stale_negative_findings</span> 自动检测未处置的含回应词证据并拦截 finish；最后 1/3 预算由 <span class="code-tag">ConsolidationValidator</span> 接管，允许有界 <span class="code-tag">reflect/retrieve</span> 闭合开放问题。</td>
+            <td><span class="code-tag">engine.py :: _stale_negative_findings</span><br><span class="code-tag">service.py :: ConsolidationValidator</span></td>
+          </tr>
+          <tr>
+            <td><strong>5. “罗生门”式相对时间错位与多方各执一词</strong><br><span style="color:var(--muted);font-size:12px">报道大量使用“昨日”、“10月13日”，正反双方口径对立</span></td>
+            <td>时间轴因缺少完整年份把关键节点丢进未解析列表；长文本堆砌导致读者看不清谁支持、谁反对、谁回应了什么。</td>
+            <td><strong>发布时间锚定消歧 + 视觉拓扑/拔河/泳道渲染</strong>：结合 <span class="code-tag">SourceVersion.published_at</span> 自动将相对日期锚定为 ISO 日期；通过三层 SVG 拓扑图、正反拔河条与三栏立场泳道直观呈现多方博弈结构。</td>
+            <td><span class="code-tag">projector.py :: _anchor_relative_time</span><br><span class="code-tag">renderer.py :: _render_relation_graph</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGE_DATA = {
+  run_started: {
+    badge: "STAGE 01 · RUN_STARTED",
+    name: "任务定框、复合问题拆解与初始 Checkpoint 落盘",
+    desc: "将用户输入的自然语言问题转化为受约束的领域状态（State）：自动拆分顿号/分号并列的复合子问题（QuestionComponent），解析有界时间窗口（TemporalScope），并在进入循环前写入首个不可变 Checkpoint。",
+    code: "investigation/manager.py :: Manager._investigate & runtime/transaction.py :: start_run",
+    input: "InvestigationRequest (topic, question, focus, time_range) + PlanProposal",
+    resume: "若在规划完成前中断，重新进入规划或继续等待用户澄清（needs_clarification），不消耗调查循环步数。"
+  },
+  step_opened: {
+    badge: "STAGE 02 · STEP_OPENED",
+    name: "ContextCompiler.compile — 舆情信号注入与证据生命周期三级压缩",
+    desc: "在每步开始时，编译器从不可变领域状态（State）构建受信任边界隔离的 CompiledContext。自动运行确定性分析引擎提取四大舆情质量信号（单域名饱和、近似重复通稿、未处置反方证据、同单位数值冲突），并按证据引用生命周期执行 NEVER / TRUNCATE / DROP 三级压缩。",
+    code: "investigation/context.py :: Compiler.compile & context/compactor.py",
+    input: "RunState.domain_state + Budget 剩余时间与模型调用配额",
+    resume: "classify_resume 识别 STEP_OPENED → 重新编译最新 Context 并发起模型决策，无外部副作用残留。"
+  },
+  deciding: {
+    badge: "STAGE 03 · DECIDING",
+    name: "结构化 Schema 决策生成 (ModelClient.decide)",
+    desc: "向大模型发送受 JSON Schema 严格约束的 CompiledContext，要求模型在 6 种原子动作（search, read, retrieve, reflect, review, finish）中做出单一结构化决策，并由 MeteredTransport 自动扣减模型配额与剩余时间超时保护。",
+    code: "models/openai_compatible.py :: OpenAICompatibleModelClient.decide",
+    input: "CompiledContext (含 task.instructions, memory.questions, memory.coverage, memory.consolidate)",
+    resume: "若在模型返回前崩溃，恢复时从 DECIDING 重新发起当前步决策请求。"
+  },
+  decision_accepted: {
+    badge: "STAGE 04 · DECISION_ACCEPTED",
+    name: "领域护栏与收敛储备期强校验 (Validator & ConsolidationValidator)",
+    desc: "对模型输出的 Decision 执行双层确定性校验：① 领域规则校验（禁止重复搜索、禁止读取非候选 URL、强制积压满 8 条未处置证据必须 reflect）；② 收敛储备期校验（当模型预算消耗达 2/3 时，禁止继续盲目搜索，强制完成未审 Finding 审查与开放议题收口）。",
+    code: "domain/investigation/engine.py :: Validator & investigation/service.py :: ConsolidationValidator",
+    input: "State + Decision (SearchDecision | ReadDecision | RetrieveDecision | ReflectDecision | ReviewDecision | FinishDecision)",
+    resume: "校验通过后立即持久化 DECISION_ACCEPTED；若校验失败则记录 StepFailure 并触发当前步自愈重试（最多 3 次）。"
+  },
+  action_running: {
+    badge: "STAGE 05 · ACTION_RUNNING",
+    name: "动作解析与工具/本地检索/独立审查执行 (Resolver & Executor)",
+    desc: "Resolver 将领域决策映射为具体执行请求：search 注入 -site: 社交平台排除与 freshness 时间窗；read 调用 Jina 抓取原文落盘并执行『多视角首读摘录提取』（联合 focus + issue.question + open components）；retrieve 查询增量 SQLite FTS5 索引并按引语/日期密度重排；review 调用独立 Reviewer 模型核对证据。",
+    code: "domain/investigation/engine.py :: Resolver & investigation/service.py :: Executor.execute",
+    input: "ActionRequest (含确定性 action_id 与持久化缓存键)",
+    resume: "恢复时优先命中 observations/ 与 action_results/ 持久化缓存，避免对同一 action_id 重复发起外部网络请求。"
+  },
+  observation_ready: {
+    badge: "STAGE 06 · OBSERVATION_READY",
+    name: "原文字符区间强核验与确定性数值守卫 (verify_evidence & unbacked_specifics)",
+    desc: "所有提取到的 Evidence 必须通过 content[start:end] == excerpt 字节级一致性核验；所有经 Reviewer 标记为 supported 的 Finding 必须通过 unbacked_specifics 正则量纲核验——若 Finding 含有任何未在引用摘录中出现的数字、金额或百分比，程序强制将其降级为 partial。",
+    code: "investigation/storage.py :: verify_evidence & investigation/service.py :: unbacked_specifics",
+    input: "Observation (sources, evidence, reviews, verdict) + LocalTextArtifactStore 原文",
+    resume: "Observation 已完整落盘，恢复时直接跳过工具执行进入 REDUCING 归约阶段。"
+  },
+  reducing: {
+    badge: "STAGE 07 · REDUCING",
+    name: "不可变领域状态纯函数归约与自动同源通稿聚类 (reduce_state)",
+    desc: "reduce_state 作为纯函数将 Observation 归约为新版本 State（revision + 1）。当新读取页面入库时，_auto_detect_syndicated_relations 自动计算新旧来源摘录的 CJK 二元词重合度，≥75% 时自动生成 repost/same_text 溯源关系（SourceRelation）。",
+    code: "domain/investigation/engine.py :: reduce_state & _auto_detect_syndicated_relations",
+    input: "State (revision N) + Delta(decision, observation)",
+    resume: "纯函数确定性重算，保证任意次数重放产出完全一致的 State (revision N+1)。"
+  },
+  step_committed: {
+    badge: "STAGE 08 · STEP_COMMITTED",
+    name: "单步事务提交与实时阶段工作台投影",
+    desc: "将当前 Step 正式移入 committed_steps，通过 tempfile + fsync + os.replace 原子更新 run.json，并同步刷新 workbench-provisional.json 与生产链路诊断（diagnostics），供前端 SSE 实时展示调查进展。",
+    code: "runtime/transaction.py :: commit_step & investigation/manager.py :: Hook.after_checkpoint",
+    input: "CommittedStep + Updated State",
+    resume: "当前 Step 已彻底完成，恢复时直接推进至 CONTINUATION_APPLIED 判断是否结束。"
+  },
+  continuation: {
+    badge: "STAGE 09 · CONTINUATION_APPLIED",
+    name: "完成门控与陈旧否定判断拦截 (CompletionEvaluator)",
+    desc: "当模型请求 finish 时，completion(state) 执行严苛门控：① 若仍有必答问题处于 open，生成逐项行动指南拒绝结束；② 若存在『某方尚未回应』的旧结论但证据库已有含回应词的未处置证据（_stale_negative_findings），拒绝结束并强制先 reflect 更新结论。",
+    code: "domain/investigation/engine.py :: completion & _stale_negative_findings",
+    input: "State + CompletionVerdict (ACCEPT_COMPLETE | ACCEPT_PARTIAL | REJECT_AND_CONTINUE)",
+    resume: "根据已记录的 CompletionVerdict 决定开启下一 Step 或进入 RUN_TERMINATED。"
+  },
+  run_terminated: {
+    badge: "STAGE 10 · RUN_TERMINATED",
+    name: "不可变报告落盘与自主视觉档案生成 (_publish & _publish_dossier_artifacts)",
+    desc: "调查进入终态后，原子写出 report.json、workbench.json、report.md；随后通过 build_content_document_from_investigation 与 LlmPresentationPlanner 生成 presentation_plan.json 与交互式视觉档案 dossier.html。",
+    code: "investigation/manager.py :: Manager._publish & _publish_dossier_artifacts",
+    input: "Terminal RunResult + State + Budget Snapshot",
+    resume: "终态幂等，直接通过 Web API 提供报告、工作台与视觉档案访问。"
+  }
+};
+
+function showLoopStage(key) {
+  const data = STAGE_DATA[key];
+  if (!data) return;
+  document.getElementById("insp-badge").textContent = data.badge;
+  document.getElementById("insp-name").textContent = data.name;
+  document.getElementById("insp-desc").textContent = data.desc;
+  document.getElementById("insp-code").textContent = data.code;
+  document.getElementById("insp-in").textContent = data.input;
+  document.getElementById("insp-resume").textContent = data.resume;
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll(".panel").forEach(el => el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add("active");
+  if (btn) btn.classList.add("active");
+}
+</script>
+</body>
+</html>

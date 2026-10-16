@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实测检验报告 · 罗永浩-野人先生事件 · 2026-09-23</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5a6b7f; --line:#dde4ec; --bg:#f7f9fb; --accent:#1f6feb;
+          --good:#1a7f37; --warn:#b35900; --bad:#c0392b; --card:#fff; }
+  * { box-sizing:border-box; }
+  body { font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; margin:0; background:var(--bg); color:var(--ink); line-height:1.8; }
+  .wrap { max-width:920px; margin:0 auto; padding:40px 28px 80px; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  h2 { font-size:19px; margin:42px 0 12px; padding-left:12px; border-left:4px solid var(--accent); }
+  .meta { color:var(--sub); font-size:13px; margin-bottom:26px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 22px; margin:14px 0; }
+  .bad { border-left:3px solid var(--bad); background:#fef5f4; }
+  .good { border-left:3px solid var(--good); background:#f0fbf4; }
+  .warn { border-left:3px solid var(--warn); background:#fffaf3; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top; }
+  th { background:#f0f4f9; font-size:13px; }
+  code { background:#eef1f5; padding:1px 6px; border-radius:4px; font-size:13px; }
+  .num-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0; }
+  .num-cell { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 14px; }
+  .num-cell .big { font-size:24px; font-weight:800; }
+  .num-cell .lbl { font-size:12.5px; color:var(--sub); line-height:1.5; }
+  .g{color:var(--good);} .w{color:var(--warn);} .b{color:var(--bad);}
+  .flow { font-family:ui-monospace,monospace; font-size:12.5px; background:#f4f6f9; border:1px solid var(--line); border-radius:8px; padding:12px 16px; white-space:pre-wrap; line-height:1.65; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>实测检验报告：罗永浩吐槽野人先生事件</h1>
+<div class="meta">2026-09-23 · 真实模型 + 真实搜索，无人工介入 · 检验方法：必中清单召回（先标注后对照）+ 逐条忠实性人工审计 + 九阶段诊断链复核</div>
+
+<h2>一、今天发生了什么：两次运行，一个完整的事故-诊断-复跑循环</h2>
+<div class="card">
+<p><b>Run 1（10:01，31 步终止，0 findings）：</b>24 次读取全部失败。诊断链 5 分钟定位根因——错误记录显示 <code>Jina Reader rejected authentication with HTTP status 401</code>，且 <code>retryable=false</code>。用生产 transport 实证复现：.env 从未配置 JINA_API_KEY（keyless 模式），curl/httpx 直连均 200——<b>401 是 Jina 对 keyless 流量的临时性限制，不是配置错误</b>。1.5 小时后同一请求恢复 200。</p>
+<p><b>Run 2（10:24，60 步，4 findings）：</b>Jina 恢复后重跑：11 搜 / 16 读（8 存 8 败，败因均为 qq/wenxuecity 反爬）/ 8 来源 7 域名 / 48 条证据 / review 执行（3 supported / 1 partial）/ <b>finish 被闸门拒绝 29 次</b>。终态 partial，诚实发布。</p>
+</div>
+<div class="card warn">
+<p><b>新发现的架构短板（Run 1 的代价）：</b>失败分类表把 provider 的 401 一律视为「认证失败、不可重试」——但 keyless 模式下 Jina 的 401 实际是临时性限流。24 次「不可重试」的失败<b>全额计入 read 预算</b>（24/24 耗尽），在搜索/模型/时间预算还剩 60–75% 的情况下强制终止。<b>一次 20 分钟的供应商抖动，吃掉了整个 run。</b>修复方向：keyless 401 应归类为可退避重试的临时错误，且失败读取不应与成功读取同额计预算。</p>
+</div>
+
+<h2>二、我们如何检验（不是现成 benchmark）</h2>
+<div class="card">
+<p>GAIA/BrowseComp 类公开 benchmark 评「点状事实问答」（唯一答案，exact match），评不了舆情报告这种「面状地图」。本次检验用自建三件套，<b>关键纪律：先看世界，再看系统</b>——</p>
+<div class="flow">① 必中清单召回（评检索层）
+   运行前：不看系统任何输出，用独立搜索标注 10 项「合格调查必须找到的事实」，
+   每项附独立来源证据 → 运行后：对照系统候选/已读正文算命中，并逐项人工复核
+② 逐条忠实性审计（评可信度）
+   每条 finding 与其引用的证据摘录逐对导出，人工核对：
+   引语是否逐字在原文？数字日期是否在支持摘录里？判断是否被自有证据推翻？
+③ 对抗埋点 replay（评判断力，D4 已建，本次复用结论）
+   冻结材料中埋更正/反方/错误数字，真实模型回放，0/1 计命中</div>
+<p class="meta">防自欺设计：标注在运行前完成（防循环论证）；脚本初判 + 人工复核（防关键词虚报——本次就抓到 2 项虚报，见下）；模型 review 结论与人工审计对照（检验审查器本身）。</p>
+</div>
+
+<h2>三、检验结果：四个数字</h2>
+<div class="num-grid">
+  <div class="num-cell"><div class="big g">80%</div><div class="lbl"><b>读入层召回 8/10</b><br>候选层 90%。缺 #8 创始人旧采访、#10 罗为钟薛高喊冤</div></div>
+  <div class="num-cell"><div class="big w">50%</div><div class="lbl"><b>忠实性·完全支持 2/4</b><br>F1 日期未摘入证据；F3 被自有证据推翻（见下）</div></div>
+  <div class="num-cell"><div class="big g">100%</div><div class="lbl"><b>零虚构</b><br>全部引语/数字在引用摘录中逐字核实，无一编造</div></div>
+  <div class="num-cell"><div class="big b">50%</div><div class="lbl"><b>证据→判断转化率 4/8</b><br>8 项已读必中事实，仅 4 项进入 finding</div></div>
+</div>
+
+<h3>3.1 召回明细（人工复核后）</h3>
+<table>
+<tr><th>#</th><th>必中事实</th><th>读入层</th><th>复核依据</th></tr>
+<tr><td>1</td><td>罗永浩 9·12 原博原文</td><td class="g">✓</td><td>网易转载稿逐字引用 + 世界日报记载日期</td></tr>
+<tr><td>2</td><td>客服 9·13 初步回应</td><td class="g">✓</td><td>「记录并反馈给领导」摘录在库</td></tr>
+<tr><td>3</td><td>9·16 正式回应（用心聆听+丰收节）</td><td class="g">✓</td><td>南都-搜狐稿全文在库，含回应原文</td></tr>
+<tr><td>4</td><td>冷处理热搜第一 + 三体「不要回答」</td><td class="g">✓</td><td>163 稿 + 人民网评转载均有</td></tr>
+<tr><td>5</td><td>钟薛高 9·16 重启、降价 6.9–7.9 元</td><td class="g">✓</td><td>清科 pedaily 深度稿在库</td></tr>
+<tr><td>6</td><td>人民锐评《谨防"流量权力"》</td><td class="g">✓</td><td>163 转载全文在库（含核心段落）</td></tr>
+<tr><td>7</td><td>涨粉数据（单日 3 万/30 天 40 万+）</td><td class="g">✓</td><td>163/虎嗅两源互证</td></tr>
+<tr><td>8</td><td>创始人崔渐为 1 月旧采访「价格打下来」被翻出</td><td class="b">✗</td><td>9 篇正文 grep「崔渐为/实战派/价格打下来」零命中</td></tr>
+<tr><td>9</td><td>西贝倒闭传闻（理记）+ 官方回应</td><td class="g">✓</td><td>观察者网稿在库，含传闻与客服回应</td></tr>
+<tr><td>10</td><td>罗永浩 9·15 为钟薛高「喊冤」（恶意剪辑说）</td><td class="b">✗</td><td>9 篇正文 grep「恶意剪辑」零命中</td></tr>
+</table>
+<p class="meta">教训：脚本初判给出 10/10，人工复核打回 2 项（关键词「钟薛高」与高共现词造成的假阳性）。<b>召回数字必须人工复核后才能引用</b>——这本身就是检验方法的一部分。</p>
+
+<h3>3.2 忠实性审计（4 条 finding 全量）</h3>
+<table>
+<tr><th>Finding</th><th>模型 review</th><th>人工审计</th><th>说明</th></tr>
+<tr><td>F1 事件时间线主干</td><td>partial</td><td class="w">partial</td><td>「9月12日」日期不在所引摘录中（该日期其实存在于证据库另一条 sohu 摘录，但 F1 未引用）——摘录/引用选择问题，非编造</td></tr>
+<tr><td>F2 罗永浩原博内容</td><td>supported</td><td class="g">supported</td><td>引语逐字一致，日期、双批评点均有据</td></tr>
+<tr><td>F3 野人先生「冷处理」</td><td>supported</td><td class="b">partial（降级）</td><td><b>被系统自有证据推翻</b>：F3 断言「官方账号未就吐槽发布说明」，但证据库中已有 9·16 官方正式回应原文（南都-搜狐稿，evidence-2a9af9ad/28a7bbf7）。所引摘录均来自 9·13–14 报道、字面上支持该判断——但判断已过期，且审查器未发现</td></tr>
+<tr><td>F4 牵入品牌与人物</td><td>supported</td><td class="g">supported</td><td>西贝亏损 6 亿/102 家/30%/4000 员工、黄斌批评等全部数字逐一核实无误</td></tr>
+</table>
+
+<div class="card bad">
+<p><b>本次最尖锐的发现——「陈旧判断」（stale finding）：</b>系统在 02:14 读入了含 9·16 官方回应全文的南都报道，并从中摘出 2 条证据；但 F3 仍然断言品牌「未就吐槽发布说明」，「争议与回应」章节的覆盖注释甚至明确写道「9月16日官微发文仅见于搜索结果摘要，未取得原文」——<b>这句话与系统自己的证据库直接矛盾</b>。模型在拿到新证据后没有回头更新先前判断，审查器也只核对「摘录是否支持文本」、不核对「判断是否与全部库存证据一致」。这比 D4 的「反方稿已读未引用」更进一步：不只是没用，是<b>用了的旧结论与库里的事实冲突而无人察觉</b>。</p>
+<p>连带证据：48 条证据仅 11 条被引用（23%）；6 个必答问题中 3 个（钟薛高关联、官媒评论、西贝传闻）在报告里整段留白——而这三个问题的答案材料<b>全部已在证据库中</b>（pedaily/163/观察者网）。不是没搜到，是没转化。</p>
+</div>
+
+<h3>3.3 步数预算去哪了</h3>
+<div class="card">
+<table>
+<tr><th>动作</th><th>次数</th><th>占比</th><th>问题</th></tr>
+<tr><td>finish（被闸门拒绝）</td><td>29</td><td class="b">48%</td><td>近一半步数花在「试图收工被拒」上</td></tr>
+<tr><td>read</td><td>16</td><td>27%</td><td>8 次死于反爬（qq/wenxuecity/21jingji）</td></tr>
+<tr><td>search</td><td>11</td><td>18%</td><td>预算仅用 55%，候选 79 条只读了 16</td></tr>
+<tr><td>reflect / retrieve / review</td><td>4</td><td>7%</td><td>分析动作严重不足</td></tr>
+</table>
+<p>恶性循环：证据→finding 转化不足 → 问题始终 open → 闸门拒 finish → 模型反复重试 finish（而不是回去把已读材料做成 finding）→ 步数耗尽。<b>缺的闭环动作是「把库存证据整理成判断」，而不是「再试一次收工」。</b>这与 D4「模型不会把 open 转 not_found」是同一缺口的另一面：模型缺少「用已有材料收口」的动作词汇。</p>
+</div>
+
+<h2>四、与 D4 基线（三九胃泰，09-21）对比</h2>
+<table>
+<tr><th>指标</th><th>D4 三九胃泰</th><th>本次 罗永浩事件</th><th>变化</th></tr>
+<tr><td>读入层召回</td><td>60%（6/10）</td><td>80%（8/10）</td><td class="g">↑（本事件报道密度更高，也有 qq 反爬减轻因素）</td></tr>
+<tr><td>忠实性·完全支持</td><td>71%（10/14）</td><td>50%（2/4）</td><td class="w">↓ 样本小；但零虚构一致保持</td></tr>
+<tr><td>零虚构</td><td>100%</td><td>100%</td><td class="g">→ 稳定，这是信任底线</td></tr>
+<tr><td>证据→判断转化</td><td>未量化（反方稿个案）</td><td><b>50%（4/8）+ 1 条陈旧判断</b></td><td class="b">首次量化，确认为系统性瓶颈</td></tr>
+<tr><td>对抗埋点</td><td>2/3</td><td>（复用 D4 结论）</td><td>—</td></tr>
+<tr><td>诚实终态/诊断链</td><td>partial + 完整诊断</td><td>两次 partial + 完整诊断（含 provider 事故定位）</td><td class="g">→ 机制持续 worked as designed</td></tr>
+</table>
+
+<h2>五、结论</h2>
+<div class="card good">
+<p><b>信任机制全部经受住了真实事故的考验：</b>Jina 抖动 → 诊断链 5 分钟定位 + 实证复现 + 确认非配置错误；报告零虚构；partial 诚实发布；失败计数不粉饰；评审器与人工审计 3/4 一致。</p>
+</div>
+<div class="card bad">
+<p><b>质量上限被三个同族缺口压住，全部指向「分析/收口层」而非「检索层」：</b></p>
+<ol>
+<li><b>证据→判断转化率 50%</b>：材料在库里，问题在留白——缺「整理库存证据成判断」的动作；</li>
+<li><b>陈旧判断无更新：</b>新证据到库后不回溯修订旧 finding，审查器只验「摘录支持文本」不验「判断与全库一致」；</li>
+<li><b>finish 空转 29 次：</b>闸门拒绝没有转化为补查/整理动作，近半数步数被收工重试消耗。</li>
+</ol>
+<p>修复方向（优先级序）：① 新增 <code>consolidate</code> 类动作：强制在 finish 被拒 N 次后，将库存证据按问题聚类生成 finding；② review 增加「全库一致性」检查：finding 与后到的证据冲突时标记为「待复评」；③ finish 拒绝反馈中附带「可立即转化的证据-问题对」引导；④ 失败分类表细分 provider 401（keyless 临时性 → 可退避重试）；失败读取降权计预算。①②③ 都在 domain/策略层，不动 Runtime 骨架——这恰好是「harness 修得起」的论据。</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-fcc591976a77a21d70f1",
+      "url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html",
+      "focus": "该文关于三九胃泰广告完整文案、七夕'劝分手'既往争议文案的具体描述与来源归属",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:7:attempt:1:action",
+      "tool_name": "read.web",
+      "payload": {
+        "url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html",
+        "title": "三九胃泰“毒广告”：七夕劝分手、中秋别团圆",
+        "content": "## 三九胃泰“毒广告”：七夕劝分手、中秋别团圆\n\n[![Image 1: 药识局](https://nimg.ws.126.net/?url=https%3A%2F%2Fmobilepics.ws.126.net%2F2025_11_05_09_48_21ekVQR0m5ugsjlb.jpg&thumbnail=90x2147483647&quality=75&type=webp)](https://m.163.com/news/sub/T1762307345016.html)\n\n[药识局](https://m.163.com/news/sub/T1762307345016.html)![Image 2](https://img2.cache.netease.com/m/newsapp/reading/vip/yellownew.png)\n2026-09-16 13:29·上海·网易号优质内容创作者\n\n**点击蓝字，立即关注**\n\n营销博眼球这招，医药领域也不差。\n\n![Image 3](https://nimg.ws.126.net/?url=http%3A%2F%2Fdingyue.ws.126.net%2F2026%2F0916%2F63392385j00tlfz890010d200fj00ifg00fj00if.jpg&thumbnail=750x2147483647&quality=75&type=webp)\n\n打开网易新闻 查看精彩图片\n\n1、据媒体报道， 一名小红书用户发布的海报照片显示，外层用醒目大字写着“三九胃泰求‘你们’中秋别团圆了”，右下角提示“掀开看”。\n\n左下角的小字则写着：“一家人过节要整整齐齐，但有些食物在胃里团圆，对胃可 不好。”\n\n此外，海报内页则列出了月饼、冷饮等饮食场景，掀开后是高济再康药房9月15日至27日的活动入口和小程序码。同一轮广告还出现在电梯等线下场景中。\n\n有网友直呼“抽象”，直言“拿国民情感当噱头博眼球，注定只会引发众怒”。也有网友表示：“黑红也是红，不管怎么样，广告的目的达到了，现在社交媒体上都是这则广告还不用出广告费。”\n\n2、在外界看来，这则广告文案存在多方面问题。\n\n首先是主副文案信息割裂，忽略传播场景。类似的广告属于碎片化阅读场景，路人大多只扫一眼大字标题，不会仔细阅读小字注解。品牌只盯着文案创意逻辑，却脱离真实传播环境。创意上的文字游戏，在户外短曝光场景直接变成冒犯性表达。\n\n其次是透支传统节日情感，强行制造冲突感。中秋承载家庭团聚的情感共识，属于大众情感的 “高敏感区”。品牌为了追求话题度，选择用否定节日核心内涵的话术做反差营销。受众第一感受不是养胃科普，而是品牌反对团圆，创意逻辑和大众情感认知完全错位。\n\n最后是营销底层逻辑：为流量牺牲理解成本。[三九胃泰](https://news.163.com/news/search?keyword=%E4%B8%89%E4%B9%9D%E8%83%83%E6%B3%B0)希望靠一句反常识广告语引发讨论、增加曝光，高估受众耐心。\n\n9月15日，华润三九工作人员回应，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。\n\n3、事实上，三九胃泰也未必没有预判到**这种****误读，或许其就是选择了用争议换出圈。因为类似的事情，不久前才发生过。**\n\n**七夕前夕，三九胃泰在重庆观音桥、洪崖洞等区域投放“三九胃泰劝你们‘和平’分手”。**\n\n**当时，所谓需要“[分手](https://news.163.com/news/search?keyword=%E5%88%86%E6%89%8B)”的不是情侣，而是火锅与冰饮、烧烤与啤酒、小龙虾与冰西瓜等食物组合。品牌还与和平药房合作设置“伤胃CP分手墙”。**\n\n有网友无奈得表示，[七夕](https://news.163.com/news/search?keyword=%E4%B8%83%E5%A4%95)劝分手，中秋高喊[别团圆](https://news.163.com/news/search?keyword=%E5%88%AB%E5%9B%A2%E5%9C%86)，三九胃泰也沉迷在“毒广告”里了。\n\n![Image 4](https://static.ws.126.net/163/frontend/images/2022/empty.png)\n\n打开网易新闻 查看精彩图片\n\n4、 三九胃泰是[华润三九](https://news.163.com/news/search?keyword=%E5%8D%8E%E6%B6%A6%E4%B8%89%E4%B9%9D)旗下产品，在广告上的大胆或也是想“兵行奇招”拉动销售。\n\n华润三九的核心产品包括了：999 感冒灵、999 皮炎平、参附注射液、注射用头孢、免煎中药、三九胃泰颗粒、正天丸、血塞通软胶囊、天 麻素注射液、复方丹参滴丸等。\n\nCHC健康消费品业务是华润三九的支柱，该业务的核心是“999”品牌矩阵，感冒灵、三九胃泰、皮炎平都在其中。\n\n2025年年报显示，该板块营收占公司总营收比重达47.82%，收入规模达151.1亿元，同比下滑了14.67%。\n\n![Image 5](https://static.ws.126.net/163/frontend/images/2022/empty.png)\n\n打开网易新闻 查看精彩图片\n\n今年上半年，华润三九医药行业-自我诊疗(CHC)实现营业收入61.32亿元，同比下降23.29%。对比来看，医药行业-处方药实现营收68.76亿元，同比增长42.14%，药品、器械批发及零售实现营收17.33亿元，同比下降0.43%。\n\n![Image 6](https://static.ws.126.net/163/frontend/images/2022/empty.png)\n\n打开网易新闻 查看精彩图片\n\n5、从营销上来看，华润三九并没有少花钱。\n\n2025年全年，华润三九的销售费用达到90.89亿元，同比增长25.88%，增速接近营收的两倍。\n\n今年上半年，其销售费用合计41.58亿元，同比仍在增长。其中市场推广费为24.93亿元，同比增长10.65%。\n\n![Image 7](https://static.ws.126.net/163/frontend/images/2022/empty.png)\n\n打开网易新闻 查看精彩图片\n\n6、华润三九的CHC业务困境不乏有来自 终端市场的萎缩的压力。在客流下降、医保控费等因素影响，行业增长持续放缓，短期面临结构性调整。米内网数据显示，2025年前三季度，中国药品市场规模12601亿，同比下降1%。\n\n但压力不代表要选择将营销策略推进“靠争议博出圈” 的误区。\n\n从七夕 “劝和平分手”，到中秋 “求别团圆”，品牌反复套用同一套反向文字梗：先抛出违背大众情感认知的吸睛大字，再依靠小字补充解释原意。但电梯、户外海报属于碎片化阅读场景，绝大多数受众只会第一眼看到主标题，极易产生负面解读。\n\n这类创意看似巧妙，实则透支节日情感共识，与三九胃泰原本温暖关怀胃部健康的品牌调性严重冲突。尽管企业持续加码销售费用、增加市场推广投入，但 CHC 自我诊疗板块营收依旧连续下滑。这也说明，单纯依靠制造争议话题的营销手段，并不能有效转化为业绩增长，反而会持续消耗品牌长期积累的大众好感。\n\n医药健康品牌自带公共属性，营销更应当守住公序良俗底线，不宜拿亲情、爱情这类国民情感做流量噱头。短期的话题热度，往往要以品牌口碑受损作为代价。",
+        "published_at": "2026-09-16T13:29:01+08:00",
+        "publication_time_status": "reported"
+      },
+      "artifact_refs": [
+        "artifact://sha256/81e37b26dc4dbcf937cbf576605346dc02bf097ace0aacf9e2746fe4506cb096"
+      ],
+      "attempts": 1
+    },
+    "sources": [
+      {
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html",
+        "final_url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html",
+        "title": "三九胃泰“毒广告”：七夕劝分手、中秋别团圆",
+        "fetched_at": "2026-09-21T12:14:32.019890Z",
+        "published_at": "2026-09-16T13:29:01+08:00",
+        "updated_at": null,
+        "artifact_ref": "artifact://sha256/81e37b26dc4dbcf937cbf576605346dc02bf097ace0aacf9e2746fe4506cb096",
+        "content_hash": "81e37b26dc4dbcf937cbf576605346dc02bf097ace0aacf9e2746fe4506cb096",
+        "role": "reporting",
+        "duplicate_of": null,
+        "origin_url": null
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "evidence-976a1b6d89a058989b2b",
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "excerpt": "## 三九胃泰“毒广告”：七夕劝分手、中秋别团圆",
+        "start": 0,
+        "end": 24,
+        "locator": "Reader text chars 0:24"
+      },
+      {
+        "evidence_id": "evidence-3fd1990d2429b76e006a",
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "excerpt": "有网友无奈得表示，[七夕](https://news.163.com/news/search?keyword=%E4%B8%83%E5%A4%95)劝分手，中秋高喊[别团圆](https://news.163.com/news/search?keyword=%E5%88%AB%E5%9B%A2%E5%9C%86)，三九胃泰也沉迷在“毒广告”里了。",
+        "start": 1591,
+        "end": 1765,
+        "locator": "Reader text chars 1591:1765"
+      },
+      {
+        "evidence_id": "evidence-f57639a3890beca97968",
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "excerpt": "**七夕前夕，三九胃泰在重庆观音桥、洪崖洞等区域投放“三九胃泰劝你们‘和平’分手”。**",
+        "start": 1410,
+        "end": 1454,
+        "locator": "Reader text chars 1410:1454"
+      },
+      {
+        "evidence_id": "evidence-3e36b3034b71155d7fd9",
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "excerpt": "2、在外界看来，这则广告文案存在多方面问题。",
+        "start": 906,
+        "end": 928,
+        "locator": "Reader text chars 906:928"
+      },
+      {
+        "evidence_id": "evidence-50a1af53c9ab30bda584",
+        "version_id": "source-3752a7b4d688cccbe5d5",
+        "excerpt": "3、事实上，三九胃泰也未必没有预判到**这种****误读，或许其就是选择了用争议换出圈。因为类似的事情，不久前才发生过。**",
+        "start": 1346,
+        "end": 1408,
+        "locator": "Reader text chars 1346:1408"
+      }
+    ],
+    "reviews": [],
+    "check": {
+      "url": "https://m.163.com/dy/article/L6UVDJUI0556HX3I.html",
+      "version_id": "source-3752a7b4d688cccbe5d5",
+      "checked_at": "2026-09-21T12:14:32.019929Z",
+      "changed": false
+    },
+    "verdict": null
+  }
+}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舆情 Agent 面试收口手册 · D5 · 2026-09-22</title>
+<style>
+  :root {
+    --ink: #1a2332; --sub: #5a6b7f; --line: #dde4ec; --bg: #f7f9fb;
+    --accent: #1f6feb; --good: #1a7f37; --warn: #b35900; --bad: #c0392b;
+    --card: #ffffff; --chip: #eef4ff;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; background: var(--bg); color: var(--ink); line-height: 1.75; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 28px 80px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  h2 { font-size: 20px; margin: 44px 0 14px; padding-left: 12px; border-left: 4px solid var(--accent); }
+  h3 { font-size: 16px; margin: 22px 0 8px; }
+  .meta { color: var(--sub); font-size: 13px; margin-bottom: 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; margin: 14px 0; }
+  .pitch { background: linear-gradient(135deg, #f0f6ff, #fdfefe); border: 1px solid #c9def8; }
+  .pitch p { margin: 8px 0; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 9px; border-radius: 10px; background: var(--chip); color: var(--accent); margin-right: 6px; }
+  .q { font-weight: 700; color: var(--accent); }
+  .a { color: var(--ink); }
+  .a b { color: #0b3d91; }
+  .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+  .num-cell { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .num-cell .big { font-size: 26px; font-weight: 800; margin-bottom: 2px; }
+  .num-cell .lbl { font-size: 13px; color: var(--sub); }
+  .g { color: var(--good); } .w { color: var(--warn); } .b { color: var(--bad); }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
+  th { background: #f0f4f9; font-size: 13px; }
+  .story { border-left: 3px solid var(--warn); background: #fffaf3; }
+  code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  ul { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  .flow { font-family: ui-monospace, monospace; font-size: 13px; background: #f4f6f9; border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; white-space: pre-wrap; line-height: 1.6; }
+  .small { font-size: 13px; color: var(--sub); }
+  .verdict { background: #f0fbf4; border: 1px solid #bfe6cb; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>舆情 Agent 面试收口手册</h1>
+<div class="meta">D5 收口 · 2026-09-22 · 状态：项目封存，本手册为面试唯一入口 · 所有数字可复核（报告 / run.json / tests）</div>
+
+<!-- ============ 电梯陈述 ============ -->
+<h2>一、3 分钟电梯陈述（脱稿版）</h2>
+<div class="card pitch">
+<p><b>一句话定位：</b>这是一个「显式单 Agent Harness」项目——舆情调查只是验证 workload，真正的技术内容在 Agent 运行时和工具/上下文这两层基础设施上。</p>
+<p><b>要解决的真问题：</b>LLM agent 跑几十步的长任务时，三件事一定会出：进程会挂、外部工具会抖、模型上下文会爆还会被注入。大多数 demo 级 agent 对这三件事的处理是「祈祷」。这个项目把这三件事当成分布式系统问题来解。</p>
+<p><b>核心设计（三条）：</b></p>
+<ul>
+<li><b>Decision ≠ ToolCall，ToolResult ≠ Observation。</b>模型提议的每一步都要经过校验、修复、解析成内部 action 才执行；工具的原始返回是 untrusted 内容，必须规范化后才能进入 state 提议。信任边界就在这层转换里。</li>
+<li><b>Loop 只管时序，Reducer 独占 State 写权。</b>状态变更走 Processor→Delta→Reducer 的纯函数事务，所以 checkpoint 之后 resume 是确定性的，回放是可复现的——100 步 / 640 条证据的压力测试验证 resume 后上下文逐字节一致。</li>
+<li><b>Checkpoint 属于 Runtime，不是日志。</b>它记录相位（decision/action/observation/commit）和 attempt，崩溃恢复能精确分类到相位：工具成功但提交前挂掉的步，从成功缓存复用结果，不重复打外部 API。</li>
+</ul>
+<p><b>验证方式（分层）：</b>779 个单测守住机制；14 条路径的 prompt 注入矩阵守住信任边界；然后是真刀真枪——一个真实中文舆情事件（三九胃泰中秋广告争议）跑完整 live 闭环：60 步、17 次搜索、17 次读取、14 条 finding、92 处证据引用，审查阶段 6 条 supported / 8 条 partial，完成闸门拒绝了 18 次 finish 直到步数耗尽——系统宁愿 partial 也不强行收尾。</p>
+<p><b>我最想讲的一个失败：</b>第一次 live 复跑以 partial 收场，但诊断链让根因无所遁形——committed_steps=20 恰好等于默认步数上限，而预算只用了 16%–45%。是配置问题不是逻辑问题，runner 层调参零源码改动就解了。这套「失败 → 九阶段诊断 → 定位 → 修复 → 复跑验证」的循环，本身就是 harness 设计正确性的最好证据。</p>
+<p><b>收尾：</b>质量数字我也有：检索召回 60%、忠实性 71% 完全支持 / 100% 零虚构、对抗埋点 2/3。每个数字都知道短板在哪、下一步怎么修——这些「下一步」清单比数字本身更能说明我对系统的理解。</p>
+</div>
+
+<!-- ============ 架构一张图 ============ -->
+<h2>二、架构一张图（白板可画）</h2>
+<div class="flow">用户问题
+   │
+   ▼
+┌─────────────── AgentLoop（只管时序）───────────────┐
+│  decision → validate/repair → resolve action       │
+│       │                              │             │
+│       ▼                              ▼             │
+│  ModelClient                    ToolExecutor       │
+│  (提议 search/read/             (校验/重试/熔断/    │
+│   reflect/finish)                缓存/超时/provider │
+│       │                          fallback)          │
+│       │                              │             │
+│       └────── Observation ◄──────────┘             │
+│                  (规范化，仍 untrusted)             │
+│                          │                         │
+│                          ▼                         │
+│              Processor → Delta → Reducer ──► State │  ◄ 唯一写者
+│                          │                         │
+│              CheckpointStore（相位+attempt）        │
+│                          │                         │
+│              ContextCompiler ◄── WorkingMemory     │
+│              (分层/有预算/带信任标记/SHA, 瞬时)      │
+└──────────────────────────────────────────────────────┘
+   │  终态 finalizing → report.json+report.md 写全 → completed/partial/…
+   ▼
+PagePlan/Workbench（确定性投影，非第二权威 State）</div>
+<p class="small">白板讲述要点：先画 Loop 与 Reducer 的分界线（写权），再画 ToolExecutor 的信任边界（untrusted 进不来），最后画 Context Compiler 的位置（每步临时编译，不落 checkpoint）。三条线画完，设计哲学就讲完了。</p>
+
+<!-- ============ §16 十四问 ============ -->
+<h2>三、§16 十四问 · 要点答案</h2>
+<p class="small">每题控制在 3–6 句、结论先行。加粗处是必须说出来的关键词。</p>
+
+<div class="card">
+<p class="q">1. 为什么项目只深做 Agent Infra 前两层？</p>
+<p class="a"><b>岗位匹配 + 可验证深度。</b>前两层（Harness/Runtime、Tool/MCP/Context/Memory）决定 agent 的可靠性，且能用软件工程手段验收——单测、压力测试、注入矩阵、崩溃恢复演练，全是可证伪的。Control Plane/Eval/Data Infra 公开参考多、差异化低，做了也只能讲「我见过」。宁可两层做穿，不做全栈皮毛。舆情 workload 存在的唯一理由就是<b>证明</b>前两层，不是产品目标。</p>
+</div>
+
+<div class="card">
+<p class="q">2. Harness、Tool Runtime 和 Control Plane 的边界是什么？</p>
+<p class="a"><b>Harness 拥有 run 生命周期和 state 提交权；Tool Runtime 是 Harness 的下游</b>，只管单次工具调用的重试、熔断、缓存、超时、跨 provider fallback——它不知道也不该知道 investigation 是什么；<b>Control Plane 管多 run 的调度、配额、租户策略，本项目显式不做</b>（§17 决策摘要第 8 条），因为单 run 正确性没做穿之前做多 run 调度是无本之木。</p>
+</div>
+
+<div class="card">
+<p class="q">3. 为什么 Decision 不是 ToolCall，ToolResult 不是 Observation？</p>
+<p class="a">Decision 是<b>模型意图</b>，可能非法、可能重复、可能需要修复——它经过校验与 repair 才被 resolve 成内部 action。ToolResult 是<b>外部世界的原始返回</b>，untrusted、可能畸形、可能带注入内容；Observation 是规范化后、获准进入 state 提议的那一份。中间这层转换就是所有安全与可靠性机制的挂载点：如果 Decision=ToolCall，你就没有地方做校验；如果 ToolResult=Observation，你就没有地方建信任边界。</p>
+</div>
+
+<div class="card">
+<p class="q">4. 为什么 Loop 只管理时序，Reducer 才拥有 State 写入权？</p>
+<p class="a"><b>单一写者原则。</b>Reducer 是纯函数：同样的 delta 序列必然得到同样的 state。这让 checkpoint/resume/replay 的确定性变成一个可证明的属性，而不是祈祷。如果 Loop 也直接改 state，恢复语义就要靠代码审查保证；现在它靠结构保证。Loop 的职责被压缩到只剩时序：提议→校验→执行→观察→提交→持久化，一步一事务。</p>
+</div>
+
+<div class="card">
+<p class="q">5. run lifecycle 与 step lifecycle 为什么要分开？</p>
+<p class="a">它们是<b>两个频率完全不同的状态机</b>。run 级是 completed/partial/cancelled/failed（外加发布用的 finalizing 中间态）；step 级是 decision/action/observation/commit 的事务相位加 attempt 计数。分开之后，崩溃恢复用 classify_resume 精确定位到「死在哪一相」——尤其是「工具成功、observation 未提交」这个最容易丢钱的相位。混在一起，恢复逻辑就是一团 if-else。</p>
+</div>
+
+<div class="card">
+<p class="q">6. 工具返回后、State 提交前崩溃如何恢复？</p>
+<p class="a"><b>action_results 成功缓存</b>：工具成功结果按 action identity 先落盘，再进 observation。进程在「缓存已写、checkpoint 未写」的窗口死掉，resume 时从缓存复用这份结果——<b>不再调用 provider</b>，然后正常走 observation→commit。这是 at-most-once 的持久化成功复用，配合只读工具的安全重试，合成 state effect 的恰好一次。</p>
+</div>
+
+<div class="card">
+<p class="q">7. 为什么只能追求 effectively-once state effect，而不是声称外部请求 exactly-once？</p>
+<p class="a"><b>外部 HTTP 请求不可回滚</b>，发出去了就是发出去了，任何「恰好一次」的声称在物理上都是假的。能做到的是把不确定性全部推到边界上：工具只读、可安全重试；成功结果按 action identity 缓存；提交走幂等 delta；崩溃按相位分类。最终效果是 <b>state 的变化恰好发生一次</b>——这是诚实且可实现的承诺，我拒绝说更大的话。</p>
+</div>
+
+<div class="card">
+<p class="q">8. checkpoint 为什么属于 Runtime，而不是 Data/Observability 平台？</p>
+<p class="a">checkpoint 的存在理由是<b>正确性</b>：相位、attempt、已提交 delta 序列，少一个字段恢复就错。把它放进 Data 平台，它会退化成事后日志——写日志的人不会为恢复语义负责。Observability 可以<b>消费</b> checkpoint 的投影，但 checkpoint 的 schema 必须由 Runtime 的正确性需求定义。本项目刻意不建 Trace/Data 平台，就是这个决策的另一面。</p>
+</div>
+
+<div class="card">
+<p class="q">9. MCP 为什么只是 Tool adapter？</p>
+<p class="a"><b>不给 MCP 任何特权通道。</b>MCP 内容永远是 untrusted input：注册前用 allowlist 的 schema SHA-256 校验远端契约，不匹配则 Registry 不变；调用时递归剥离 <code>_meta/meta/annotations</code>，非 JSON 内容变成固定报错；生产端点强制公网 HTTPS。MCP 与其他 provider 走同一个 ToolExecutor——同样的重试、熔断、缓存。它的价值是<b>生态接入</b>，不是架构地位。</p>
+</div>
+
+<div class="card">
+<p class="q">10. Context Compiler 相比 messages.append() 解决了什么？</p>
+<p class="a">append 是 O(n²) 增长、无界、无信任分级的。Compiler 把每步的模型输入<b>临时编译</b>出来：分层（L0 不可变指令只接受 app-config 内容）、token 预算、required window + 可丢弃 history chunks（默认 64/块，gap 采样 16）、每节带内容来源标记和 SHA-256。关键性质：required context 不随 run 增长，且编译结果<b>永不入 checkpoint</b>——resume 后重新编译，压力测试验证逐字节一致。它解决的不是「省 token」，是「上下文也是一个要工程化的资源」。</p>
+</div>
+
+<div class="card">
+<p class="q">11. Full State、Working Memory、Recent Interaction、Artifact 和 Context 有何区别？</p>
+<p class="a"><b>一个权威 + 四个投影。</b>Full State 是权威事实，只有 Reducer 能写；Working Memory 是从 state 派生的工作视图，可重建、可丢弃；Recent Interaction 是步记录（谁提议了什么、结果如何）；Artifact 是正文快照，SHA-256 寻址，<b>不直接进上下文</b>，由证据 locator（块号+字符偏移）引用；Compiled Context 是前四者每步临时编译出的瞬时模型输入。混淆这五层是 agent 项目最常见的腐烂起点。</p>
+</div>
+
+<div class="card">
+<p class="q">12. 如何保证 compaction 不删除矛盾或创造事实？</p>
+<p class="a"><b>compaction 只作用于派生层，永远不动 Full State。</b>证据目录分 required current window + droppable history chunks，删的只是可重建的历史窗口；矛盾（contradictions）是 state 的一等公民，不在可删除范围；「不创造事实」由信任标记保证——压缩产物不得被标记为 trusted，模型/工具内容 commit/checkpoint/resume 全程不洗白。14 路径注入矩阵里专门有针对 compaction 的攻击面。</p>
+</div>
+
+<div class="card">
+<p class="q">13. prompt injection boundary 如何建立？</p>
+<p class="a">三层。<b>标记</b>：每节上下文带内容来源，model/tool/provider 内容永不可信，这个属性不随 commit/checkpoint/resume 改变——防止「信任漂变」。<b>结构</b>：MCP 元数据递归剥离、工具内容结构化投影、证据以 locator 引用而非全文注入。<b>验证</b>：14 条注入路径的对抗测试矩阵是 CI 的一部分，不是一次性演练。边界的核心思想是：<b>不信任任何一段文本，只信任出处。</b></p>
+</div>
+
+<div class="card">
+<p class="q">14. OpinionSearch 如何证明 Runtime 机制，而不是遮蔽 Runtime？</p>
+<p class="a">四条结构性证据：<b>①</b> 所有舆情规则（时间窗、必答问题、回应判定）都在 domain 层，通用 Runtime 零舆情语义；<b>②</b> offline 模式用确定性 fake providers 跑同一个 loop、同一份 checkpoint 格式——机制可脱离外部世界验收；<b>③</b> execution profile 锁定 live 组合，换 profile 拒绝 resume，防止「同名不同物」；<b>④</b> live 与 offline 的差异只在 adapter 层。所以 workload 是可插拔的验证件，不是和 Runtime 长在一起的产品外壳。</p>
+</div>
+
+<!-- ============ 三个数字 ============ -->
+<h2>四、质量三个数字（可复核）</h2>
+<div class="num-grid">
+  <div class="num-cell"><div class="big w">60%</div><div class="lbl">检索召回（6/10 必中清单）<br>证据：s5-b 61 候选 / 11 已读，逐项人工标注</div></div>
+  <div class="num-cell"><div class="big g">71% / 100%</div><div class="lbl">忠实性：10/14 完全支持；<b>零虚构</b><br>证据：14 条 finding 全量人工核对</div></div>
+  <div class="num-cell"><div class="big g">2/3</div><div class="lbl">对抗埋点：更正采纳✓ 反方遗漏✗ 错误数字未传播✓<br>证据：冻结材料 replay（7 真 + 3 埋点）</div></div>
+</div>
+<table>
+<tr><th>数字</th><th>短板定位（面试官追问时的答案）</th></tr>
+<tr><td>召回 60%</td><td>候选 66% 来自 news.qq.com 聚合站，原发媒体（cnr/dahe/inweekly/chinanews）零覆盖；qq/sohu 反爬造成 6/17 读取失败。大河网案例：模型知道评论存在、3 次定向搜索（含 site:）都拿不到——纯检索层失败。</td></tr>
+<tr><td>忠实性 71%</td><td>4 条 partial 失败模式完全一致：引语真实存在于原文，但<b>证据摘录没摘到那一段</b>——问题在「摘」不在「编」。次级发现：模型审查器（6/14）比人工（10/14）更严，审查偏保守，对可信系统是好消息。</td></tr>
+<tr><td>对抗 2/3</td><td>反方稿被<b>读取并摘了 5 条证据但零 finding 引用</b>；系统在自己的缺口标注里写下「缺替广告辩护的意见」却没回填——证据→finding 的选择层是单点。错误数字未传播靠的是「没轮到综合」而非矛盾检测：数字护栏只验出处不验可信度。</td></tr>
+</table>
+
+<!-- ============ 失败修复故事 ============ -->
+<h2>五、失败 → 诊断 → 修复 → 复跑：完整故事链</h2>
+<div class="card story">
+<p><b>第一幕 · s3-live（09-14）：</b>首次真实 live 批次——8 份正文、44 条证据、40 次模型请求、<b>0 个 Finding</b>。不是模型笨，是流程断在「证据→finding」的转换处。</p>
+<p><b>第二幕 · 九阶段诊断：</b>沿诊断链逐段排查，根因包括首次研判闸门过严、发布保留段截断、时间解析不识别「过去 30 天」（空格）。逐项修复并加回归测试。</p>
+<p><b>第三幕 · s5-a（09-21，默认 20 步）：</b>复跑仍 partial。但这次诊断链让根因 5 分钟现形：<code>committed_steps=20</code> 恰好等于默认上限，预算仅用 16%–45%——<b>是配置不是逻辑</b>。runner 层 <code>model_copy</code> 调步数，零源码改动。</p>
+<p><b>第四幕 · s5-b（60 步）：</b>全流程真正走完——review 执行（6 supported / 8 partial）、3 次 reflect、completion gate <b>18 次拒绝 finish</b> 直到步数耗尽。报告 92 处证据引用，中新网评/央广网/新京报回应/既往「毒广告」模式全部带 locator。</p>
+<p><b>这个故事为什么值钱：</b>它证明诊断链（checkpoint + 相位记录 + 失败不粉饰）在真实失败上 worked as designed。两次 partial 都不是「系统坏了」，而是「系统诚实地报告了自己的不足并留下了完整证据」。这比一次侥幸的 completed 更能说明 harness 的价值。</p>
+</div>
+
+<!-- ============ 已知限制 ============ -->
+<h2>六、已知限制（主动讲，别等问）</h2>
+<div class="card">
+<ul>
+<li><b>搜索源偏向聚合站：</b>Brave 单引擎、固定 5 条/次、无分页；候选 2/3 来自聚合站。TaskFrame 解析出的时间窗/语言/域名未传导到 Brave 参数（<code>freshness</code>/<code>search_lang</code> 全缺）。</li>
+<li><b>证据摘录召回是单点：</b>4 条 partial finding 全是「引语在原文、摘录没摘到」；反方稿已读已摘却零引用。</li>
+<li><b>模型不会主动收口：</b>长期无证据的问题停在 open 而不显式转 not_found/unavailable——这是 completion gate 拒 finish 18 次的直接原因。</li>
+<li><b>数字护栏只验出处不验可信度：</b>真实数字 316.03 亿与埋点错误数字 3160.3 亿在证据目录静默并存，无矛盾检测。</li>
+<li><b>反爬无对策：</b>qq/sohu 等 6/17 读取失败，当前只靠失败计数兜底。</li>
+</ul>
+</div>
+
+<!-- ============ 下一步 ============ -->
+<h2>七、下一步清单（面试谈资：我知道怎么修）</h2>
+<div class="card">
+<ol>
+<li><b>约束传导（P0，成本最低）：</b>把 TaskFrame 时间窗/语言/域名传进 Brave 查询参数——不是新技术，是把已解析的契约执行到底。</li>
+<li><b>结构化 QueryPlan + 第二引擎：</b>查询由规划器产出（目的/时间窗/站点偏好），聚合站域名降权，打破 66% 单源偏向。</li>
+<li><b>事件内二次检索（FTS5/BM25）：</b>对已读 artifact 全文建索引，finding 生成时按问题检索相关段落——直接命中「摘录没摘到」和「已读未引用」两个失败模式。</li>
+<li><b>矛盾检测：</b>同一主体的数字声明冲突时显式生成 contradiction 对象，而非静默并存。</li>
+<li><b>收口动作：</b>允许模型把 open 问题显式标记 not_found/unavailable（有界搜索完成后），让 completion gate 的拒绝变成有出口的拒绝。</li>
+<li><b>评测体系化：</b>必中清单标注 + 对抗埋点从一次性活动变成回归套件。</li>
+</ol>
+</div>
+
+<!-- ============ 封存状态 ============ -->
+<h2>八、项目封存状态</h2>
+<div class="card verdict">
+<table>
+<tr><th>完成定义</th><th>状态</th><th>证据</th></tr>
+<tr><td>① 单一系统：一套 harness，无讲不出取舍的 fork</td><td class="g">✓ D1</td><td>fork 归档至 <code>archive/harness-pipeline/</code>（含决策记录）；779 tests 全绿</td></tr>
+<tr><td>② 真实闭环：中文真实事件全流程</td><td class="g">✓ D2–D3</td><td>s5-b：60 步 / 17 搜 / 17 读 / 14 findings / review 执行 / gate 拒 finish 18 次</td></tr>
+<tr><td>③ 三个数字：召回 / 忠实性 / 对抗点</td><td class="g">✓ D4</td><td>60% · 71%+100%零虚构 · 2/3，方法逐项可复核</td></tr>
+<tr><td>④ 讲得出来：电梯陈述 + 十四问 + 失败故事</td><td class="g">✓ D5</td><td>本手册</td></tr>
+</table>
+<p class="small">测试基线：779 passed, 2 skipped（live-gated smoke，设计内）。压力测试：100 步 / 640 证据 resume 一致。注入矩阵：14 路径。仓库封存，秋招前不再改动运行时代码。</p>
+</div>
+
+</div>
+</body>
+</html>

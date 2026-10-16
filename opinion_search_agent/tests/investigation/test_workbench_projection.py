@@ -132,6 +132,23 @@ def test_review_verdict_flows_into_judgement_display():
     assert workbench["views"]["issues"]["issues"][0]["findings"][0]["review"] == "partial"
 
 
+def test_partial_report_surfaces_supported_finding_as_labelled_interim_judgment():
+    finding = _finding("issue-0", ("e1",))
+    review = ReviewRecord(finding_id=finding.finding_id, verdict="supported", reason="原文完整支持",
+        finding_hash=finding_hash(finding), model="test", reviewed_at=utcnow())
+    state = _state(sources=(_source("v1"),), evidence=(_evidence("e1", "v1"),),
+                   findings=(finding,), reviews=(review,))
+    report = build_report(state, "partial", "步骤上限", case_id="c", run_id="partial-reviewed")
+    workbench = build_workbench(report)
+
+    assert report["conclusions"] == []
+    assert [item["finding_id"] for item in report["interim_findings"]] == [finding.finding_id]
+    assert workbench["views"]["overview"]["judgment_mode"] == "interim"
+    assert workbench["views"]["overview"]["judgments"][0]["finding_id"] == finding.finding_id
+    module = next(item for item in workbench["modules"] if item["module_type"] == "current-judgments")
+    assert module["state"] == "provisional"
+
+
 def test_publication_distribution_carries_its_metric_definition():
     from datetime import timedelta
 

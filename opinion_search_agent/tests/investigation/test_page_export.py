@@ -42,6 +42,7 @@ def test_export_is_one_self_contained_document_bound_to_one_snapshot():
     page = render_page(workbench, report=report)
     assert page.startswith("<!doctype html>") and page.rstrip().endswith("</html>")
     assert "<style>" in page and "/assets/workbench.css" not in page, "export must inline its stylesheet"
+    assert 'id="sec-diagnostics"' in page and "生产链路诊断" in page
     assert workbench["snapshot_id"] in page
     assert "引1" in page
 
@@ -80,6 +81,19 @@ def test_export_marks_a_running_projection_as_unreviewed():
     assert "静态导出" in page
 
 
+def test_export_labels_supported_partial_result_as_interim():
+    from opinion_search.domain.investigation.models import ReviewRecord, finding_hash
+
+    state = _state()
+    finding = state.findings[0]
+    review = ReviewRecord(finding_id=finding.finding_id, verdict="supported", reason="原文支持",
+                          finding_hash=finding_hash(finding), model="test", reviewed_at=utcnow())
+    state = state.model_copy(update={"reviews": (review,)})
+    page = _page(state, status="partial")
+    assert "已核查阶段性判断" in page
+    assert "调查尚未完成" in page
+
+
 def test_export_flags_offline_fixture_materials():
     state = _state()
     report = build_report(state, "completed", "完成", case_id="c", run_id="r3", mode="offline")
@@ -91,6 +105,8 @@ def test_export_renders_facet_module_cards_instead_of_template_literals():
     page = _page()  # _state() carries the rule_change facet
     assert "{cards}" not in page, "projection fields must be interpolated, never printed"
     assert "新旧规则对照" in page
+    assert 'href="#sec-focus"' in page
+    assert "规则与适用影响" in page
 
 
 def test_export_shows_per_issue_material_counts_from_the_snapshot():
@@ -138,6 +154,33 @@ def test_export_renders_structured_facet_fields_with_explicit_unknowns():
     assert "os-facet-field" in page
     assert "旧值" in page and "新值" in page
     assert "未知" in page, "missing module fields stay unknown instead of being filled"
+
+
+def test_export_keeps_multiple_supported_field_values_without_calling_them_a_conflict():
+    state = _state()
+    report = build_report(state, "partial", "需核对范围", case_id="c", run_id="r-multiple")
+    workbench = build_workbench(report)
+    module = {
+        "module_type": "rule_change",
+        "title": "新旧规则对照",
+        "state": "insufficient",
+        "facet": True,
+        "selection_rationale": "存在多个带依据的适用对象表述。",
+        "gap": "需核对两种表述的时间和适用范围。",
+        "items": [],
+        "fields": [{
+            "key": "applicable_population",
+            "label": "适用对象",
+            "state": "multiple",
+            "values": ["居民用户", "本市居民用户"],
+            "citations": ["evidence-secret-id"],
+        }],
+    }
+    workbench["modules"].append(module)
+    workbench["views"]["overview"]["highlights"] = [module]
+    page = render_page(workbench, report=report)
+    assert "多种有依据表述：居民用户 / 本市居民用户" in page
+    assert "字段冲突" not in page
 
 
 def test_export_groups_same_url_versions_under_one_page():

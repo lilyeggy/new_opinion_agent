@@ -3,8 +3,8 @@
 These cases verify that a case keeps its own materials, questions, modules,
 components, source relation of fact and targeted-update semantics end to end.
 They are deliberately marked mechanism-only: passing them is not live-search or
-human-quality evidence, and the ten real-material slots in the registry remain
-blocked until genuine snapshots and annotations exist.
+human-quality evidence. A registry slot may contain real snapshots while still
+remaining ineligible for quality claims until its annotations are human-reviewed.
 """
 
 from __future__ import annotations
@@ -81,4 +81,5 @@ def test_replay_cases_do_not_claim_live_or_human_quality():
     assert REPLAY_CASES
     assert all(case["quality_claim"] == "mechanism_only" for case in REPLAY_CASES)
     registry = json.loads((Path(__file__).parent / "cases" / "registry.json").read_text(encoding="utf-8"))
-    assert all(case["status"] == "blocked" for case in registry["cases"])
+    assert all(not case["annotation"]["reviewed_by_human"] for case in registry["cases"])
+    assert all(case["expected"] == {} for case in registry["cases"])

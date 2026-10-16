@@ -81,6 +81,7 @@ class OpinionContextCompiler:
         if not isinstance(state.domain_state, OpinionSearchState):
             raise TypeError("OpinionContextCompiler requires OpinionSearchState")
 
+        # 1. 从权威状态生成纯视图 Working memory
         memory = project_working_memory(state.domain_state)
         collected = self._collect(state, memory)
         selected = select_context_sections(

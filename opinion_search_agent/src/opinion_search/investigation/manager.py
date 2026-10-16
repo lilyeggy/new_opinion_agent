@@ -19,6 +19,7 @@ from opinion_search.domain.investigation.models import (
 from opinion_search.domain.investigation.engine import allowed_url
 from opinion_search.domain.opinion.framing import build_task_frame
 from opinion_search.investigation.context import structured_context
+from opinion_search.investigation.diagnostics import build_chain_diagnostics, empty_chain_diagnostics
 from opinion_search.investigation.export import render_page
 from opinion_search.investigation.presentation import confirmed_profile
 from opinion_search.investigation.report import build_report, diff_reports, markdown
@@ -439,7 +440,8 @@ class Manager:
         except ValueError as exc:
             raise ValueError("This investigation was written by an incompatible version.") from exc
 
-    def _write_provisional_workbench(self, identifier, data, state):
+    def _write_provisional_workbench(self, identifier, data, state, *, runtime=None, budget=None,
+                                     checkpoint_boundary=None):
         """In-run stage projection using the same contract as published views.
 
         Everything a running page shows from here stays provisional: findings
@@ -448,7 +450,9 @@ class Manager:
 
         try:
             report = build_report(state, "running", "调查进行中的阶段投影，内容待审查。",
-                case_id=data["case_id"], run_id=identifier, mode=data["mode"], scope_notes=_assumption_note(data))
+                case_id=data["case_id"], run_id=identifier, mode=data["mode"],
+                budget=budget, scope_notes=_assumption_note(data), runtime=runtime,
+                checkpoint_boundary=checkpoint_boundary)
             report["generated_at"] = utcnow().isoformat()
             report["started_at"] = data.get("created_at")
             report["lookup_cutoff"] = report["cutoff"]
@@ -488,6 +492,24 @@ class Manager:
         if snapshot_id and snapshot_id != projection["snapshot_id"]:
             raise ValueError("The requested workbench snapshot does not match this version; reload the current one.")
         return projection
+
+    def diagnostics(self, identifier):
+        """Return the persisted production-chain diagnosis for any run state."""
+
+        data = self.load(identifier)
+        report = read_json(self.path(identifier) / "report.json")
+        if report and report.get("diagnostics"):
+            return report["diagnostics"]
+        progress = data.get("progress") or {}
+        if progress.get("diagnostics"):
+            return progress["diagnostics"]
+        raw = read_json(self.path(identifier) / "run.json")
+        budget = read_json(self.path(identifier) / "budget.json")
+        if raw and "state" in raw:
+            runtime = InvestigationRun.model_validate(raw["state"])
+            return build_chain_diagnostics(runtime.domain_state, runtime=runtime, budget=budget,
+                                           publication_status=data["status"])
+        return empty_chain_diagnostics(data["status"], data.get("error") or data.get("phase", ""), budget)
 
     def markdown(self, identifier):
         path = self.path(identifier) / "report.md"
@@ -573,6 +595,75 @@ class Manager:
         projection = self.workbench(identifier, snapshot_id)
         report = read_json(self.path(identifier) / "report.json")
         return render_page(projection, report=report, evidence_context=self._evidence_context(identifier))
+
+    def dossier_plan(self, identifier, snapshot_id=None, *, planner_model=None):
+        """Build or load the PresentationPlan for a published or provisional run."""
+
+        from opinion_search.presentation_skill.llm_planner import LlmPresentationPlanner
+        from opinion_search.report_contract.contracts import PresentationPlan
+        from opinion_search.report_contract.projector import (
+            build_content_document_from_investigation,
+            build_presentation_plan,
+        )
+        from opinion_search.report_contract.validator import validate_presentation_plan
+
+        projection = self.workbench(identifier, snapshot_id)
+        run_root = self.path(identifier)
+        saved_plan = read_json(run_root / "presentation_plan.json")
+        if saved_plan is not None and planner_model is None:
+            try:
+                return PresentationPlan.model_validate(saved_plan)
+            except ValueError:
+                pass
+
+        report = read_json(run_root / "report.json") or {
+            "run_id": identifier,
+            "subject": projection.get("views", {}).get("overview", {}).get("subject", "舆情深度调查"),
+            "status": projection.get("publication_state", "running"),
+            "generated_at": projection.get("generated_at", ""),
+            "cutoff": projection.get("lookup_cutoff", ""),
+            "state_revision": 1,
+            "sources": [],
+            "evidence": [],
+            "findings": [],
+            "issues": projection.get("views", {}).get("issues", {}).get("issues", []),
+        }
+        content_doc = build_content_document_from_investigation(report, projection)
+        base_plan = build_presentation_plan(content_doc)
+        if planner_model is None:
+            return base_plan
+
+        findings = [f for f in (report.get("findings") or []) if f.get("active", True)]
+        findings_by_id = {str(f.get("finding_id")): f for f in findings if f.get("finding_id")}
+        evidence_by_id = {str(e.get("evidence_id")): e for e in (report.get("evidence") or []) if e.get("evidence_id")}
+        wb_citations = projection.get("citations") or {}
+        citation_labels = {eid: str(meta.get("label") or "") for eid, meta in wb_citations.items()}
+        citation_refs = {}
+        for section in content_doc.sections:
+            for mod in section.modules:
+                for cref in mod.citations:
+                    citation_refs[cref.evidence_id] = cref
+
+        planned = LlmPresentationPlanner(planner_model).plan(
+            base_plan,
+            findings_by_id=findings_by_id,
+            evidence_by_id=evidence_by_id,
+            citation_labels=citation_labels,
+            citation_refs=citation_refs,
+        )
+        try:
+            validate_presentation_plan(planned)
+        except ValueError:
+            return base_plan
+        return planned
+
+    def dossier_page(self, identifier, snapshot_id=None, *, planner_model=None):
+        """Render the autonomous editorial dossier HTML from the PresentationPlan."""
+
+        from opinion_search.report_contract.renderer import render_html
+
+        plan = self.dossier_plan(identifier, snapshot_id=snapshot_id, planner_model=planner_model)
+        return render_html(plan)
 
     def _evidence_context(self, identifier):
         """Verification status and bounded context for each saved excerpt.
@@ -712,7 +803,7 @@ class Manager:
                 budget = read_json(run_root / "budget.json")
                 report = build_report(run_state.domain_state, "failed", "调查中断，已保存的材料与判断仍然保留，报告不完整。",
                     case_id=data["case_id"], run_id=identifier, parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
-                    scope_notes=_assumption_note(data))
+                    scope_notes=_assumption_note(data), runtime=run_state)
                 atomic_json(run_root / "report.json", report)
                 atomic_text(run_root / "report.md", markdown(report))
         except (OSError, ValueError):
@@ -733,7 +824,7 @@ class Manager:
             state = InvestigationRun.model_validate(raw["state"]).domain_state
             report = build_report(state, "cancelled", note, case_id=data["case_id"], run_id=identifier,
                                   parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
-                                  scope_notes=_assumption_note(data))
+                                  scope_notes=_assumption_note(data), runtime=InvestigationRun.model_validate(raw["state"]))
         else:
             plan = data.get("plan") or {}
             report = {
@@ -743,11 +834,32 @@ class Manager:
                 "cutoff": utcnow().isoformat(), "required_questions": [], "issues": [], "findings": [],
                 "retired": [], "conclusions": [], "sources": [], "evidence": [], "searches": [], "read_errors": [],
                 "changes": [], "no_material_change": False, "budget": budget,
+                "diagnostics": empty_chain_diagnostics("cancelled", note, budget),
                 "scope_limitation": "调查已取消，没有可展示的材料或结论。",
             }
         atomic_json(run_root / "report.json", report)
         atomic_text(run_root / "report.md", markdown(report))
         self.save(self.load(identifier), status="cancelled", phase="已取消", published=True)
+
+    async def _propose_plan(self, config, budget, instructions, payload):
+        """One retry for plan-proposal drift outside the AgentLoop.
+
+        The loop retries malformed model decisions internally; the planning
+        call runs before the loop exists, so a transient schema drift (an
+        extra note field, a truncated reply) otherwise failed the whole
+        investigation on the first try — as it did on a 2026-09-23 replay.
+        """
+        from opinion_search.models.contracts import ModelClientError
+
+        planner = live_model(config, budget, PlanProposal)
+        try:
+            return await planner.decide(
+                structured_context(instructions, PlanProposal, payload)
+            )
+        except ModelClientError:
+            return await planner.decide(
+                structured_context(instructions, PlanProposal, payload)
+            )
 
     async def _investigate(self, identifier, worker):
         from opinion_search.investigation.offline import fixture_for_request, offline_plan
@@ -782,7 +894,7 @@ class Manager:
                 instructions = PLAN_INSTRUCTIONS
                 if data.get("plan_hint") == "proceed_on_assumption":
                     instructions += "\n" + PROCEED_ON_ASSUMPTION_INSTRUCTIONS
-                plan = await live_model(config, budget, PlanProposal).decide(structured_context(instructions, PlanProposal, payload))
+                plan = await self._propose_plan(config, budget, instructions, payload)
             else:
                 budget.charge("model")
                 plan = offline_plan(request)
@@ -883,9 +995,15 @@ class Manager:
                 status = "finalizing" if run.status.value in TERMINAL else "running"
                 if status == "finalizing":
                     phase = "正在写入报告与版本"
+                budget_snapshot = budget.snapshot()
+                diagnostics = build_chain_diagnostics(state, runtime=run, budget=budget_snapshot,
+                                                      publication_status=status,
+                                                      checkpoint_boundary=boundary.value)
                 manager.save(manager.load(identifier), status=status, phase=phase,
-                    progress={"questions": [q.model_dump(mode="json") for q in state.issues], "source_count": len(state.sources), "finding_count": sum(f.active for f in state.findings), "read_errors": len(state.read_errors), "search_errors": sum(s.outcome == "error" for s in state.searches)})
-                manager._write_provisional_workbench(identifier, data, state)
+                    progress={"questions": [q.model_dump(mode="json") for q in state.issues], "source_count": len(state.sources), "finding_count": sum(f.active for f in state.findings), "read_errors": len(state.read_errors), "search_errors": sum(s.outcome == "error" for s in state.searches), "diagnostics": diagnostics})
+                manager._write_provisional_workbench(identifier, data, state, runtime=run,
+                                                     budget=budget_snapshot,
+                                                     checkpoint_boundary=boundary.value)
 
         builder = self.loop_builder or build_loop
         loop = builder(run_root, case_root, data["mode"], budget, Hook(), worker.signal, config,
@@ -897,7 +1015,9 @@ class Manager:
         """Write the immutable report artifacts, then atomically expose the version."""
 
         status = result.status.value
-        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data))
+        raw = read_json(run_root / "run.json")
+        runtime = InvestigationRun.model_validate(raw["state"]) if raw and "state" in raw else None
+        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data), runtime=runtime, checkpoint_boundary="published")
         report["generated_at"] = utcnow().isoformat()
         report["started_at"] = data.get("created_at")
         report["lookup_cutoff"] = report["cutoff"]
@@ -906,6 +1026,7 @@ class Manager:
         projection["projection_source"] = "saved"
         atomic_json(run_root / "workbench.json", projection)
         atomic_text(run_root / "report.md", markdown(report))
+        self._publish_dossier_artifacts(run_root, report, projection, data=data, budget=budget)
         (run_root / "workbench-provisional.json").unlink(missing_ok=True)
         if status in {"completed", "partial"}:
             atomic_json(case_root / "latest.json", {"run_id": identifier})
@@ -915,3 +1036,67 @@ class Manager:
             atomic_json(case_root / "latest_completed.json", {"run_id": identifier})
         phase = {"completed": "调查完成", "partial": "部分完成", "cancelled": "已取消", "failed": "调查失败"}[status]
         self.save(self.load(identifier), status=status, phase=phase, published=True)
+
+    def _publish_dossier_artifacts(
+        self,
+        run_root: Path,
+        report: dict,
+        projection: dict,
+        *,
+        data: dict | None = None,
+        budget: Budget | None = None,
+        planner_model=None,
+    ) -> None:
+        """Persist the contract-driven PresentationPlan and rendered dossier HTML."""
+
+        from opinion_search.presentation_skill.llm_planner import LlmPresentationPlanner, VisualPlanOutput
+        from opinion_search.report_contract.projector import (
+            build_content_document_from_investigation,
+            build_presentation_plan,
+        )
+        from opinion_search.report_contract.renderer import render_html
+        from opinion_search.report_contract.validator import validate_presentation_plan
+
+        try:
+            content_doc = build_content_document_from_investigation(report, projection)
+            plan = build_presentation_plan(content_doc)
+            active_model = planner_model
+            if (
+                active_model is None
+                and data
+                and data.get("mode") == "live"
+                and budget is not None
+                and budget.snapshot()["model"] < budget.limits["model"]
+                and budget.remaining_seconds() > 5
+            ):
+                try:
+                    active_model = live_model(self.config_loader(), budget, VisualPlanOutput)
+                except Exception:
+                    active_model = None
+            if active_model is not None:
+                findings = [f for f in (report.get("findings") or []) if f.get("active", True)]
+                findings_by_id = {str(f.get("finding_id")): f for f in findings if f.get("finding_id")}
+                evidence_by_id = {str(e.get("evidence_id")): e for e in (report.get("evidence") or []) if e.get("evidence_id")}
+                wb_citations = projection.get("citations") or {}
+                citation_labels = {eid: str(meta.get("label") or "") for eid, meta in wb_citations.items()}
+                citation_refs = {}
+                for section in content_doc.sections:
+                    for mod in section.modules:
+                        for cref in mod.citations:
+                            citation_refs[cref.evidence_id] = cref
+                try:
+                    planned = LlmPresentationPlanner(active_model).plan(
+                        plan,
+                        findings_by_id=findings_by_id,
+                        evidence_by_id=evidence_by_id,
+                        citation_labels=citation_labels,
+                        citation_refs=citation_refs,
+                    )
+                    validate_presentation_plan(planned)
+                    plan = planned
+                except Exception:
+                    pass
+            atomic_json(run_root / "presentation_plan.json", plan.model_dump(mode="json"))
+            atomic_text(run_root / "dossier.html", render_html(plan))
+        except Exception:
+            return

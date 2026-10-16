@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-fd63205945e6c97e47ab",
+      "query": "钟薛高重启宣布中的降价幅度、产品定价与适用范围、重启动因与新运营方安排",
+      "version_id": "source-e071a844c614bab9c4e9"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-da6a9e24c579f940f314",
+        "version_id": "source-e071a844c614bab9c4e9",
+        "excerpt": "降价让钟薛高进入了更接近大众消费的价格带，也降低了重新尝试的门槛。不过，新产品出厂价与过去接近，终端售价却大幅下降，意味着新运营方需要重新调整渠道利润、营销投入和资产投放。",
+        "start": 331,
+        "end": 417,
+        "locator": "Reader text chars 331:417"
+      },
+      {
+        "evidence_id": "evidence-07b740bd2f6c26993251",
+        "version_id": "source-e071a844c614bab9c4e9",
+        "excerpt": "此次钟薛高选择在行业展会上宣布重启，一个重要目的也是接触零售商和经销商。原公司使用的社交媒体账号将由破产管理人推进注销，新运营方需要重新招商，搭建从仓储配送到终端销售的渠道体系。",
+        "start": 1312,
+        "end": 1401,
+        "locator": "Reader text chars 1312:1401"
+      },
+      {
+        "evidence_id": "evidence-720ed0437c4ee243ad82",
+        "version_id": "source-e071a844c614bab9c4e9",
+        "excerpt": "谈及钟薛高重启的条件，张毅表示：“对新的钟薛高来讲，只要产品品质没有问题，符合大众消费者对健康和相关品质的要求，同时渠道做得还不错，整个运营体系搭建得比较好，理论上还是有一点机会的。”",
+        "start": 1403,
+        "end": 1495,
+        "locator": "Reader text chars 1403:1495"
+      },
+      {
+        "evidence_id": "evidence-a010c1ba3e1b1dda5945",
+        "version_id": "source-e071a844c614bab9c4e9",
+        "excerpt": "变化主要发生在终端价格。轻牛乳的建议零售价降至6.9元，丝绒可可和半半巧巧降至7.9元。陈大成表示，新品各口味的出厂价与过去接近，变动幅度小于终端零售价的调整；公司计划通过减少固定资产和营销投入，以更轻量的运营方式支撑新的价格体系。",
+        "start": 1089,
+        "end": 1205,
+        "locator": "Reader text chars 1089:1205"
+      },
+      {
+        "evidence_id": "evidence-f762aee299812e9588c4",
+        "version_id": "source-e071a844c614bab9c4e9",
+        "excerpt": "9月16日，钟薛高在第28届中国冰淇淋及冷冻食品产业博览会上宣布重启。",
+        "start": 44,
+        "end": 79,
+        "locator": "Reader text chars 44:79"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

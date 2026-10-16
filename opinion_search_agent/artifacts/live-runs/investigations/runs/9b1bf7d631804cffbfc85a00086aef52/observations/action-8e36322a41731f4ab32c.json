@@ -1,0 +1,34 @@
+{
+  "action": {
+    "decision": {
+      "action": "finish",
+      "conclusion_ids": [
+        "finding-e8b3a4e0090c4f05bafe",
+        "finding-69e9e953868416e6752a",
+        "finding-74b109fb3188124b5d25",
+        "finding-361712fd5d3c98cb83a5",
+        "finding-3eed15e0fe47e42c685b",
+        "finding-b78265f75f290659f20b"
+      ]
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": {
+      "disposition": "reject_and_continue",
+      "reason": "Required investigation questions remain open."
+    }
+  },
+  "observation": {
+    "action": "finish",
+    "outcome": null,
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": {
+      "disposition": "reject_and_continue",
+      "reason": "Required investigation questions remain open."
+    }
+  }
+}

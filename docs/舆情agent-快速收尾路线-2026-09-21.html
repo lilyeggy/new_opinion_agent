@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>快速收尾路线 · 2026-09-21</title>
+<style>
+  :root {
+    --ink: #1a2233; --ink-2: #3d4a63; --ink-3: #6b7690;
+    --line: #e3e7ef; --bg: #f7f8fa; --card: #ffffff;
+    --accent: #2b5ce6; --accent-soft: #eef3fe;
+    --red: #c0392b; --red-soft: #fdf0ee;
+    --amber: #b3770a; --amber-soft: #fdf6e7;
+    --green: #1e7e4d; --green-soft: #ecf7f1;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--ink); line-height: 1.85; font-size: 15.5px; }
+  .page { max-width: 860px; margin: 0 auto; padding: 56px 32px 96px; }
+  header.masthead { border-bottom: 3px solid var(--ink); padding-bottom: 26px; margin-bottom: 34px; }
+  .kicker { font-size: 13px; letter-spacing: 2px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-size: 28px; line-height: 1.4; font-weight: 700; }
+  .meta { margin-top: 12px; font-size: 13px; color: var(--ink-3); }
+  h2 { font-size: 20px; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); font-weight: 700; }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  p { margin: 11px 0; }
+  code { font-family: var(--mono); font-size: 13.5px; background: #eef0f4; padding: 1px 6px; border-radius: 4px; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 7px 0; }
+  .verdict { background: var(--ink); color: #f2f4f8; border-radius: 10px; padding: 24px 28px; margin: 30px 0 6px; line-height: 1.9; }
+  .verdict .tag { color: #8fb0ff; font-size: 13px; letter-spacing: 2px; font-weight: 600; }
+  .verdict p { margin: 9px 0 0; }
+  .verdict strong { color: #fff; }
+  .done-def { background: var(--green-soft); border: 1.5px solid #bfe0cd; border-radius: 10px; padding: 20px 26px; margin: 20px 0; }
+  .done-def h3 { color: var(--green); font-size: 16px; margin-bottom: 10px; }
+  .day { display: flex; gap: 18px; margin: 16px 0; }
+  .day .d { flex: 0 0 70px; font-family: var(--mono); font-weight: 700; font-size: 14px; color: #fff; background: var(--accent); border-radius: 8px; height: fit-content; padding: 8px 0; text-align: center; }
+  .day.critical .d { background: var(--red); }
+  .day .body { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 22px; }
+  .day .body h4 { font-size: 15.5px; margin-bottom: 5px; }
+  .day .out { font-size: 13px; color: var(--green); margin-top: 8px; font-weight: 600; }
+  .nogo { background: var(--red-soft); border: 1px solid #eccfca; border-radius: 10px; padding: 16px 22px; margin: 14px 0; }
+  .nogo h4 { color: var(--red); font-size: 15px; margin-bottom: 6px; }
+  .risk { background: var(--amber-soft); border: 1px solid #ecd9ae; border-radius: 10px; padding: 16px 22px; margin: 14px 0; }
+  .risk h4 { color: var(--amber); font-size: 15px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">快速收尾路线 · 最终版（不受既有文档约束）</div>
+  <h1>5 天收口：从「机制验证过」到「真实跑通过」</h1>
+  <div class="meta">目标态：秋招面试可用 · 验收标准只有四条 · 2026-09-21</div>
+</header>
+
+<div class="verdict">
+  <div class="tag">关 键 判 断</div>
+  <p>这个项目距离「完成」不是差一堆功能，而是差<strong>一次真实成功</strong>：最后一次真实联网尝试（09-14 s3/s4）以 0 Finding 和决策恢复耗尽收场，修复后的策略<strong>至今没有复跑验证</strong>。所以收尾的关键路径只有一条：<strong>用真实模型+真实材料，让闭环成功跑一次</strong>。其余所有动作——砍 fork、出数字、练故事——都是围绕这一件事的收口。</p>
+</div>
+
+<h2><span class="no">01</span>完成定义（面试可用 = 四条全部满足）</h2>
+
+<div class="done-def">
+  <h3>✓ Definition of Done</h3>
+  <ol>
+    <li><strong>单一系统</strong>：一套 harness、一条产品路径，5 分钟能讲清，没有讲不出取舍的 fork；</li>
+    <li><strong>真实闭环</strong>：一个中文真实事件，真实模型+真实搜索，完整跑出带证据、带诊断的报告（completed 或诚实标注的 partial 均可，但必须走完全流程）；</li>
+    <li><strong>三个数字</strong>：检索召回、忠实性、对抗点命中——各一个可引用数字，不追求体系；</li>
+    <li><strong>讲得出来</strong>：3 分钟电梯陈述 + 13 个核心问题（设计文档 §16）+ 一个失败修复故事，脱稿。</li>
+  </ol>
+</div>
+
+<h2><span class="no">02</span>五天路线</h2>
+
+<div class="day">
+  <div class="d">D1</div>
+  <div class="body">
+    <h4>砍 fork，统一叙事（纯删除与记录，零风险）</h4>
+    <ul>
+      <li><code>harness/</code> 整体移入 archive/（或加 <code>EXPERIMENTAL.md</code> 标记冻结），README 记一笔决策：「评估过多角色流水线拓扑，因违反单 runtime 原则且与生产路径能力重复，归档不采用」。</li>
+      <li>统一口径：唯一 harness = runtime AgentLoop；产品路径 = investigation 域 + PagePlan 渲染；面试词汇只留一套（Evidence/Finding/Review）。</li>
+      <li>不改任何运行时代码。今天结束时系统行为与昨天完全一致，只是<b>讲得清了</b>。</li>
+    </ul>
+    <div class="out">产出：完成定义 ① · 「为什么砍第二个 loop」成为减法故事</div>
+  </div>
+</div>
+
+<div class="day critical">
+  <div class="d">D2–D3</div>
+  <div class="body">
+    <h4>关键路径：真实闭环复跑（s5）</h4>
+    <ul>
+      <li>选 1 个中文公开争议事件（目标域，非英文科技稿），真实 Brave+Jina+生产模型，跑修复后策略（首次研判闸门 + 发布保留段）。</li>
+      <li>跑之前先修两个已知阻塞项：UI placeholder「过去 30 天」空格不解析（用户照抄示例即静默失效）；确认 <code>live_model()</code> 的 max_output_tokens 与预算配置真实进入执行边界（§19.13 已修，验证即可）。</li>
+      <li>跑挂了就靠已有的九阶段链路诊断定位：<strong>只修阻塞闭环的 bug，不顺手优化</strong>。每个修复记录「现象→诊断信号→修复→复跑结果」，这就是面试素材。</li>
+      <li>若 D3 结束仍跑不通：降级方案 = 用冻结材料+真实模型回放（§19.10 设施已就绪）完成闭环演示，live 限制如实写进报告——<strong>诚实降级也是完成</strong>。</li>
+    </ul>
+    <div class="out">产出：完成定义 ② · 全程自动生成「失败→修复→验证」故事链</div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="d">D4</div>
+  <div class="body">
+    <h4>三个数字（一天出齐，不建体系）</h4>
+    <ul>
+      <li><strong>检索召回</strong>：拿 D2 的事件材料，人工标 8–10 篇「必中清单」，对照实际读取，recall = 命中/必中；</li>
+      <li><strong>忠实性</strong>：抽报告里 15–20 条 finding，人工核对「证据是否真的支持」，支持率 = 通过/抽样；</li>
+      <li><strong>对抗点</strong>：往冻结材料里塞 3 个已知点（一篇反方稿、一条更正、一个错误数字），跑 replay，命中 x/3。</li>
+    </ul>
+    <div class="out">产出：完成定义 ③ · 「我怎么验收我的 harness」有了答案</div>
+  </div>
+</div>
+
+<div class="day">
+  <div class="d">D5</div>
+  <div class="body">
+    <h4>面试收口</h4>
+    <ul>
+      <li>电梯陈述定稿：一句话定位 → 架构图 → 三个数字 → s3→s5 失败修复故事；</li>
+      <li>设计文档 §16 的 13 个问题过一遍，每个能讲「为什么」而不是「是什么」；</li>
+      <li>README 定稿：定位、运行方式、架构图、验收数字、已知限制（已知限制主动讲，是加分项）；</li>
+      <li>implementation memory 记最后一笔：s5 结果与三个数字，封存。</li>
+    </ul>
+    <div class="out">产出：完成定义 ④ · 项目封存</div>
+  </div>
+</div>
+
+<h2><span class="no">03</span>明确不做（做了就超期）</h2>
+
+<div class="nogo">
+  <h4>✗ 一律不碰</h4>
+  <ul>
+    <li>代码级 harness 合流 / 任何运行时重构；</li>
+    <li>搜索管道改进（QueryPlan、第二引擎、BM25 二次检索、freshness 传导）——全部写进 README「下一步」讲给面试官；</li>
+    <li>异步化、checkpoint 增量化、Controller 清理；</li>
+    <li>评测体系化（基线设施、自动化评分）——D4 的手工数字足够；</li>
+    <li>报告排版与前端的任何打磨。</li>
+  </ul>
+</div>
+
+<div class="risk">
+  <h4>⚠ 唯一的风险点与对策</h4>
+  <p>D2–D3 的真实复跑可能再次暴露收敛问题（s4 就是修复后仍耗尽决策恢复）。对策已经内置：冻结材料回放兜底 + 诊断信号定位 + 只修阻塞项。<strong>即使 s5 最终是 partial，只要诊断链完整记录了「系统如何发现自己的不足」，这在面试里依然是成功</strong>——这个项目最值钱的本来就是可靠性机制，不是某次报告内容。</p>
+</div>
+
+</div>
+</body>
+</html>

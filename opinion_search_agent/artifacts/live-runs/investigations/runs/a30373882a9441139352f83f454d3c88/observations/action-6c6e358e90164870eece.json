@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-d6013ddc4c2c706c3f99",
+      "url": "https://m.mp.oeeee.com/n/video/BAAFRD0000202609161667308",
+      "focus": "野人先生9月16日首度发声的原话、发布渠道、是否直接回应罗永浩及官宣冰淇淋丰收节的表述",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://m.mp.oeeee.com/n/video/BAAFRD0000202609161667308"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:15:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

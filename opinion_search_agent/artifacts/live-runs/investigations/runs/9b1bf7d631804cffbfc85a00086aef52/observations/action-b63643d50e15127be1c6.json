@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-97cfac9a8a2f2c93f0af",
+      "query": "三九胃泰中秋广告 外层大字文案、左下角小字说明、右下角“掀开看”提示与内页“月饼和冷饮不要在胃里团圆了”原文，以及华润三九工作人员9月15日回应原话",
+      "version_id": "source-06fa95dd93fb791ab5f4"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-8d8e6a809bf7c9126297",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "一名小红书用户发布的海报照片显示，外层用醒目大字写着“三九胃泰求‘你们’中秋别团圆了”，右下角提示“掀开看”。左下角的小字则写着：“一家人过节要整整齐齐，但有些食物在胃里团圆，对胃可不好。”",
+        "start": 736,
+        "end": 831,
+        "locator": "Reader text chars 736:831"
+      },
+      {
+        "evidence_id": "evidence-1683bf258aa90ec2aa20",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "新黄河记者注意到，另一名网友发布的视频截图展示了海报内页：月饼和加冰饮料图片旁，写着“月饼和冷饮，不要在胃里‘团圆’了”。内页同时出现“高济再康药房”标识、参与三九胃泰中秋活动赢取好礼的文字，以及小程序码。",
+        "start": 1011,
+        "end": 1114,
+        "locator": "Reader text chars 1011:1114"
+      },
+      {
+        "evidence_id": "evidence-ae4bb1250afb191046a6",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "外层写着“中秋别团圆了”，掀开后是月饼、冷饮和药房活动——三九胃泰的一则翻页广告，引发网友对节日文案的质疑。",
+        "start": 625,
+        "end": 679,
+        "locator": "Reader text chars 625:679"
+      },
+      {
+        "evidence_id": "evidence-4d8164b4b2676a96c96f",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "据新京报9月15日报道，华润三九工作人员回应称，相关广告内容系公司总部策划，公司已接到反馈，正在安排撤下。",
+        "start": 681,
+        "end": 734,
+        "locator": "Reader text chars 681:734"
+      },
+      {
+        "evidence_id": "evidence-47e32fedf46511c50e79",
+        "version_id": "source-06fa95dd93fb791ab5f4",
+        "excerpt": "# 三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息|大鱼财经",
+        "start": 69,
+        "end": 104,
+        "locator": "Reader text chars 69:104"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-d8e634b4d9c381e9b8a1",
+      "query": "华润三九 官方回应 三九胃泰 中秋广告 撤下 致歉 声明 总部",
+      "purpose": "official_response",
+      "page": 0,
+      "background": false,
+      "target_gap": "确认华润三九官方（总部/证券部/客服）就争议的具体表态、撤下安排与是否有致歉或正式声明的原始表述"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "华润三九 官方回应 三九胃泰 中秋广告 撤下 致歉 声明 总部 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": "2026-09-13to2026-09-21"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:6:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "华润三九 官方回应 三九胃泰 中秋广告 撤下 致歉 声明 总部 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "三九胃泰广告语‘求你们中秋别团圆了’引发争议，华润三九回应将撤下",
+            "url": "https://www.huxiu.com/moment/1280436.html",
+            "snippet": "“求‘你们’中秋别团圆...眼球。 9月15日，记者从华润三九工作人员处获悉，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。..."
+          },
+          {
+            "title": "“求‘你们’中秋别团圆了”，三九胃泰中秋广告遭网友吐槽，工作人员：正在安排撤下_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915A09ASI00",
+            "snippet": "9月15日，华润三九工作人员回应，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。"
+          },
+          {
+            "title": "三九胃泰争议广告系总部策划正撤下_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A08FE900",
+            "snippet": "2026-09-16 14:09发布于北京...了”广告引发的争议，华润三九工作人员表示，相关内容由公司总部策划，目前正在安排撤下。..."
+          },
+          {
+            "title": "三九胃泰“中秋别团圆”广告被吐槽！华润三九：正在安排下架_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915A0BC4700",
+            "snippet": "针对此事，9月15日，三九胃泰母公司华润三九证券部工作人员回应南都湾财社记者，将把采访予以转达，记者亦发送采访邮件至华润三九官方，截至发稿前未得到回应。另据新京报报道，华润三九工作人员表示，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。"
+          },
+          {
+            "title": "三九胃泰中秋广告文案「求别团圆」致公关灾难 华润三九急撤下宣传",
+            "url": "https://www.stheadline.com/zh-hans/realtime-china/3616445/%E4%B8%89%E4%B9%9D%E8%83%83%E6%B3%B0%E4%B8%AD%E7%A7%8B%E5%B9%BF%E5%91%8A%E6%96%87%E6%A1%88%E6%B1%82%E5%88%AB%E5%9B%A2%E5%9C%86%E8%87%B4%E5%85%AC%E5%85%B3%E7%81%BE%E9%9A%BE-%E5%8D%8E%E6%B6%A6%E4%B8%89%E4%B9%9D%E6%80%A5%E6%92%A4%E4%B8%8B%E5%AE%A3%E4%BC%A0",
+            "snippet": "临近中秋佳节，内地老牌...医药股份有限公司于9月15日紧急回应，承认相关广告由总部策划，接获投诉后正陆续安排全线撤除广告。..."
+          },
+          {
+            "title": "三九胃泰广告 求你们中秋别团圆 广告引发争议_新闻频道_中华网",
+            "url": "https://news.china.com/socialgd/10000169/20260915/49743457.html",
+            "snippet": "次日，华润三九工作人员回应称，相关广告内容是由公司总部策划的，目前已经收到反馈，并正在安排撤下该广告。"
+          },
+          {
+            "title": "三九胃泰中秋广告文案“求别团圆”致公关灾难 华润三九急撤下宣传 | 星岛加拿大都市网 多伦多",
+            "url": "https://dushi.singtao.ca/toronto/%E6%96%B0%E9%97%BB/%E5%8D%B3%E6%97%B6%E4%B8%AD%E5%9B%BD/%E4%B8%89%E4%B9%9D%E8%83%83%E6%B3%B0%E4%B8%AD%E7%A7%8B%E5%B9%BF%E5%91%8A%E6%96%87%E6%A1%88%E6%B1%82%E5%88%AB%E5%9B%A2%E5%9C%86%E8%87%B4%E5%85%AC%E5%85%B3%E7%81%BE%E9%9A%BE-%E5%8D%8E/",
+            "snippet": "临近中秋佳节，内地老牌...热搜。涉事品牌母公司华润三九医药股份有限公司于9月15日紧急回应，承认相关广告由总部策划，接获投诉后正陆续安排全线撤除广告。..."
+          },
+          {
+            "title": "“求你们中秋别团圆了” 三九胃泰广告惹争议后撤下 | 文学城",
+            "url": "https://www.wenxuecity.com/news/2026/09/16/126776791.html",
+            "snippet": "中秋本是团圆的节日，三...”。9月15日，华润三九工作人员回应称，相关广告由公司总部策划，公司已收到反馈，正在安排撤下。 从“别团圆”到过去频繁出现在电视剧里..."
+          },
+          {
+            "title": "“求‘你们’中秋别团圆了”，三九胃泰广告被指“翻车”，最新回应：系公司总部策划，正安排撤下该广告_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0BN2A00?id=20260916A0BN2A00&path=a&app=news&suid=&redirect_pc=1",
+            "snippet": "对于这则中秋广告，9月15日，华润三九工作人员回应，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。"
+          },
+          {
+            "title": "求你们中秋别团圆了！三九胃泰回应广告争议：正安排撤下_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915A0B7FX00",
+            "snippet": "今日，华润三九工作人员回应称，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

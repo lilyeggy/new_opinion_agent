@@ -613,6 +613,10 @@ class _OpinionRequestHandler(BaseHTTPRequestHandler):
         if match:
             self._investigation_call(lambda: {"versions": manager.versions(match[0])})
             return True
+        match = self._match(r"/api/investigations/([0-9a-f]{32})/diagnostics$", path)
+        if match:
+            self._investigation_call(lambda: manager.diagnostics(match[0]))
+            return True
         match = self._match(r"/api/investigations/([0-9a-f]{32})/workbench$", path)
         if match:
             requested = self._query_value(query, "snapshot_id")
@@ -623,6 +627,24 @@ class _OpinionRequestHandler(BaseHTTPRequestHandler):
             snapshot_id = self._query_value(query, "snapshot_id")
             download = self._query_value(query, "download") == "1"
             self._investigation_call(lambda: manager.page(match[0], snapshot_id), page=True, download=download)
+            return True
+        match = self._match(r"/api/investigations/([0-9a-f]{32})/dossier$", path)
+        if match:
+            snapshot_id = self._query_value(query, "snapshot_id")
+            download = self._query_value(query, "download") == "1"
+            self._investigation_call(
+                lambda: manager.dossier_page(match[0], snapshot_id),
+                page=True,
+                download=download,
+                filename="event-dossier.html",
+            )
+            return True
+        match = self._match(r"/api/investigations/([0-9a-f]{32})/presentation-plan$", path)
+        if match:
+            snapshot_id = self._query_value(query, "snapshot_id")
+            self._investigation_call(
+                lambda: manager.dossier_plan(match[0], snapshot_id).model_dump(mode="json")
+            )
             return True
         match = self._match(r"/api/investigations/([0-9a-f]{32})/materials$", path)
         if match:
@@ -665,7 +687,15 @@ class _OpinionRequestHandler(BaseHTTPRequestHandler):
             return True
         return False
 
-    def _investigation_call(self, call, *, markdown: bool = False, page: bool = False, download: bool = False) -> None:
+    def _investigation_call(
+        self,
+        call,
+        *,
+        markdown: bool = False,
+        page: bool = False,
+        download: bool = False,
+        filename: str = "event-workbench.html",
+    ) -> None:
         try:
             result = call()
         except FileNotFoundError as exc:
@@ -682,7 +712,7 @@ class _OpinionRequestHandler(BaseHTTPRequestHandler):
             self.send_response(HTTPStatus.OK)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             if download:
-                self.send_header("Content-Disposition", 'attachment; filename="event-workbench.html"')
+                self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)

@@ -1,0 +1,100 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-28c8a9d5df6f6872b1d0",
+      "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+      "focus": "大河客户端更正说明原文：被转引的客服'已通知有关部门立即下刊'表述、媒体转载将其扩大为'已全面撤下'的差异、更正后对撤下进展的准确表述",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "d5f7ceecb3e94360acbb3bc9a43ea185:step:6:attempt:1:action",
+      "tool_name": "read.web",
+      "payload": {
+        "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+        "final_url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+        "title": "更正说明：关于三九胃泰广告撤下进展报道的更正",
+        "content": "# 更正说明：关于三九胃泰广告撤下进展报道的更正\n\n**大河客户端 · 2026-09-19 10:24**\n\n本客户端9月16日综合报道中，转引了三九胃泰客服人员\"已通知有关部门立即下刊\"的表述，部分转载媒体进一步表述为\"涉事广告已全面撤下\"。经记者9月18日晚间向华润三九品牌部核实，上述表述与实际情况不符，特作如下更正：\n\n一、\"立即下刊\"的范围仅为线上渠道。华润三九品牌部回应称，9月16日客服所说的\"立即下刊\"，指电商平台详情页、社交媒体投放素材等线上渠道的广告物料，该部分已于9月16日当日完成下架。\n\n二、线下海报撤下仍在进行中。涉及电梯、社区灯箱等线下点位的\"别团圆\"翻页海报，需由各地代理商逐点更换，预计9月20日前完成全部撤除。截至9月18日18时，江苏、上海等地部分点位海报仍在展示。\n\n三、公司暂无发布正式公开声明或致歉的计划，相关回应以客服与工作人员对媒体的口头说明为准。\n\n本客户端此前报道中\"广告已全面撤下\"的表述不准确，给读者造成误解，谨此更正并致歉。",
+        "published_at": "2026-09-19T10:24:00+08:00",
+        "updated_at": null
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [
+      {
+        "version_id": "source-16f1c7f34108bed594dd",
+        "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+        "final_url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+        "title": "更正说明：关于三九胃泰广告撤下进展报道的更正",
+        "fetched_at": "2026-09-23T04:17:52.879772Z",
+        "published_at": "2026-09-19T10:24:00+08:00",
+        "updated_at": null,
+        "artifact_ref": "artifact://sha256/dc4c4461d0cbb13d531fbec815954945383cc25add7e1b8678df7e376b0906d7",
+        "content_hash": "dc4c4461d0cbb13d531fbec815954945383cc25add7e1b8678df7e376b0906d7",
+        "role": "reporting",
+        "duplicate_of": null,
+        "origin_url": null
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "evidence-3c5c6c6b66dcec01acd7",
+        "version_id": "source-16f1c7f34108bed594dd",
+        "excerpt": "本客户端9月16日综合报道中，转引了三九胃泰客服人员\"已通知有关部门立即下刊\"的表述，部分转载媒体进一步表述为\"涉事广告已全面撤下\"。经记者9月18日晚间向华润三九品牌部核实，上述表述与实际情况不符，特作如下更正：",
+        "start": 56,
+        "end": 163,
+        "locator": "Reader text chars 56:163"
+      },
+      {
+        "evidence_id": "evidence-f38eb3181abb18302953",
+        "version_id": "source-16f1c7f34108bed594dd",
+        "excerpt": "# 更正说明：关于三九胃泰广告撤下进展报道的更正",
+        "start": 0,
+        "end": 24,
+        "locator": "Reader text chars 0:24"
+      },
+      {
+        "evidence_id": "evidence-8ecfdb3188f0ebf3c234",
+        "version_id": "source-16f1c7f34108bed594dd",
+        "excerpt": "本客户端此前报道中\"广告已全面撤下\"的表述不准确，给读者造成误解，谨此更正并致歉。",
+        "start": 401,
+        "end": 442,
+        "locator": "Reader text chars 401:442"
+      },
+      {
+        "evidence_id": "evidence-5f8101ca9ba44b9a58b7",
+        "version_id": "source-16f1c7f34108bed594dd",
+        "excerpt": "**大河客户端 · 2026-09-19 10:24**",
+        "start": 26,
+        "end": 54,
+        "locator": "Reader text chars 26:54"
+      },
+      {
+        "evidence_id": "evidence-a6281fdce68ebfe2f37a",
+        "version_id": "source-16f1c7f34108bed594dd",
+        "excerpt": "一、\"立即下刊\"的范围仅为线上渠道。华润三九品牌部回应称，9月16日客服所说的\"立即下刊\"，指电商平台详情页、社交媒体投放素材等线上渠道的广告物料，该部分已于9月16日当日完成下架。",
+        "start": 165,
+        "end": 256,
+        "locator": "Reader text chars 165:256"
+      }
+    ],
+    "reviews": [],
+    "check": {
+      "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+      "version_id": "source-16f1c7f34108bed594dd",
+      "checked_at": "2026-09-23T04:17:52.879782Z",
+      "changed": false
+    },
+    "verdict": null
+  }
+}

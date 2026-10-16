@@ -533,7 +533,7 @@ class AgentLoop:
         if self._cancellation_signal.is_cancelled():
             raise _RunCancelled
         operation_task = asyncio.create_task(operation())
-        wait_task = asyncio.create_task(
+        wait_task: asyncio.Task[None] = asyncio.create_task(
             self._cancellation_signal.wait_cancelled()
         )
         done, _pending = await asyncio.wait(

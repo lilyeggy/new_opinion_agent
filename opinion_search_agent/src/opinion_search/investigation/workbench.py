@@ -14,14 +14,31 @@ from hashlib import sha256
 
 from opinion_search.domain.investigation.models import SEARCH_DIRECTIONS, uid
 from opinion_search.investigation import metrics
+from opinion_search.investigation.page_plan import build_page_plan
 from opinion_search.investigation.presentation import facet_modules, highlights
 
 FORMAT = "opinion-workbench/1"
-PROJECTION_VERSION = "workbench-projection-2"
+PROJECTION_VERSION = "workbench-projection-6"
 MODULE_STATES = ("ready", "provisional", "insufficient", "unavailable", "not_applicable")
 TERMINAL_STATES = {"completed", "partial", "failed", "cancelled"}
 
-_DATE_PREFIX = re.compile(r"^\d{4}-\d{2}-\d{2}")
+_DATE_PATTERNS = (
+    re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:\D|$)"),
+    re.compile(r"^(\d{4})/(\d{1,2})/(\d{1,2})(?:\D|$)"),
+    re.compile(r"^(\d{4})年(\d{1,2})月(\d{1,2})[日号]?(?:\D|$)"),
+)
+
+
+def _explicit_date_sort_key(value: str) -> str | None:
+    text = str(value or "").strip()
+    for pattern in _DATE_PATTERNS:
+        match = pattern.match(text)
+        if not match:
+            continue
+        year, month, day = (int(part) for part in match.groups())
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return f"{year:04d}-{month:02d}-{day:02d}"
+    return None
 
 
 def workbench_revision(report) -> str:
@@ -38,10 +55,17 @@ def workbench_revision(report) -> str:
 
 
 def build_workbench(report) -> dict:
-    report_json = json.dumps(report, ensure_ascii=False, sort_keys=True)
     sources = report.get("sources", [])
     evidence = report.get("evidence", [])
     findings = [f for f in report.get("findings", []) if f.get("active", True)]
+    conclusions = list(report.get("conclusions", []))
+    interim = list(report.get("interim_findings", []))
+    if not conclusions and not interim and report.get("status") == "partial":
+        # Backward-compatible projection for immutable reports published before
+        # interim_findings became an explicit report field.
+        interim = [f for f in findings if f.get("support") == "supported"]
+    shown_judgments = conclusions or interim
+    judgment_mode = "conclusions" if conclusions else "interim" if interim else "none"
     issues = report.get("issues", [])
     terminal = report["status"] in TERMINAL_STATES
     citations = {
@@ -54,8 +78,11 @@ def build_workbench(report) -> dict:
     distribution = metrics.publication_distribution(sources)
     involvement = {entry["issue_id"]: entry for entry in metrics.issue_involvement(sources, evidence, findings, issues)}
     modules = [
-        _module("current-judgments", bool(report.get("conclusions")),
-                "尚无可核查的核心判断。", terminal=terminal),
+        ({"module_type": "current-judgments", "state": "provisional", "gap":
+          "调查尚未完成；这里只展示已经通过引用审查的阶段性判断。"}
+         if judgment_mode == "interim" else
+         _module("current-judgments", bool(shown_judgments),
+                 "尚无可核查的核心判断。", terminal=terminal)),
         _module("event-timeline", bool(timeline["events"]),
                 "本轮材料中没有可定位的事件时间。", terminal=terminal),
         _module("publication-distribution", distribution is not None,
@@ -66,21 +93,26 @@ def build_workbench(report) -> dict:
                 "尚未形成可展示的调查问题。", terminal=terminal),
     ]
     profile = report.get("profile")
+    page_plan = build_page_plan(profile, issues, report.get("findings", []),
+                                terminal=terminal, include_report=terminal)
     if profile and profile.get("facets"):
         findings_by_issue = {issue["issue_id"]: {"question": issue["question"], "findings":
                              [f for f in report.get("findings", []) if f["issue_id"] == issue["issue_id"]]}
                              for issue in issues}
-        modules.extend(facet_modules(_Profile(**profile), findings_by_issue, terminal=terminal))
+        requirements = {item["module_type"]: item for item in page_plan["module_requirements"]}
+        modules.extend(facet_modules(_Profile(**profile), findings_by_issue, terminal=terminal,
+                                     requirements_by_module=requirements))
     overview = {
         "subject": report["subject"],
         "question": report["question"],
         "mode": report.get("mode", "live"),
         "required_questions": list(report.get("required_questions", [])),
+        "judgment_mode": judgment_mode,
         "judgments": [
             {"finding_id": f["finding_id"], "text": f["text"],
              "review": f.get("support", "unreviewed"),
              "citation_ids": list(f.get("evidence_ids", []))}
-            for f in report.get("conclusions", [])
+            for f in shown_judgments
         ],
         "timeline": timeline,
         "publication_distribution": distribution,
@@ -100,6 +132,7 @@ def build_workbench(report) -> dict:
         "publication_state": report["status"],
         "profile": profile if profile else {"facets": ["general"], "config_version": "workbench-modules-1",
                                             "rationale": "未确认事件侧重点，使用通用视图。"},
+        "page_plan": page_plan,
         "limitations": {
             "stop_reason": report.get("stop_reason", ""),
             "scope_limitation": report.get("scope_limitation", ""),
@@ -138,6 +171,7 @@ def build_workbench(report) -> dict:
                     for issue in issues
                 ],
             },
+            "diagnostics": report.get("diagnostics", {}),
         },
     }
 
@@ -183,8 +217,15 @@ def _timeline(findings):
             continue
         node = {"event_time": time_value, "text": finding["text"],
                 "finding_id": finding["finding_id"], "citation_ids": list(finding.get("evidence_ids", []))}
-        (dated if _DATE_PREFIX.match(str(time_value)) else unparsed).append(node)
-    return {"events": sorted(dated, key=lambda node: str(node["event_time"])), "unparsed": unparsed}
+        sort_key = _explicit_date_sort_key(str(time_value))
+        if sort_key is not None:
+            dated.append((sort_key, node))
+        else:
+            unparsed.append(node)
+    return {
+        "events": [node for _, node in sorted(dated, key=lambda pair: (pair[0], str(pair[1]["event_time"])))],
+        "unparsed": unparsed,
+    }
 
 
 def _involvement(involvement, issue_id):

@@ -53,6 +53,11 @@ from opinion_search.domain.opinion.state import (
 from opinion_search.models.fake import DeterministicIdFactory, ScriptedModelClient
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient
 from opinion_search.runtime.checkpoint import JsonCheckpointStore
+from opinion_search.runtime.recording import (
+    DecisionRecorder,
+    JournalingCheckpointStore,
+    RecordingModelClient,
+)
 from opinion_search.runtime.loop import AgentLoop, LoopHook
 from opinion_search.runtime.transaction import RunState
 from opinion_search.tools.adapters.fake import (
@@ -338,6 +343,7 @@ def build_live_service(
     config: LiveConfig,
     *,
     hook: LoopHook | None = None,
+    recorder: DecisionRecorder | None = None,
 ) -> OpinionSearchService:
     transport = HttpxTransport()
     registry = ToolRegistry()
@@ -399,6 +405,7 @@ def build_live_service(
             ),
             hook=hook,
             result_cache=result_cache,
+            recorder=recorder,
         )
     )
 
@@ -416,7 +423,16 @@ def _build_loop(
     tool_timeout_seconds: float = 5,
     hook: LoopHook | None = None,
     result_cache: ToolResultCache | None = None,
+    recorder: DecisionRecorder | None = None,
+    action_executor=None,
+    checkpoint_store=None,
 ) -> AgentLoop:
+    """Assemble the OpinionSearch loop.
+
+    recorder wraps the model and checkpoint store with decision journaling.
+    action_executor and checkpoint_store replace the live components; replay
+    drives the same runtime with recorded material through these overrides.
+    """
     compiler = OpinionContextCompiler(
         budget=ContextBudget(
             max_context_tokens=max_context_tokens,
@@ -427,12 +443,10 @@ def _build_loop(
         decision_schema=TypeAdapter(AgentDecision).json_schema(),
     )
     policy = OpinionSearchCompletionPolicy()
-    return AgentLoop(
-        model=model,
-        context_compiler=compiler,
-        decision_validator=OpinionSearchDecisionValidator(),
-        action_resolver=OpinionSearchActionResolver(policy),
-        action_executor=OpinionActionExecutor(
+    if recorder is not None:
+        model = RecordingModelClient(model, recorder)
+    if action_executor is None:
+        action_executor = OpinionActionExecutor(
             ToolExecutor(
                 registry,
                 retry_policy=RetryPolicy(
@@ -442,15 +456,25 @@ def _build_loop(
                 ),
                 result_cache=result_cache,
             )
-        ),
-        observation_processor=OpinionSearchObservationProcessor(),
-        completion_evaluator=OpinionSearchCompletionEvaluator(),
-        reducer=reduce_opinion_state,
-        checkpoint_store=JsonCheckpointStore(
+        )
+    if checkpoint_store is None:
+        checkpoint_store = JsonCheckpointStore(
             checkpoint_path,
             OpinionRunState,
             execution_profile=execution_profile,
-        ),
+        )
+        if recorder is not None:
+            checkpoint_store = JournalingCheckpointStore(checkpoint_store, recorder)
+    return AgentLoop(
+        model=model,
+        context_compiler=compiler,
+        decision_validator=OpinionSearchDecisionValidator(),
+        action_resolver=OpinionSearchActionResolver(policy),
+        action_executor=action_executor,
+        observation_processor=OpinionSearchObservationProcessor(),
+        completion_evaluator=OpinionSearchCompletionEvaluator(),
+        reducer=reduce_opinion_state,
+        checkpoint_store=checkpoint_store,
         id_factory=DeterministicIdFactory(),
         max_steps=max_steps,
         max_decision_attempts=max_decision_attempts,

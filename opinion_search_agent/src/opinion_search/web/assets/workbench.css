@@ -322,3 +322,18 @@ a.os-text-button:hover { background: var(--panel); text-decoration: none; }
 .os-version-detail { margin-top: var(--os-gap-sm); border-top: 1px dashed var(--line); padding-top: var(--os-gap-sm); }
 .os-version-detail summary { cursor: pointer; color: var(--accent); font-size: 12.5px; }
 .os-version-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: baseline; margin-top: 6px; }
+
+/* ---------- deterministic production-chain diagnostics ---------- */
+.os-diagnostic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--os-gap-sm); }
+.os-diagnostic-stage, .os-diagnostic-signal { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--panel); }
+.os-diagnostic-stage.attention, .os-diagnostic-signal.warning { border-left: 4px solid var(--warn); }
+.os-diagnostic-stage.blocked, .os-diagnostic-signal.critical { border-left: 4px solid var(--danger); }
+.os-diagnostic-stage.observed { border-left: 4px solid var(--ok); }
+.os-diagnostic-stage.pending, .os-diagnostic-signal.info { border-left: 4px solid var(--line); }
+.os-diagnostic-signal { display: grid; gap: 5px; margin-bottom: 8px; }
+.os-diagnostic-signal p { margin: 0; }
+.os-diagnostic-code { margin-left: 8px; color: var(--muted); font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.os-main-grid.diagnostics-view { grid-template-columns: minmax(0, 1fr); }
+.os-main-grid.diagnostics-view .os-inspector { display: none; }
+@media (max-width: 1000px) { .os-diagnostic-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .os-diagnostic-grid { grid-template-columns: 1fr; } }

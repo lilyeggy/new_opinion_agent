@@ -1,0 +1,35 @@
+{
+  "schema": "opinion-search-preannotation/1",
+  "case_id": "powerbank-flight-rules-dev-v1",
+  "author_kind": "model_preannotation",
+  "reviewed_by_human": false,
+  "status": "UNREVIEWED",
+  "time_stages": {
+    "T0": ["m01", "m02", "m03", "m04"],
+    "T1": ["m05", "m06"]
+  },
+  "must_answer": [
+    "新规从何时实施，适用于什么航班和什么类型的充电宝？",
+    "民航局公开给出的安全理由和执行要求是什么？",
+    "机场与地区监管材料显示了哪些查验、自弃、暂存、邮寄、告知和应急措施？",
+    "不同材料中的数据各自覆盖什么地区、时间和对象，能否跨地区外推？",
+    "后续检查和产品召回材料新增了什么，哪些只是机构自述，仍缺少什么独立验证？",
+    "公开材料能否证明旅客总体支持、满意，或证明所有机场服务一致？"
+  ],
+  "prohibited_conclusions": [
+    "不得将西北四个省会机场三天数据外推为全国机场情况。",
+    "不得把北京两场自弃数量下降解释为旅客支持或满意。",
+    "不得把单个机场的免费暂存服务描述为全国统一规则。",
+    "不得把监管部门的检查总结当成独立第三方验证。",
+    "不得从机构材料计算或展示公众观点占比。"
+  ],
+  "source_dependencies": [
+    {"source": "m01", "relation": "policy_origin", "target": null},
+    {"source": "m02", "relation": "regional_implementation_of", "target": "m01"},
+    {"source": "m03", "relation": "single_airport_service_example", "target": "m01"},
+    {"source": "m04", "relation": "regional_followup_of", "target": "m01"},
+    {"source": "m05", "relation": "later_inspection_of_implementation", "target": "m01"},
+    {"source": "m06", "relation": "later_product_safety_context", "target": "m01"}
+  ],
+  "notes": "这是机器预标注，只用于开发案例边界和人工复核底稿；不得计入90%/95%人工质量门槛。"
+}

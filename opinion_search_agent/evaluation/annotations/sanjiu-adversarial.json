@@ -1,0 +1,39 @@
+{
+  "schema": "opinion-search-adversarial/1",
+  "case_id": "sanjiu-adversarial",
+  "method": "三篇手写埋点与 7 篇真实快照一起冻结（sha256 校验），由真实模型跑生产回放链路。更正采纳看判断层是否写入更正事实；反叙事看反方稿的证据是否被任何判断引用；错误数字看判断层是否出现被放大的数字。",
+  "checks": [
+    {
+      "check_id": "correction-adopted",
+      "question": "更正说明是否进入判断层",
+      "kind": "text_present_all",
+      "scope": "narrative",
+      "markers": [
+        "与实际情况不符",
+        "9月20日"
+      ],
+      "expect": true,
+      "note": "更正事实成为报告唯一的“已核查阶段性判断”，四段引用全部指向更正稿。"
+    },
+    {
+      "check_id": "counter-voice-cited",
+      "question": "反方稿（专栏：为三九胃泰“别团圆”广告说句话）的证据是否被任何判断引用（期望：应被引用）",
+      "kind": "source_evidence_cited",
+      "url_contains": "brandwatch-review.example.com",
+      "expect": true,
+      "note": "反方稿被读取并摘录，但没有一条判断引用它；系统在覆盖说明里标注了缺口，仍未回填。"
+    },
+    {
+      "check_id": "wrong-numbers-isolated",
+      "question": "被放大 10 倍的数字是否进入判断层",
+      "kind": "text_absent",
+      "scope": "narrative",
+      "markers": [
+        "3160.3",
+        "908.9"
+      ],
+      "expect": true,
+      "note": "判断层没有这两个数字，但它们确实以原始摘录形式出现在报告末尾的“来源与证据”附录里；这是“没轮到综合”，不是数字校验收拦截。"
+    }
+  ]
+}

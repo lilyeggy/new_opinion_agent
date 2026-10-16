@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from opinion_search.domain.investigation.models import State, accepted_review
 from opinion_search.domain.opinion.brief import _escape_markdown, _safe_markdown_destination
+from opinion_search.investigation.diagnostics import build_chain_diagnostics
 
 LABELS = {
     "open": "待调查", "answered": "已有材料回答", "disputed": "证据存在分歧", "not_found": "范围内未发现", "unavailable": "无法判断",
@@ -58,7 +59,8 @@ def diff_reports(current, base):
     return changes
 
 
-def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None, mode="live", budget=None, scope_notes=()):
+def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None,
+                 mode="live", budget=None, scope_notes=(), runtime=None, checkpoint_boundary=None):
     findings = []
     for finding in state.findings:
         if not finding.active:
@@ -123,6 +125,14 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
                             "before": before, "after": after,
                             "retired_reasons": {f["finding_id"]: retired_reasons[f["finding_id"]] for f in before if f["finding_id"] in retired_ids}})
     no_change = bool(parent) and bool(changes) and all(c["kind"] == "unchanged" for c in changes) and bool(state.searches) and not any(s.outcome == "error" for s in state.searches) and not state.read_errors and status == "completed"
+    conclusions = [f for f in findings
+                   if f["finding_id"] in state.conclusion_ids and f["support"] == "supported"]
+    # A bounded run may finish immediately after review and never spend another
+    # model call selecting conclusion IDs. Preserve reviewed, supported work in
+    # a separately labelled partial-report section; it is not promoted to a
+    # completed core conclusion.
+    interim_findings = ([f for f in findings if f["support"] == "supported"]
+                        if status == "partial" and not conclusions else [])
     report = {
         "schema_version": 2, "case_id": case_id, "run_id": run_id, "parent_id": parent_id,
         "mode": mode, "subject": state.subject, "question": state.request.question,
@@ -135,7 +145,8 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "required_questions": list(state.required_questions),
         "issues": [q.model_dump(mode="json") for q in state.issues], "findings": findings,
         "retired": [r.model_dump(mode="json") for r in state.retired],
-        "conclusions": [f for f in findings if f["finding_id"] in state.conclusion_ids and f["support"] == "supported"],
+        "conclusions": conclusions,
+        "interim_findings": interim_findings,
         "sources": sources, "independent_source_count": sum(1 for s in sources if s["independent"]),
         "source_relation_counts": relation_counts,
         "relations": [relation.model_dump(mode="json") for relation in state.relations],
@@ -145,6 +156,9 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "search_failures": sum(s.outcome == "error" for s in state.searches),
         "read_failures": len(state.read_errors),
         "changes": changes, "no_material_change": no_change, "budget": budget,
+        "diagnostics": build_chain_diagnostics(state, runtime=runtime, budget=budget,
+                                                publication_status=status,
+                                                checkpoint_boundary=checkpoint_boundary),
         "scope_limitation": " ".join(("仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。", *scope_notes)),
     }
     return report
@@ -160,7 +174,12 @@ def markdown(report):
         lines.extend(["> 虚构材料演示，不代表真实事件或实时搜索结果。", ""])
     if report.get("search_failures") or report.get("read_failures"):
         lines.extend(["> 注意：本轮存在供应商搜索或读取失败；缺失材料不代表没有新进展。", ""])
-    for heading, rows in (("核心回答", report["conclusions"]), ("事件时间线", [f for f in report["findings"] if f["event_time"]])):
+    current_heading = "核心回答"
+    current_rows = report["conclusions"]
+    if not current_rows and report.get("interim_findings"):
+        current_heading = "已核查的阶段性判断（调查未完成）"
+        current_rows = report["interim_findings"]
+    for heading, rows in ((current_heading, current_rows), ("事件时间线", [f for f in report["findings"] if f["event_time"]])):
         lines += [f"## {heading}", ""]
         lines += [f"- {esc((f.get('event_time') or '') + ' ' + f['text'])} {refs(f['evidence_ids'])}" for f in rows] or ["- 尚无完成核查的结论。"]
     lines += ["", "## 争议与回应", ""]

@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-318e25582109f3bc656d",
+      "url": "https://www.163.com/dy/article/L6Q0NGJV0530RMGL.html",
+      "focus": "事件时间线、罗永浩吐槽内容、野人先生冷处理与涨粉、钟薛高被提及方式",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.163.com/dy/article/L6Q0NGJV0530RMGL.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:3:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

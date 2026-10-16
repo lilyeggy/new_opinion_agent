@@ -1,0 +1,659 @@
+{
+  "run_id": "25ec3b61dbcb41219819b80d0da1e014",
+  "case_id": "4f87ebf3d3f14d82bf4e2895bb09ef70",
+  "parent_id": null,
+  "mode": "live",
+  "request": {
+    "question": "三九胃泰中秋广告争议事件的始末是什么？广告内容为何引发争议，公司和媒体各方如何回应？",
+    "topic": null,
+    "time_range": null,
+    "focus": "广告争议点、公司回应与撤稿进展、媒体与公众的不同立场、相关经营数据",
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": [],
+    "region": null,
+    "reference_urls": [],
+    "clarification": null
+  },
+  "fixture": null,
+  "status": "partial",
+  "phase": "部分完成",
+  "created_at": "2026-09-23T11:29:13.445669+00:00",
+  "clarification_questions": [],
+  "clarify_rounds": 0,
+  "progress": {
+    "questions": [
+      {
+        "issue_id": "issue-05f0016af7d64e41cfc7",
+        "question": "三九胃泰中秋广告争议事件的完整时间线是怎样的：广告何时投放、何时引发争议、双方何时回应、最终如何处置？",
+        "required": true,
+        "status": "open",
+        "note": "时间线目前只有粗粒度锚点：广告在临近中秋时推出（媒体报道称“近日”）、华润三九9月15日回应、内地媒体评论自9月16日起出现、星岛头条9月17日报道；广告确切投放日期、争议首发时间以及撤下是否完成均无材料，故维持开放。",
+        "evidence_ids": [
+          "evidence-4d8164b4b2676a96c96f",
+          "evidence-102d954f2faba0fa64a6",
+          "evidence-fd783bc128a6cf3c59a9"
+        ],
+        "origin_questions": [
+          "三九胃泰中秋广告争议事件的始末是什么"
+        ],
+        "components": [
+          {
+            "text": "三九胃泰中秋广告争议事件的完整时间线是怎样的：广告何时投放",
+            "status": "open",
+            "evidence_ids": [],
+            "note": "材料仅称“近日推出”“临近中秋佳节”，无确切投放日期"
+          },
+          {
+            "text": "何时引发争议",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-102d954f2faba0fa64a6"
+            ],
+            "note": "仅见“迅速登上网络热搜”的概括表述，无可核验的争议首发时间"
+          },
+          {
+            "text": "双方何时回应",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-4d8164b4b2676a96c96f",
+              "evidence-102d954f2faba0fa64a6"
+            ],
+            "note": "公司方面9月15日回应有四条材料互证；媒体评论出现在9月16日以后，公众侧“回应”无独立材料"
+          },
+          {
+            "text": "最终如何处置",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-4d8164b4b2676a96c96f",
+              "evidence-102d954f2faba0fa64a6"
+            ],
+            "note": "只有“正在安排撤下/陆续安排全线撤除”的承诺，无撤下完成的证据"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-6d6654073d7ae20daf6a",
+        "question": "该中秋广告的具体内容与创意表达是什么，其中哪些文案、画面或创意元素被指存在问题？",
+        "required": true,
+        "status": "answered",
+        "note": "广告形式与文案要素由多条材料互证：外层大字“中秋别团圆了”（另一表述为“三九胃泰求『你们』中秋别团圆了”），掀开后是月饼、冷饮与药房活动；被指存在问题的元素集中于把“别团圆”用作吸引眼球的节日表达。需要说明的是，广告原始创意物料未取得，内容依据为媒体转述与评论，争议原因的表述属评论者口径。",
+        "evidence_ids": [
+          "evidence-ae4bb1250afb191046a6",
+          "evidence-102d954f2faba0fa64a6",
+          "evidence-47e32fedf46511c50e79",
+          "evidence-e91b187d15a68fcf8f37"
+        ],
+        "origin_questions": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          {
+            "text": "广告内容为何引发争议",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-7bef2c5608f2a1db28ad",
+              "evidence-ae4bb1250afb191046a6",
+              "evidence-102d954f2faba0fa64a6"
+            ],
+            "note": "内容要素有材料支持；“为何引发争议”的解释来自媒体评论与港媒转述的网民反应，属转述口径，不代表群体情绪测量"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-c0a1cc38926b6eac2999",
+        "question": "争议的核心分歧点是什么：公众、行业评论者与媒体分别提出了哪些质疑、批评或不同解读？",
+        "required": true,
+        "status": "open",
+        "note": "行业评论者与媒体的质疑已有材料：21世纪经济报道评论指其表达失当、拿节日寓意作噱头、属“越界”创意并援引中国广告协会警示；36氪刊载文章批评其“反节日”站位错位。但问题中“公众”一方的质疑只有媒体转述（如星岛头条引述网民留言），未获取可直接核验的公众意见材料，故不整体判为已回答。",
+        "evidence_ids": [
+          "evidence-7bef2c5608f2a1db28ad",
+          "evidence-b735fd9676498bde86d3",
+          "evidence-34ff433e4199ed3783af",
+          "evidence-2bb349f6757553913fba",
+          "evidence-05d9968e2d7e1579047d"
+        ],
+        "origin_questions": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          {
+            "text": "广告内容为何引发争议",
+            "status": "answered",
+            "evidence_ids": [
+              "evidence-7bef2c5608f2a1db28ad",
+              "evidence-b735fd9676498bde86d3",
+              "evidence-05d9968e2d7e1579047d"
+            ],
+            "note": "媒体与行业评论者层面的分歧点已覆盖；公众层面未覆盖"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-a87b51b2433c7a0373ef",
+        "question": "三九胃泰及其母公司（华润三九）方面如何回应，是否发布声明、道歉，或采取撤稿、下架、修改广告等处置措施？",
+        "required": true,
+        "status": "open",
+        "note": "公司回应只有转述口径：新京报9月15日报道的工作人员表态、星岛头条所述“紧急回应”，内容为承认广告由总部策划、接获投诉后安排撤下/陆续全线撤除；未检索到华润三九或三九胃泰的正式声明、道歉原文，也无撤下完成的独立证据。媒体侧“回应”主要以评论形式呈现，已有材料。",
+        "evidence_ids": [
+          "evidence-4d8164b4b2676a96c96f",
+          "evidence-102d954f2faba0fa64a6",
+          "evidence-34ff433e4199ed3783af",
+          "evidence-b735fd9676498bde86d3"
+        ],
+        "origin_questions": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          {
+            "text": "公司和媒体各方如何回应",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-4d8164b4b2676a96c96f",
+              "evidence-102d954f2faba0fa64a6",
+              "evidence-34ff433e4199ed3783af"
+            ],
+            "note": "媒体评论已有材料；公司侧缺正式文本与处置结果核实"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-12320de1a9ced1df5f25",
+        "question": "媒体对该事件如何报道与评论，媒体报道立场与公众舆论立场之间存在哪些差异？",
+        "required": true,
+        "status": "open",
+        "note": "媒体侧的报道与评论立场已有多方材料（21世纪经济报道评论、36氪刊载分析、星岛头条“公关灾难”定性、凤凰网大鱼财经报道）；但“公众舆论立场”只能经媒体转述间接获知，按要求不作群体情绪断言，涉及媒体与公众立场差异的部分仍无材料，故保持开放。",
+        "evidence_ids": [
+          "evidence-34ff433e4199ed3783af",
+          "evidence-fd783bc128a6cf3c59a9",
+          "evidence-2bb349f6757553913fba",
+          "evidence-fd609afc07545584d5e8",
+          "evidence-102d954f2faba0fa64a6"
+        ],
+        "origin_questions": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          {
+            "text": "公司和媒体各方如何回应",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-34ff433e4199ed3783af",
+              "evidence-fd783bc128a6cf3c59a9",
+              "evidence-2bb349f6757553913fba",
+              "evidence-fd609afc07545584d5e8"
+            ],
+            "note": "媒体评论与报道立场可查证；公众立场仅有转述，且互动区未抓到具体评论内容"
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-135d76310ccf413cdf21",
+        "question": "该事件对三九胃泰品牌及华润三九的经营数据（如销量、市场份额、业绩披露）产生了哪些可查证的影响或变化？",
+        "required": false,
+        "status": "open",
+        "note": "本轮取得的证据片段未覆盖华润三九的财务与经营数据段落；36氪刊载文章的正文含销售费用、自我诊疗（CHC）业务收入与市占率等数据，但未形成可引用的证据片段，故不就具体数值及事件后的经营变化作判断，待重新检索定位原始披露后再评估。",
+        "evidence_ids": [
+          "evidence-5da8eb5c1bbdde23f1be"
+        ],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "该事件对三九胃泰品牌及华润三九的经营数据（如销量",
+            "status": "open",
+            "evidence_ids": [],
+            "note": "未取得可引用的经营数据证据片段"
+          },
+          {
+            "text": "市场份额",
+            "status": "open",
+            "evidence_ids": [],
+            "note": "未取得可引用证据片段"
+          },
+          {
+            "text": "业绩披露）产生了哪些可查证的影响或变化",
+            "status": "open",
+            "evidence_ids": [
+              "evidence-5da8eb5c1bbdde23f1be"
+            ],
+            "note": "仅有营销成本结构的间接材料，事件后的业绩变化缺失"
+          }
+        ]
+      }
+    ],
+    "source_count": 6,
+    "finding_count": 9,
+    "read_errors": 0,
+    "search_errors": 0,
+    "diagnostics": {
+      "format": "opinion-investigation-diagnostics/1",
+      "summary": {
+        "status": "attention",
+        "critical": 0,
+        "warnings": 5,
+        "informational": 4,
+        "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+      },
+      "stages": [
+        {
+          "id": "scope",
+          "label": "事件与问题",
+          "status": "attention",
+          "metrics": {
+            "issues": 6,
+            "required": 5,
+            "unresolved_required": 4,
+            "unresolved_components": 5
+          },
+          "signal_codes": [
+            "required_issues_unresolved",
+            "required_components_unresolved"
+          ]
+        },
+        {
+          "id": "discovery",
+          "label": "搜索与召回",
+          "status": "observed",
+          "metrics": {
+            "attempts": 4,
+            "outcomes": {
+              "candidates": 1,
+              "duplicate": 3
+            },
+            "purposes": {
+              "event_response": 1,
+              "official_response": 1,
+              "original": 2
+            },
+            "candidate_urls": 10
+          },
+          "signal_codes": [
+            "search_directions_unattempted"
+          ]
+        },
+        {
+          "id": "acquisition",
+          "label": "正文获取",
+          "status": "observed",
+          "metrics": {
+            "read_attempts": 6,
+            "saved_versions": 6,
+            "read_errors": 0,
+            "unread_candidates": 4
+          },
+          "signal_codes": [
+            "unread_candidates"
+          ]
+        },
+        {
+          "id": "sources",
+          "label": "来源结构",
+          "status": "attention",
+          "metrics": {
+            "documents": 6,
+            "versions": 6,
+            "domains": {
+              "i.ifeng.com": 1,
+              "news.china.com": 1,
+              "www.21jingji.com": 1,
+              "www.36kr.com": 1,
+              "www.sohu.com": 1,
+              "www.stheadline.com": 1
+            },
+            "roles": {
+              "commentary": 2,
+              "reporting": 4
+            },
+            "hash_duplicates": 0,
+            "relations_recorded": 0,
+            "relations_unverified": 6,
+            "unknown_publication_dates": 0
+          },
+          "signal_codes": [
+            "source_independence_unverified"
+          ]
+        },
+        {
+          "id": "evidence",
+          "label": "证据定位",
+          "status": "observed",
+          "metrics": {
+            "items": 31,
+            "cited_items": 21,
+            "sources_with_cited_evidence": 4,
+            "uncited_source_versions": 2
+          },
+          "signal_codes": [
+            "saved_sources_uncited"
+          ]
+        },
+        {
+          "id": "analysis",
+          "label": "争议与回应分析",
+          "status": "observed",
+          "metrics": {
+            "active_findings": 9,
+            "finding_kinds": {
+              "attributed": 3,
+              "fact": 3,
+              "interpretation": 3
+            },
+            "stakeholders": [
+              "21世纪经济报道（媒体评论）",
+              "36氪刊载分析文章（超聚焦foci/白墨）",
+              "36氪刊载文章（含转述执行方复盘）",
+              "华润三九（工作人员口径，经新京报、星岛头条转述）",
+              "星岛头条（即时中国）"
+            ],
+            "response_classes": {
+              "not_assessed": 8,
+              "partial": 1
+            },
+            "required_module_gaps": 0,
+            "stance_distribution_eligible": false,
+            "stance_distribution_reason": "材料集没有代表性抽样框，来源关系也未全部核实；只能展示材料内主张构成，不能解释为公众观点占比。"
+          },
+          "signal_codes": []
+        },
+        {
+          "id": "review",
+          "label": "关键结论审查",
+          "status": "attention",
+          "metrics": {
+            "active_findings": 9,
+            "supported": 0,
+            "unreviewed": 9,
+            "not_supported": 0,
+            "review_models": {}
+          },
+          "signal_codes": [
+            "active_findings_unreviewed"
+          ]
+        },
+        {
+          "id": "completion",
+          "label": "结束判断",
+          "status": "pending",
+          "metrics": {
+            "publication_status": "finalizing",
+            "policy_disposition": "reject_and_continue",
+            "policy_reason": "Required investigation questions remain open.\n- issue-05f0016af7d64e41cfc7 (三九胃泰中秋广告争议事件的完整时间线是怎样的：广告何时投放、何时引发争议、双方何时回应、最终如何处置？):\n  10 saved evidence excerpts for this question are not disposed by any finding or assessment (evidence-1ba76096dd4e6ad5cef3 «# 三九胃泰广告 劝你们和平分手 争议营销再引关注»; evidence-4410b7ad928d3f738b0c «![Image 6: 三九胃泰广告 劝你们和平分手 争议营销再引关注](https://img2.utuku.imgcdc.com/650x0/news/202»; evidence-2dfa9e84dd8a9c8524c0 «![Image 5: 三九胃泰广告 劝你们和平分手](https://img3.utuku.imgcdc.com/650x0/news/20260916/e7f»). Reflect to dispose them, or retrieve the saved page with a new focus.\n  4 discovered candidates remain unread (e.g. https://k.sina.cn/article_5953190046_162d6789e06703s45g.html). Read one before another search.\n- issue-c0a1cc38926b6eac2999 (争议的核心分歧点是什么：公众、行业评论者与媒体分别提出了哪些质疑、批评或不同解读？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly: not_found only after the scoped response searches complete, otherwise unavailable.\n- issue-a87b51b2433c7a0373ef (三九胃泰及其母公司（华润三九）方面如何回应，是否发布声明、道歉，或采取撤稿、下架、修改广告等处置措施？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly: not_found only after the scoped response searches complete, otherwise unavailable.\n- issue-12320de1a9ced1df5f25 (媒体对该事件如何报道与评论，媒体报道立场与公众舆论立场之间存在哪些差异？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly: not_found only after the scoped response searches complete, otherwise unavailable.",
+            "conclusions": 0
+          },
+          "signal_codes": []
+        },
+        {
+          "id": "runtime",
+          "label": "运行与预算",
+          "status": "attention",
+          "metrics": {
+            "available": true,
+            "status": "partial",
+            "checkpoint_boundary": "run_terminated",
+            "active_step_phase": null,
+            "committed_steps": 13,
+            "decision_retries": 0,
+            "failure_kinds": {},
+            "actions": {
+              "read": 6,
+              "reflect": 2,
+              "retrieve": 1,
+              "search": 4
+            },
+            "step_timing_available": false,
+            "token_usage_available": false,
+            "budget": {
+              "available": true,
+              "resources": {
+                "search": {
+                  "used": 4,
+                  "limit": 20,
+                  "ratio": 0.2
+                },
+                "read": {
+                  "used": 6,
+                  "limit": 24,
+                  "ratio": 0.25
+                },
+                "model": {
+                  "used": 24,
+                  "limit": 120,
+                  "ratio": 0.2
+                },
+                "seconds": {
+                  "used": 4054.373,
+                  "limit": 2400,
+                  "ratio": 1.6893
+                }
+              }
+            }
+          },
+          "signal_codes": [
+            "fine_grained_cost_latency_unavailable",
+            "budget_seconds_near_limit"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "code": "required_components_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "5 个必答子项仍未解决。",
+          "action": "逐项处置复合问题，避免父问题状态掩盖缺口。",
+          "details": {
+            "components": [
+              {
+                "issue_id": "issue-05f0016af7d64e41cfc7",
+                "text": "三九胃泰中秋广告争议事件的完整时间线是怎样的：广告何时投放",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-05f0016af7d64e41cfc7",
+                "text": "何时引发争议",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-05f0016af7d64e41cfc7",
+                "text": "最终如何处置",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-a87b51b2433c7a0373ef",
+                "text": "公司和媒体各方如何回应",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-12320de1a9ced1df5f25",
+                "text": "公司和媒体各方如何回应",
+                "status": "open"
+              }
+            ]
+          }
+        },
+        {
+          "code": "required_issues_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "4 个必答问题仍未得到可用处置。",
+          "action": "继续取证，或明确标为范围内未发现/无法判断。",
+          "details": {
+            "issue_ids": [
+              "issue-05f0016af7d64e41cfc7",
+              "issue-c0a1cc38926b6eac2999",
+              "issue-a87b51b2433c7a0373ef",
+              "issue-12320de1a9ced1df5f25"
+            ]
+          }
+        },
+        {
+          "code": "source_independence_unverified",
+          "stage": "sources",
+          "severity": "warning",
+          "message": "6 个正文版本的来源关系尚未核实，不能据此声称独立验证。",
+          "action": "识别原始出处、转载、摘录和后续跟进关系。",
+          "details": {
+            "count": 6
+          }
+        },
+        {
+          "code": "active_findings_unreviewed",
+          "stage": "review",
+          "severity": "warning",
+          "message": "9 条当前判断没有与其当前文本匹配的审查记录。",
+          "action": "完成独立审查，或从对外核心判断中移除。",
+          "details": {
+            "finding_ids": [
+              "finding-c6cc307fe85b9e6eafa6",
+              "finding-81ea381eef64539961ce",
+              "finding-fc393bbb57f3e7d0cdf7",
+              "finding-d703ff0bc06d67c5a7bb",
+              "finding-fcac942fdf8a498504ec",
+              "finding-a0893d8219330265976c",
+              "finding-716e869fb7e429ee4eca",
+              "finding-c1d16a58e2b9a6c27b96",
+              "finding-91662587474bcf6843f8"
+            ]
+          }
+        },
+        {
+          "code": "budget_seconds_near_limit",
+          "stage": "runtime",
+          "severity": "warning",
+          "message": "seconds 预算已使用 169%。",
+          "action": "优先整理、审查并保留未完成边界。",
+          "details": {
+            "resource": "seconds",
+            "used": 4054.373,
+            "limit": 2400,
+            "ratio": 1.6893
+          }
+        },
+        {
+          "code": "search_directions_unattempted",
+          "stage": "discovery",
+          "severity": "info",
+          "message": "有 3 类调查方向未尝试；这不是固定完成配额。",
+          "action": "根据具体问题判断是否需要补查。",
+          "details": {
+            "directions": [
+              "positions",
+              "independent",
+              "followup"
+            ]
+          }
+        },
+        {
+          "code": "unread_candidates",
+          "stage": "acquisition",
+          "severity": "info",
+          "message": "仍有 4 个已发现候选页未读取。",
+          "action": "确认它们无关或重复，或继续读取后再结束。",
+          "details": {
+            "urls": [
+              "https://brandwatch-review.example.com/column/2026/09/18/sanjiu-ad-defense",
+              "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+              "https://finance-flash.example.com/2026/09/16/huarun-sanjiu-ad-costs",
+              "https://k.sina.cn/article_5953190046_162d6789e06703s45g.html"
+            ]
+          }
+        },
+        {
+          "code": "saved_sources_uncited",
+          "stage": "evidence",
+          "severity": "info",
+          "message": "2 个已保存正文版本未支撑任何当前判断。",
+          "action": "确认其为背景/无关材料，或补充证据绑定。",
+          "details": {
+            "version_ids": [
+              "source-0694738ea2e8738c4c6f",
+              "source-9b6502bcebbcfb0571dc"
+            ]
+          }
+        },
+        {
+          "code": "fine_grained_cost_latency_unavailable",
+          "stage": "runtime",
+          "severity": "info",
+          "message": "StepRecord 尚未保存分步耗时和 token 用量，当前只能定位动作、重试与预算计数。",
+          "action": "后续在 model/tool 边界记录开始结束时间与安全的 usage 元数据。",
+          "details": {}
+        }
+      ]
+    }
+  },
+  "plan": {
+    "subject": "三九胃泰中秋广告争议事件",
+    "region": "中国",
+    "aliases": [
+      "999胃泰中秋广告争议",
+      "三九胃泰中秋节广告争议",
+      "华润三九中秋广告争议"
+    ],
+    "clarification": [],
+    "questions": [
+      {
+        "question": "三九胃泰中秋广告争议事件的完整时间线是怎样的：广告何时投放、何时引发争议、双方何时回应、最终如何处置？",
+        "required": true,
+        "covers": [
+          "三九胃泰中秋广告争议事件的始末是什么"
+        ],
+        "components": []
+      },
+      {
+        "question": "该中秋广告的具体内容与创意表达是什么，其中哪些文案、画面或创意元素被指存在问题？",
+        "required": true,
+        "covers": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          "广告内容为何引发争议"
+        ]
+      },
+      {
+        "question": "争议的核心分歧点是什么：公众、行业评论者与媒体分别提出了哪些质疑、批评或不同解读？",
+        "required": true,
+        "covers": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          "广告内容为何引发争议"
+        ]
+      },
+      {
+        "question": "三九胃泰及其母公司（华润三九）方面如何回应，是否发布声明、道歉，或采取撤稿、下架、修改广告等处置措施？",
+        "required": true,
+        "covers": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          "公司和媒体各方如何回应"
+        ]
+      },
+      {
+        "question": "媒体对该事件如何报道与评论，媒体报道立场与公众舆论立场之间存在哪些差异？",
+        "required": true,
+        "covers": [
+          "广告内容为何引发争议，公司和媒体各方如何回应"
+        ],
+        "components": [
+          "公司和媒体各方如何回应"
+        ]
+      },
+      {
+        "question": "该事件对三九胃泰品牌及华润三九的经营数据（如销量、市场份额、业绩披露）产生了哪些可查证的影响或变化？",
+        "required": false,
+        "covers": [],
+        "components": []
+      }
+    ],
+    "facets": [
+      "general"
+    ],
+    "facet_rationale": "该请求指向一起广告内容引发的舆论争议及其各方回应与处置，属于企业广告争议类公共议题，不涉及规则变更、服务变更、收费退费或调查问责更正等特定类型，因此仅使用 general。"
+  },
+  "followup": null,
+  "updated_at": "2026-09-23T12:36:47.853342+00:00",
+  "subject": "三九胃泰中秋广告争议事件",
+  "published": true
+}

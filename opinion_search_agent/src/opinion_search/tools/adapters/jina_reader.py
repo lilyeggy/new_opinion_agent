@@ -67,7 +67,22 @@ class JinaReaderAdapter:
             url=f"{self._endpoint}{requested_url}",
             headers=headers,
         )
-        raise_for_http_status(response, provider="Jina Reader")
+        try:
+            raise_for_http_status(response, provider="Jina Reader")
+        except ToolAdapterError as exc:
+            if exc.kind is ToolErrorKind.AUTHENTICATION and self._api_key is None:
+                # A keyless 401 is the provider throttling anonymous traffic,
+                # not a configuration fault: remap it so the executor retries,
+                # the circuit breaker can trip, and a transient rate window
+                # cannot burn the whole investigation budget (a 2026-09-23
+                # live run lost 24 consecutive reads to one such window).
+                raise ToolAdapterError(
+                    ToolErrorKind.RATE_LIMITED,
+                    "Jina Reader throttled an anonymous (keyless) request "
+                    "with HTTP 401; configuring an API key avoids this limit.",
+                    retry_after_seconds=20,
+                ) from exc
+            raise
 
         payload = response.json_body
         if not isinstance(payload, dict):

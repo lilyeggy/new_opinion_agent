@@ -16,7 +16,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "mypy>=1.10,<2",
     "pytest>=8,<9",
+    "ruff>=0.5.0",
 ]
 
 [tool.setuptools.packages.find]
@@ -29,3 +31,20 @@ addopts = "-ra"
 markers = [
     "live: calls real external providers and is disabled by default",
 ]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["opinion_search"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

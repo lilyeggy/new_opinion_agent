@@ -91,6 +91,44 @@ def test_compiler_keeps_questions_and_findings_under_pressure(tmp_path: Path):
     assert "memory.findings" not in context.plan.dropped_section_ids
 
 
+def test_model_budget_reserves_the_last_third_for_review_and_finish(tmp_path: Path):
+    source, evidence = _evidence()
+    issues = _issues()
+    finding = Finding(issue_id=issues[0].issue_id, text="有待审查的判断", kind="interpretation",
+                      evidence_ids=("e1",), finding_id=uid("finding", "budget-review"))
+    state = State(request=InvestigationRequest(question="公交夜班调整的争议"), subject="公交夜班调整",
+                  cutoff=utcnow(), issues=issues, sources=(source,), evidence=(evidence,), findings=(finding,))
+    budget = Budget(tmp_path / "budget.json", {"model": 6})
+    for _ in range(4):
+        budget.charge("model")
+    run = SimpleNamespace(run_id="r", domain_state=state, next_step_index=8, committed_steps=(),
+                          active_step=SimpleNamespace(step_id="s1", failures=()))
+
+    context = Compiler(budget).compile(run)
+    consolidate = next(section for section in context.sections
+                       if section.section_id == "memory.consolidate")
+    payload = json.loads(consolidate.content)
+    assert payload["unreviewed_finding_ids"] == [finding.finding_id]
+    assert "choose review next" in payload["directive"]
+    assert consolidate.compaction is CompactionMode.NEVER
+
+
+def test_model_budget_requires_synthesis_when_evidence_exists_without_findings(tmp_path: Path):
+    source, evidence = _evidence()
+    state = State(request=InvestigationRequest(question="公交夜班调整的争议"), subject="公交夜班调整",
+                  cutoff=utcnow(), issues=_issues(), sources=(source,), evidence=(evidence,))
+    budget = Budget(tmp_path / "budget-empty.json", {"model": 6})
+    for _ in range(4):
+        budget.charge("model")
+    run = SimpleNamespace(run_id="r", domain_state=state, next_step_index=8, committed_steps=(),
+                          active_step=SimpleNamespace(step_id="s1", failures=()))
+
+    context = Compiler(budget).compile(run)
+    payload = json.loads(next(section.content for section in context.sections
+                              if section.section_id == "memory.consolidate"))
+    assert "Choose reflect now" in payload["directive"]
+
+
 class _RefusingReviewer:
     async def decide(self, context):
         raise AssertionError("reviewer must not run without review material")

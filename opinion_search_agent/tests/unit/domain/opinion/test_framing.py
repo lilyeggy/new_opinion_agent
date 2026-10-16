@@ -39,6 +39,24 @@ def test_explicit_request_time_range_overrides_question_inference() -> None:
     )
 
 
+def test_ui_placeholder_time_range_with_inner_spaces_is_bounded() -> None:
+    """Regression: the web placeholder literally shows "过去 30 天"; users who
+    copy it verbatim must get a bounded window, not a silent unspecified."""
+    for expression in ("过去 30 天", "过去 30天", "过去30 天", "过去  30  天"):
+        frame = build_task_frame(
+            SearchRequest(question="某事件始末如何？", time_range=expression),
+            anchor_date=date(2026, 9, 21),
+        )
+
+        assert frame.temporal_scope.is_bounded, expression
+        assert frame.temporal_scope.start_date == date(2026, 8, 23)
+        assert frame.temporal_scope.end_date == date(2026, 9, 21)
+        assert (
+            frame.temporal_scope.provenance
+            is TemporalScopeProvenance.EXPLICIT_REQUEST
+        )
+
+
 def test_unsupported_time_language_remains_explicitly_unspecified() -> None:
     frame = build_task_frame(
         SearchRequest(question="前年秋天的公众反映如何？"),

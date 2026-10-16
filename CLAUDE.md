@@ -58,6 +58,7 @@
 
 - `docs/public-opinion-search-agent-design.md` 是唯一 canonical 项目设计；`docs/opinion-search-agent-5-day-plan.md` 是当前执行计划。
 - `docs/opinion-search-agent-implementation-memory.md` 是实现事实、关键决策和验证证据的持续追加记录；它不能覆盖 canonical design。
+- `docs/interview/` 是面试导向的完整资料集（开场稿 / 架构 / 逐层机制 / 取舍 / 实测数据 / 故障复盘 / 问答库 / 表述红线 / 代码地图）。它是学习与表述材料，不产生新设计；其中任何架构断言与代码冲突时，以代码和 canonical design 为准。新增或修改 `src/` 后应同步核对 `docs/interview/03` 与 `docs/interview/09` 的代码落点。
 - 新项目只在 `opinion_search_agent/` 中独立实现。
 - 默认不要阅读、修改、复制或导入 `archive/` 中的代码；只有用户明确要求比较历史实现时才可只读检查。
 - 项目只深做第 ① 层 Agent Harness/Runtime 和第 ② 层 Tool/MCP/Context/Run-scoped Memory；OpinionSearch 是验证 workload。

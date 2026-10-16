@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-92701998068dfddc42c0",
+      "url": "https://news.qq.com/rain/a/20260915A0CVA700",
+      "focus": "广告的完整内容：外层文案、掀开后的内页、药房活动信息、投放形式与地点，以及哪些表述被指引发争议",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.qq.com/rain/a/20260915A0CVA700"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "f045d7ee8db34de18da61a8d4434e008:step:5:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "Jina Reader denied permission with HTTP status 403.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

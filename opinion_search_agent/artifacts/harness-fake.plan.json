@@ -1,0 +1,482 @@
+{
+  "plan_version": "presentation-plan/1",
+  "source_content_revision": 1,
+  "report_id": "mock-investigation",
+  "subject": "某市公交票价调整",
+  "status": "partial",
+  "generated_at": "2026-09-16T12:00:00+08:00",
+  "sections": [
+    {
+      "section_id": "overview",
+      "title": "事件总览",
+      "order": 1,
+      "view_id": "overview",
+      "view_title": "总览",
+      "modules": [
+        {
+          "module_id": "module-executive-summary",
+          "semantic_type": "executive-summary",
+          "title": "报告摘要",
+          "state": "ready",
+          "data_shape": "cards",
+          "summary": "某市公交票价调整：当前可核查要点",
+          "items": [
+            {
+              "title": "事件总述",
+              "summary": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。 听证会上多位参会代表对调价幅度和配套优惠提出不同意见。 2026年9月1日，官方发布票价调整方案。",
+              "detail": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。 听证会上多位参会代表对调价幅度和配套优惠提出不同意见。 2026年9月1日，官方发布票价调整方案。"
+            }
+          ],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        },
+        {
+          "module_id": "module-current-judgments",
+          "semantic_type": "current-judgments",
+          "title": "核心判断",
+          "state": "ready",
+          "data_shape": "cards",
+          "summary": "当前可核查的核心判断",
+          "items": [
+            {
+              "title": "自2026年10月1日起，市区公交线路基础票价由2元调整…",
+              "summary": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "detail": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "meta": "官方公告",
+              "_importance": 1
+            },
+            {
+              "title": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "summary": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "detail": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "meta": "听证会报道",
+              "_importance": 1
+            },
+            {
+              "title": "2026年9月1日，官方发布票价调整方案。",
+              "summary": "2026年9月1日，官方发布票价调整方案。",
+              "detail": "2026年9月1日，官方发布票价调整方案。",
+              "meta": "官方公告",
+              "_importance": 1
+            },
+            {
+              "title": "2026年9月10日，举行公开听证会并出现不同意见。",
+              "summary": "2026年9月10日，举行公开听证会并出现不同意见。",
+              "detail": "2026年9月10日，举行公开听证会并出现不同意见。",
+              "meta": "听证会报道",
+              "_importance": 1
+            },
+            {
+              "title": "2026年10月1日，新票价机制开始执行。",
+              "summary": "2026年10月1日，新票价机制开始执行。",
+              "detail": "2026年10月1日，新票价机制开始执行。",
+              "meta": "官方公告",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-summary-1",
+              "source_version_id": "source-ev-summary-1",
+              "label": "官方公告",
+              "excerpt": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "locator": "chars 120:160"
+            },
+            {
+              "evidence_id": "ev-summary-2",
+              "source_version_id": "source-ev-summary-2",
+              "label": "听证会报道",
+              "excerpt": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "locator": "chars 45:80"
+            },
+            {
+              "evidence_id": "ev-timeline-1",
+              "source_version_id": "source-ev-timeline-1",
+              "label": "官方公告",
+              "excerpt": "2026年9月1日，官方发布票价调整方案。",
+              "locator": "chars 10:30"
+            },
+            {
+              "evidence_id": "ev-timeline-2",
+              "source_version_id": "source-ev-timeline-2",
+              "label": "听证会报道",
+              "excerpt": "2026年9月10日，举行公开听证会并出现不同意见。",
+              "locator": "chars 1:25"
+            },
+            {
+              "evidence_id": "ev-timeline-3",
+              "source_version_id": "source-ev-timeline-3",
+              "label": "官方公告",
+              "excerpt": "2026年10月1日，新票价机制开始执行。",
+              "locator": "chars 160:190"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        },
+        {
+          "module_id": "module-task-timeline",
+          "semantic_type": "event-timeline",
+          "title": "事件时间线",
+          "state": "ready",
+          "data_shape": "timeline",
+          "summary": "2026年9月1日，官方发布票价调整方案。",
+          "items": [
+            {
+              "time": "2026-09-10",
+              "title": "听证会",
+              "text": "举行公开听证会并出现不同意见。",
+              "summary": "举行公开听证会并出现不同意见。",
+              "detail": "举行公开听证会并出现不同意见。",
+              "_importance": 1
+            },
+            {
+              "time": "2026-09-01",
+              "title": "方案公开",
+              "text": "官方发布票价调整方案。",
+              "summary": "官方发布票价调整方案。",
+              "detail": "官方发布票价调整方案。",
+              "_importance": 1
+            },
+            {
+              "time": "2026-10-01",
+              "title": "正式实施",
+              "text": "新票价机制开始执行。",
+              "summary": "新票价机制开始执行。",
+              "detail": "新票价机制开始执行。",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-timeline-1",
+              "source_version_id": "source-ev-timeline-1",
+              "label": "官方公告",
+              "excerpt": "2026年9月1日，官方发布票价调整方案。",
+              "locator": "chars 10:30"
+            },
+            {
+              "evidence_id": "ev-timeline-2",
+              "source_version_id": "source-ev-timeline-2",
+              "label": "听证会报道",
+              "excerpt": "2026年9月10日，举行公开听证会并出现不同意见。",
+              "locator": "chars 1:25"
+            },
+            {
+              "evidence_id": "ev-timeline-3",
+              "source_version_id": "source-ev-timeline-3",
+              "label": "官方公告",
+              "excerpt": "2026年10月1日，新票价机制开始执行。",
+              "locator": "chars 160:190"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "timeline",
+          "selection_reason": "data_shape=timeline; preferred visual is allowed"
+        },
+        {
+          "module_id": "module-task-summary",
+          "semantic_type": "event-summary",
+          "title": "事件概况",
+          "state": "ready",
+          "data_shape": "cards",
+          "summary": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+          "items": [
+            {
+              "title": "核心事实",
+              "text": "官方公告确认基础票价由2元调整为3元。",
+              "meta": "官方公告",
+              "summary": "官方公告确认基础票价由2元调整为3元。",
+              "detail": "官方公告确认基础票价由2元调整为3元。",
+              "_importance": 1
+            },
+            {
+              "title": "当前状态",
+              "text": "听证会出现不同意见，配套优惠范围仍待明确。",
+              "meta": "听证会报道",
+              "summary": "听证会出现不同意见，配套优惠范围仍待明确。",
+              "detail": "听证会出现不同意见，配套优惠范围仍待明确。",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-summary-1",
+              "source_version_id": "source-ev-summary-1",
+              "label": "官方公告",
+              "excerpt": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "locator": "chars 120:160"
+            },
+            {
+              "evidence_id": "ev-summary-2",
+              "source_version_id": "source-ev-summary-2",
+              "label": "听证会报道",
+              "excerpt": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "locator": "chars 45:80"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        }
+      ]
+    },
+    {
+      "section_id": "issues",
+      "title": "议题、观点与回应",
+      "order": 4,
+      "view_id": "issues",
+      "view_title": "议题与观点",
+      "modules": [
+        {
+          "module_id": "module-task-issues",
+          "semantic_type": "issue-map",
+          "title": "议题与争议",
+          "state": "ready",
+          "data_shape": "comparison",
+          "summary": "代表对调价幅度提出不同看法。",
+          "items": [
+            {
+              "议题": "调价幅度",
+              "状态": "争议中",
+              "说明": "代表对2元到3元的幅度提出不同看法。",
+              "_importance": 1
+            },
+            {
+              "议题": "优惠群体",
+              "状态": "待调查",
+              "说明": "配套优惠范围仍需更多材料。",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-issue-1",
+              "source_version_id": "source-ev-issue-1",
+              "label": "听证会报道",
+              "excerpt": "代表对调价幅度提出不同看法。",
+              "locator": "chars 45:70"
+            },
+            {
+              "evidence_id": "ev-issue-2",
+              "source_version_id": "source-ev-issue-2",
+              "label": "官方公告",
+              "excerpt": "配套优惠范围仍需后续说明。",
+              "locator": "chars 200:230"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "comparison_table",
+          "selection_reason": "data_shape=comparison; preferred visual is allowed"
+        },
+        {
+          "module_id": "module-task-positions",
+          "semantic_type": "position-matrix",
+          "title": "立场矩阵",
+          "state": "ready",
+          "data_shape": "matrix",
+          "summary": "运营方表示票价调整与成本压力有关。",
+          "items": [
+            {
+              "主体": "运营方",
+              "立场": "支持",
+              "目标": "票价调整",
+              "依据": "成本压力",
+              "_importance": 1
+            },
+            {
+              "主体": "部分参会代表",
+              "立场": "条件支持",
+              "目标": "配套优惠",
+              "依据": "负担问题",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-position-1",
+              "source_version_id": "source-ev-position-1",
+              "label": "听证会报道",
+              "excerpt": "运营方表示票价调整与成本压力有关。",
+              "locator": "chars 80:110"
+            },
+            {
+              "evidence_id": "ev-position-2",
+              "source_version_id": "source-ev-position-2",
+              "label": "听证会报道",
+              "excerpt": "部分参会代表提出应同步完善优惠。",
+              "locator": "chars 110:150"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "position_matrix",
+          "selection_reason": "data_shape=matrix; preferred visual is allowed"
+        }
+      ]
+    },
+    {
+      "section_id": "response",
+      "title": "回应与处置",
+      "order": 5,
+      "view_id": "response",
+      "view_title": "回应与处置",
+      "modules": [
+        {
+          "module_id": "module-task-response",
+          "semantic_type": "response-coverage",
+          "title": "回应覆盖",
+          "state": "ready",
+          "data_shape": "comparison",
+          "summary": "公告说明了调价原因。",
+          "items": [
+            {
+              "问题": "优惠如何执行",
+              "回应": "部分",
+              "未覆盖": "具体办理渠道",
+              "_importance": 1
+            },
+            {
+              "问题": "为什么调价",
+              "回应": "直接",
+              "未覆盖": "",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-response-1",
+              "source_version_id": "source-ev-response-1",
+              "label": "官方公告",
+              "excerpt": "公告说明了调价原因。",
+              "locator": "chars 60:90"
+            },
+            {
+              "evidence_id": "ev-response-2",
+              "source_version_id": "source-ev-response-2",
+              "label": "官方公告",
+              "excerpt": "公告未说明具体办理渠道。",
+              "locator": "chars 230:260"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "comparison_table",
+          "selection_reason": "data_shape=comparison; preferred visual is allowed"
+        }
+      ]
+    },
+    {
+      "section_id": "evidence",
+      "title": "来源、证据与限制",
+      "order": 6,
+      "view_id": "evidence",
+      "view_title": "来源与证据",
+      "modules": [
+        {
+          "module_id": "module-task-source",
+          "semantic_type": "source-structure",
+          "title": "来源结构",
+          "state": "ready",
+          "data_shape": "categorical",
+          "summary": "官方公告构成主要原始来源。",
+          "items": [
+            {
+              "label": "媒体报道",
+              "value": 1,
+              "display": "1",
+              "_importance": 1
+            },
+            {
+              "label": "官方来源",
+              "value": 1,
+              "display": "1",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-source-1",
+              "source_version_id": "source-ev-source-1",
+              "label": "官方公告",
+              "excerpt": "官方公告构成主要原始来源。",
+              "locator": "chars 1:20"
+            },
+            {
+              "evidence_id": "ev-source-2",
+              "source_version_id": "source-ev-source-2",
+              "label": "听证会报道",
+              "excerpt": "媒体报道构成当前另一类来源。",
+              "locator": "chars 1:20"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "distribution_chart",
+          "selection_reason": "data_shape=categorical; preferred visual is allowed"
+        },
+        {
+          "module_id": "module-task-evidence",
+          "semantic_type": "evidence-index",
+          "title": "证据与原文",
+          "state": "ready",
+          "data_shape": "evidence",
+          "summary": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+          "items": [
+            {
+              "title": "自2026年10月1日起，市区公交线路基础票价由2元调整…",
+              "summary": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "detail": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "meta": "官方公告",
+              "_importance": 1
+            },
+            {
+              "title": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "summary": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "detail": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "meta": "听证会报道",
+              "_importance": 1
+            }
+          ],
+          "citations": [
+            {
+              "evidence_id": "ev-index-1",
+              "source_version_id": "source-ev-index-1",
+              "label": "官方公告",
+              "excerpt": "自2026年10月1日起，市区公交线路基础票价由2元调整为3元。",
+              "locator": "chars 120:160"
+            },
+            {
+              "evidence_id": "ev-index-2",
+              "source_version_id": "source-ev-index-2",
+              "label": "听证会报道",
+              "excerpt": "听证会上多位参会代表对调价幅度和配套优惠提出不同意见。",
+              "locator": "chars 45:80"
+            }
+          ],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "",
+          "selected_visual": "evidence_drawer",
+          "selection_reason": "data_shape=evidence; preferred visual is allowed"
+        }
+      ]
+    }
+  ]
+}

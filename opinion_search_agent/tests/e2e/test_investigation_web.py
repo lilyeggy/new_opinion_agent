@@ -131,6 +131,10 @@ def test_workbench_endpoint_serves_a_consistent_projection(base_url: str) -> Non
         assert body["format"] == "opinion-workbench/1"
         assert body["run_id"] == run_id and body["publication_state"] in {"completed", "partial"}
         assert body["snapshot_id"] == snapshot["workbench_revision"]
+        assert body["page_plan"]["format"] == "opinion-page-plan/1"
+        focus = next(section for section in body["page_plan"]["sections"] if section["view"] == "focus")
+        assert focus["title"] == "规则与适用影响"
+        assert body["page_plan"]["summary"]["missing_required_field_count"] == 0
         module_states = {item["module_type"]: item["state"] for item in body["modules"]}
         assert module_states["issues-review"] == "ready"
         assert module_states["rule-comparison"] == "ready", "offline fixture question implies rule_change facet"
@@ -147,6 +151,12 @@ def test_workbench_endpoint_serves_a_consistent_projection(base_url: str) -> Non
         assert all("components" in issue for issue in issues_view)
         materials = body["views"]["coverage"]["materials"]
         assert all("summary" in material and "judgments" in material for material in materials)
+        diagnostics = client.get(f"/api/investigations/{run_id}/diagnostics")
+        assert diagnostics.status_code == 200
+        diagnostics_body = diagnostics.json()
+        assert diagnostics_body["format"] == "opinion-investigation-diagnostics/1"
+        assert body["views"]["diagnostics"] == diagnostics_body
+        assert len(diagnostics_body["stages"]) == 9
 
         assert body["snapshot_id"] == client.get(
             f"/api/investigations/{run_id}/workbench").json()["snapshot_id"]

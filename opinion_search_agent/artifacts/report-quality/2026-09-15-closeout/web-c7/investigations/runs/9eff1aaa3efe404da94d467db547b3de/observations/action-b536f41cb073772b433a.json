@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-6e216ae112f566d377c8",
+      "url": "https://fzggw.cq.gov.cn/zwxx/tzgg/202504/t20250428_14568323.html",
+      "focus": "听证有关事项公告全文：听证会举行时间地点、参加人名额分配与产生方式、两套票价方案要点、成本监审与公众负担说明、意见征集渠道",
+      "role": "original"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://fzggw.cq.gov.cn/zwxx/tzgg/202504/t20250428_14568323.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "9eff1aaa3efe404da94d467db547b3de:step:9:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unknown_provider_error",
+      "message": "Jina Reader rejected the request with HTTP status 422.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

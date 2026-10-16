@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-318e25582109f3bc656d",
+      "url": "https://www.sina.cn/weibo/detail/5343682510193564.html",
+      "focus": "罗永浩原博内容与发布情况、事件发酵时间线、野人先生是否回应及成本毛利说法的出处",
+      "role": "unknown"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.sina.cn/weibo/detail/5343682510193564.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:23:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

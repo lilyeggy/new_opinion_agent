@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-fd63205945e6c97e47ab",
+      "query": "该文中关于博主“理记”爆料罗永浩“碰瓷”野人先生属“一石二鸟”、既为钟薛高复出造势又为篡改舆论风向的段落，以及西贝已起诉罗永浩、即将开庭的说法与其证据等级",
+      "version_id": "source-39b6c7bb4919f46c8ede"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-5c526a480dfcd4351dfe",
+        "version_id": "source-39b6c7bb4919f46c8ede",
+        "excerpt": "“理记”同日再爆料称，西贝已起诉罗永浩，即将开庭，并称罗永浩近日“碰瓷”野人先生是“一石二鸟”，既为钟薛高复出造势，也为篡改舆论风向，把自己包装成“只是消费者吐槽”。",
+        "start": 2281,
+        "end": 2364,
+        "locator": "Reader text chars 2281:2364"
+      },
+      {
+        "evidence_id": "evidence-4a414fc7fa72f0a08832",
+        "version_id": "source-39b6c7bb4919f46c8ede",
+        "excerpt": "西贝是否将会彻底倒闭，眼下尚无法坐实。按照“理记”最新抛出的猛料，可能还会为这盘残局再添变数。据其说法，西贝已起诉罗永浩，即将开庭，不久前其跑出来操控舆论给法院施压，最近又突然碰瓷野人先生也是“一石二鸟”。",
+        "start": 4393,
+        "end": 4496,
+        "locator": "Reader text chars 4393:4496"
+      },
+      {
+        "evidence_id": "evidence-ddb22934710ea261f262",
+        "version_id": "source-39b6c7bb4919f46c8ede",
+        "excerpt": "*   ### 西贝起诉罗永浩将开庭？“倒闭倒计时”再添变数",
+        "start": 942,
+        "end": 972,
+        "locator": "Reader text chars 942:972"
+      },
+      {
+        "evidence_id": "evidence-d3d4a0504bc0cc533ef9",
+        "version_id": "source-39b6c7bb4919f46c8ede",
+        "excerpt": "值得注意的是，面对罗永浩对野人先生的同款吐槽，后者的冷处理已与西贝当年的硬刚形成鲜明对照。网友在其评论区齐刷“不要回答”，品牌也全程低调克制，热度反而快速消散。同样的十字路口，两个品牌的不同选择，正在以近乎对照的方式，检验着舆论场上“克制”的价值。",
+        "start": 4638,
+        "end": 4762,
+        "locator": "Reader text chars 4638:4762"
+      },
+      {
+        "evidence_id": "evidence-2972a086040ddaf921f1",
+        "version_id": "source-39b6c7bb4919f46c8ede",
+        "excerpt": "9月19日至9月20日，“理记”连续在博文中为西贝鸣不平，写道：西贝在去年九月份之前一直在健康运营，这是事实。贾国龙是个好人，一辈子做实业，（罗永浩）把一个人倾尽心血三十年的事业毁掉了。",
+        "start": 3293,
+        "end": 3386,
+        "locator": "Reader text chars 3293:3386"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

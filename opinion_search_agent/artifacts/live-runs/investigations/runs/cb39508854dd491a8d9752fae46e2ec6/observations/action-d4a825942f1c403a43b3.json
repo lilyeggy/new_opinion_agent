@@ -1,0 +1,92 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-fd63205945e6c97e47ab",
+      "query": "钟薛高 复出 重启 降价 官方公告 新品 价格调整 2026年9月",
+      "purpose": "official_response",
+      "page": 0,
+      "background": false,
+      "target_gap": "钟薛高9月重启与降价的官方原文、发布时间、降价幅度与适用范围（此前仅有搜索摘要，无任何已读原文）"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "钟薛高 复出 重启 降价 官方公告 新品 价格调整 2026年9月 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": "2026-09-12to2026-09-22"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "cb39508854dd491a8d9752fae46e2ec6:step:22:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "钟薛高 复出 重启 降价 官方公告 新品 价格调整 2026年9月 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "钟薛高复活后首次亮相 降价策略重启市场_新闻频道_中华网",
+            "url": "https://news.china.com/socialgd/10000169/20260916/49746028.html",
+            "snippet": "用微信扫描二维码 分享至好友和朋友圈 · 曾因“雪糕刺客”争议而广受关注的钟薛高，在经历破产清算后迎来新的操盘手。新运营团队表示，其产品计划于今年第四季度以6.9元至7.9元的建议零售价重新上市，相比过去终端..."
+          },
+          {
+            "title": "钟薛高“复出”，首批产品为何价格腰斩？_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0CUAT00",
+            "snippet": "9月16日，在2026中国冰淇...首批3款产品预计今年第四季度上市，建议零售价为每支6.9元和7.9元，相较此前13元至16元的价格接近减半。..."
+          },
+          {
+            "title": "重生与降价，钟薛高还有机会吗_投资界",
+            "url": "https://news.pedaily.cn/202609/569269.shtml",
+            "snippet": "9月16日钟薛高在博览会上宣布重启，首批产品降价，新运营方与原公司无股权关系，面临重新进入渠道、重塑消费者认知等考验。 · 2026-09-18 17:29 ·微信公众号：全天候科技 全天候科技 全天候科技"
+          },
+          {
+            "title": "钟薛高复出：定价6.9元起，是原来的一半，最快四季度上市_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0DNIE00",
+            "snippet": "9月16日，钟薛高在第28届...工作人员介绍，新钟薛高产品预计在2026年四季度回归上市，建议零售价为6.9—7.9元，与原来13—20元的建议零售价相比几乎腰斩。..."
+          },
+          {
+            "title": "钟薛高回归：价格减半，90 后 CEO 接手，不再主打网红|钟薛高|朱丹蓬|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343887982071837.html",
+            "snippet": "【#业界分析师谈钟薛高...首批3款产品预计今年第四季度上市，建议零售价为每支6.9元和7.9元，相较此前13元至16元的价格接近减半。 食品产业分析师朱丹蓬认为，此番钟..."
+          },
+          {
+            "title": "钟薛高“复出”，便宜了_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0DIRE00",
+            "snippet": "9月16日，在2026中国冰淇...首批3款产品预计今年第四季度上市，建议零售价为每支6.9元和7.9元，相较此前13元至16元的价格接近减半。..."
+          },
+          {
+            "title": "钟薛高回归：价格减半，90 后 CEO 接手，不再做网红品牌|钟薛高|朱丹蓬|冰淇淋产业博览会_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343887984168477.html",
+            "snippet": "【#业界分析师谈钟薛高...首批3款产品预计今年第四季度上市，建议零售价为每支6.9元和7.9元，相较此前13元至16元的价格接近减半。 食品产业分析师朱丹蓬认为，此番钟..."
+          },
+          {
+            "title": "钟薛高虽降价但仍处于中高端价位 价格调整引热议_新闻频道_中华网",
+            "url": "https://news.china.com/socialgd/10000169/20260917/49749291.html",
+            "snippet": "曾经被贴上“雪糕刺客”标签的钟薛高，在破产资产完成转让后，正式宣告重启回归市场。"
+          },
+          {
+            "title": "钟薛高宣布重启 大降价_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916V0AJNW00?id=20260916V0AJNW00&path=a&app=news&suid=&redirect_pc=1",
+            "snippet": "怒批比钟薛高还难吃，罗永浩狠心手撕十年铁粉，前合伙人居然也下场补刀！"
+          },
+          {
+            "title": "重生与降价，钟薛高还有机会吗_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260918A0693800",
+            "snippet": "作者 | 王小娟经历原运营主体破产清算、品牌资产司法拍卖后，钟薛高准备重新进入市场。 9月16日，钟薛高在第28届中国冰淇淋及冷冻食品产业博览会上宣布重启。首批恢复上市的产品包括轻牛乳、丝绒可可和半半巧巧三个口味，计划于今年第四季度销售，建议零售价分别为6.9元、7.9元和7.9元。与品牌此前13元至20元的主力价格相比..."
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

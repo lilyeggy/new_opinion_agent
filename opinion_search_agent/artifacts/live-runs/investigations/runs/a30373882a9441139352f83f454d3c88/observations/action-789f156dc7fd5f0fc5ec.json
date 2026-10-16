@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-0ca151b5620ea7b28ef8",
+      "url": "https://www.sina.cn/news/detail/5342948281024907.html",
+      "focus": "提取罗永浩原博的发布时间、原文表述与主要指控点（口味、价格、与钟薛高对比），以及'请千万不要惹我'的提示原文和野人先生客服回应内容",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.sina.cn/news/detail/5342948281024907.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:2:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

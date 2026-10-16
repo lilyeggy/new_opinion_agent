@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-5ff9fae7c7065bff6b3b",
+      "url": "https://news.china.com/socialgd/10000169/20260920/49753889.html",
+      "focus": "西贝为何被卷入本次冰淇淋争议、西贝方面是否有正式回应，以及该文对人民网评论内容的转述",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.china.com/socialgd/10000169/20260920/49753889.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:31:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "read investigation budget exhausted",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

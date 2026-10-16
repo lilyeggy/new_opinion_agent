@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-557698177e98e40df1de",
+      "url": "https://www.sohu.com/a/1076738292_122336497",
+      "focus": "华润三九是否通过官网、证券部或官方渠道发布正式书面声明、道歉或合规审查说明；公司回应的具体措辞与时间",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.sohu.com/a/1076738292_122336497"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "f045d7ee8db34de18da61a8d4434e008:step:11:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "Jina Reader denied permission with HTTP status 403.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

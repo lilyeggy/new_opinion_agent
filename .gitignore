@@ -6,6 +6,11 @@
 **/__pycache__/
 **/.mypy_cache/
 **/.pytest_cache/
+**/.ruff_cache/
+**/.pytest_tmp/
+**/.pytest_run/
+**/.pytest_iso2/
+.workbuddy-ai/
 
 # Local guides, standalone webapps and reference archives
 .claude/

@@ -56,11 +56,13 @@ def _material_content(item: dict, base: Path) -> str:
     return text
 
 
-def load_replay_case(path: Path) -> ReplayCase:
+def load_replay_case(path: Path, *, require_snapshot_hashes: bool = False) -> ReplayCase:
     path = Path(path)
     data = json.loads(path.read_text(encoding="utf-8"))
     materials = []
     for item in data.get("materials", ()):
+        if require_snapshot_hashes and (not item.get("snapshot_path") or not item.get("sha256")):
+            raise ValueError("model replay materials require snapshot_path and sha256")
         role = item.get("role", "unknown")
         if role not in ROLES:
             raise ValueError("replay material has an unknown role")
@@ -147,7 +149,7 @@ def run_replay_case(root: Path, case_path: Path, *, config: LiveConfig | None = 
     treating a single run as mechanism evidence, not population quality.
     """
 
-    case = load_replay_case(Path(case_path))
+    case = load_replay_case(Path(case_path), require_snapshot_hashes=True)
     if config is None:
         if env_file is not None:
             from opinion_search.web.server import load_env_file
@@ -158,16 +160,59 @@ def run_replay_case(root: Path, case_path: Path, *, config: LiveConfig | None = 
     if case.focus:
         payload["focus"] = case.focus
     snapshot = manager.create(payload)
-    answers = list(case.clarification_answers)
+    return _wait_for_replay(manager, snapshot, list(case.clarification_answers),
+                            poll_seconds=poll_seconds, timeout_seconds=timeout_seconds)
+
+
+def run_replay_update_case(root: Path, parent_id: str, case_path: Path, *, focus: str | None = None,
+                           issue_ids: tuple[str, ...] = (), finding_ids: tuple[str, ...] = (),
+                           config: LiveConfig | None = None, env_file: Path | None = None,
+                           poll_seconds: float = 0.1, timeout_seconds: float = 2400) -> dict:
+    """Create a real linked update whose discovery is frozen to a later material set.
+
+    The parent must already exist under ``root``. The child uses Manager's normal
+    parent/update path, so update intent, copied state, version links and atomic
+    publication are identical to the Web flow; only Search/Reader are replaced
+    with the hash-checked later snapshot set.
+    """
+
+    case = load_replay_case(Path(case_path), require_snapshot_hashes=True)
+    if config is None:
+        if env_file is not None:
+            from opinion_search.web.server import load_env_file
+            load_env_file(Path(env_file))
+        config = LiveConfig.from_env()
+    manager = Manager(Path(root), config_loader=lambda: config, loop_builder=replay_loop_builder(case))
+    payload = {
+        "focus": focus or case.focus or "补充新材料并检查哪些判断需要加强、削弱、修订或撤回。",
+        "issue_ids": list(issue_ids),
+        "finding_ids": list(finding_ids),
+    }
+    snapshot = manager.create(payload, parent_id=parent_id)
+    return _wait_for_replay(manager, snapshot, list(case.clarification_answers),
+                            poll_seconds=poll_seconds, timeout_seconds=timeout_seconds)
+
+
+def _wait_for_replay(manager, snapshot: dict, answers: list[str], *,
+                     poll_seconds: float, timeout_seconds: float) -> dict:
+    """Wait for a replay worker and always cancel it on caller-side failure."""
+
     deadline = time.monotonic() + timeout_seconds
-    while time.monotonic() < deadline:
-        if snapshot["status"] == "needs_clarification":
-            if not answers:
-                raise ValueError("frozen replay needs a clarification answer for this request")
-            snapshot = manager.clarify(snapshot["run_id"], {"answer": answers.pop(0)})
-            continue
-        if snapshot["status"] in TERMINAL:
-            return snapshot
-        time.sleep(poll_seconds)
-        snapshot = manager.snapshot(snapshot["run_id"])
-    raise TimeoutError("frozen replay did not reach a terminal state within the timeout")
+    try:
+        while time.monotonic() < deadline:
+            if snapshot["status"] == "needs_clarification":
+                if not answers:
+                    raise ValueError("frozen replay needs a clarification answer for this request")
+                snapshot = manager.clarify(snapshot["run_id"], {"answer": answers.pop(0)})
+                continue
+            if snapshot["status"] in TERMINAL:
+                return snapshot
+            time.sleep(poll_seconds)
+            snapshot = manager.snapshot(snapshot["run_id"])
+        raise TimeoutError("frozen replay did not reach a terminal state within the timeout")
+    except BaseException:
+        manager.cancel(snapshot["run_id"])
+        worker = manager.workers.get(snapshot["run_id"])
+        if worker and worker.thread and worker.thread.is_alive():
+            worker.thread.join(timeout=5)
+        raise

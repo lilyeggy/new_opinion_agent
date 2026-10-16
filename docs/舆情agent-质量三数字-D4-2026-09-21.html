@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>质量三个数字 · D4 · 2026-09-21</title>
+<style>
+  :root {
+    --ink: #1a2233; --ink-2: #3d4a63; --ink-3: #6b7690;
+    --line: #e3e7ef; --bg: #f7f8fa; --card: #ffffff;
+    --accent: #2b5ce6; --accent-soft: #eef3fe;
+    --red: #c0392b; --red-soft: #fdf0ee;
+    --amber: #b3770a; --amber-soft: #fdf6e7;
+    --green: #1e7e4d; --green-soft: #ecf7f1;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--ink); line-height: 1.85; font-size: 15.5px; }
+  .page { max-width: 900px; margin: 0 auto; padding: 56px 32px 96px; }
+  header.masthead { border-bottom: 3px solid var(--ink); padding-bottom: 26px; margin-bottom: 34px; }
+  .kicker { font-size: 13px; letter-spacing: 2px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-size: 28px; line-height: 1.4; font-weight: 700; }
+  .meta { margin-top: 12px; font-size: 13px; color: var(--ink-3); }
+  h2 { font-size: 20px; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); font-weight: 700; }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  p { margin: 11px 0; }
+  code { font-family: var(--mono); font-size: 13.5px; background: #eef0f4; padding: 1px 6px; border-radius: 4px; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 7px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 14px; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #f0f2f6; font-weight: 600; }
+  .numbers { display: flex; gap: 16px; margin: 28px 0; flex-wrap: wrap; }
+  .num-card { flex: 1; min-width: 220px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 22px 24px; }
+  .num-card .big { font-size: 40px; font-weight: 800; font-family: var(--mono); line-height: 1.1; }
+  .num-card .label { font-size: 14px; color: var(--ink-2); margin-top: 6px; font-weight: 600; }
+  .num-card .sub { font-size: 13px; color: var(--ink-3); margin-top: 8px; line-height: 1.7; }
+  .num-card.green .big { color: var(--green); }
+  .num-card.amber .big { color: var(--amber); }
+  .num-card.red .big { color: var(--red); }
+  .callout { border-radius: 10px; padding: 18px 24px; margin: 16px 0; }
+  .callout h4 { font-size: 15px; margin-bottom: 6px; }
+  .callout.green { background: var(--green-soft); border: 1px solid #bfe0cd; } .callout.green h4 { color: var(--green); }
+  .callout.amber { background: var(--amber-soft); border: 1px solid #ecd9ae; } .callout.amber h4 { color: var(--amber); }
+  .callout.red { background: var(--red-soft); border: 1px solid #eccfca; } .callout.red h4 { color: var(--red); }
+  .verdict { background: var(--ink); color: #f2f4f8; border-radius: 10px; padding: 24px 28px; margin: 30px 0 6px; line-height: 1.9; }
+  .verdict .tag { color: #8fb0ff; font-size: 13px; letter-spacing: 2px; font-weight: 600; }
+  .verdict p { margin: 9px 0 0; }
+  .verdict strong { color: #fff; }
+  .hit { color: var(--green); font-weight: 700; }
+  .miss { color: var(--red); font-weight: 700; }
+  .partial { color: var(--amber); font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">D4 · 质量验收三个数字（不建体系，每个都可复核）</div>
+  <h1>检索召回 60% · 忠实性 71% 完全支持/100% 有据 · 对抗点 2/3</h1>
+  <div class="meta">基于 s5-b 真实运行（三九胃泰中秋广告争议，60 步）+ 冻结材料对抗 replay · 2026-09-21</div>
+</header>
+
+<div class="numbers">
+  <div class="num-card amber">
+    <div class="big">6/10</div>
+    <div classlabel class="label">检索召回（必中清单）</div>
+    <div class="sub">发现层 = 读取层 = 60%。漏检集中在原发媒体站：Brave 候选 66% 来自 qq.com 聚合，原发站（cnr/dahe/inweekly/chinanews）零覆盖。</div>
+  </div>
+  <div class="num-card green">
+    <div class="big">71%</div>
+    <div class="label">忠实性（人工核对 14 条 finding）</div>
+    <div class="sub">10 条完全支持、4 条部分支持、<b>0 条无中生有</b>。部分支持模式一致：方向正确，个别引语超出绑定摘录。</div>
+  </div>
+  <div class="num-card green">
+    <div class="big">2/3</div>
+    <div class="label">对抗点命中（冻结材料埋点）</div>
+    <div class="sub">更正采纳 ✓（且成报告最突出判断）；反叙事 ✗（已读未用）；错误数字未传播 ✓（但非机制拦截）。</div>
+  </div>
+</div>
+
+<h2><span class="no">01</span>数字一：检索召回 60%（6/10）</h2>
+
+<p><b>方法。</b>以事件真实舆论场为基准，人工标注 10 个「合格调查必须找到的内容项」（按内容计，同一内容的转载算命中），对照 s5-b 实际运行的 61 个候选 URL 与 11 个已读来源逐项核对。必中清单的每一项都经独立搜索验证真实存在。</p>
+
+<table>
+  <tr><th>#</th><th>必中内容项</th><th>发现（候选层）</th><th>读取（已存层）</th></tr>
+  <tr><td>1</td><td>新京报 9·15 首发回应报道（"正在安排撤下"原始出处）</td><td class="hit">✓</td><td class="hit">✓（163 转载）</td></tr>
+  <tr><td>2</td><td>新京报快评《营销莫挑拨朴素价值观》</td><td class="miss">✗</td><td class="miss">✗</td></tr>
+  <tr><td>3</td><td>央广网记者报道（雷妍，含品牌方解释与调查数据）</td><td class="miss">✗</td><td class="miss">✗</td></tr>
+  <tr><td>4</td><td>央广网《看丹观察》评论</td><td class="hit">✓（21经济网转载）</td><td class="hit">✓</td></tr>
+  <tr><td>5</td><td>中新网评《三九胃泰的营销病，比胃病更该治》</td><td class="hit">✓（搜狐转载）</td><td class="hit">✓</td></tr>
+  <tr><td>6</td><td>中国新闻周刊深度稿（艾媒分析师+米内网排名）</td><td class="miss">✗</td><td class="miss">✗</td></tr>
+  <tr><td>7</td><td>大河网"河声"评论《一句"别团圆"为何惹众怒》</td><td class="miss">✗（模型 3 次定向搜索均失败）</td><td class="miss">✗</td></tr>
+  <tr><td>8</td><td>新黄河·大鱼财经深度稿（创意代理商+品牌认知度调研）</td><td class="hit">✓（凤凰网转载）</td><td class="hit">✓</td></tr>
+  <tr><td>9</td><td>36氪评论（节日营销模式梳理）</td><td class="hit">✓</td><td class="hit">✓</td></tr>
+  <tr><td>10</td><td>星岛头条报道（含市场分析）</td><td class="hit">✓</td><td class="hit">✓</td></tr>
+</table>
+
+<div class="callout red">
+  <h4>漏检的结构性原因（比 60% 本身更重要）</h4>
+  <p>候选域名分布：<b>news.qq.com 独占 40/61（66%）</b>，原发媒体站（cnr.cn、opinion.dahe.cn、inweekly、chinanews.com）<b>全部为零</b>。单引擎 Brave 在中文舆情事件上返回高度集中于聚合转载站；而 qq.com 聚合页又反爬，17 次读取中 6 次失败全在它身上。大河网案例最能说明问题：模型知道该评论存在、三次改写查询（含 site:dahe.cn，该次还触发了 provider 错误）仍未拿到——这是"知道存在却够不着"的纯检索层失败，与理解力无关。</p>
+</div>
+
+<h2><span class="no">02</span>数字二：忠实性 71% 完全支持，100% 有据</h2>
+
+<p><b>方法。</b>取 s5-b 全部 14 条 active finding，逐条人工核对「绑定证据摘录是否真的支持 finding 文本」，不看模型 review 结论，独立判断后再对比。</p>
+
+<table>
+  <tr><th>判定</th><th>数量</th><th>说明</th></tr>
+  <tr><td class="hit">完全支持</td><td>10（71%）</td><td>事实与归因均能在绑定摘录中逐字或逐项找到（F1,F2,F4,F5,F7,F8,F9,F12,F13,F14）</td></tr>
+  <tr><td class="partial">部分支持</td><td>4（29%）</td><td>概括方向正确，但个别具体引语/细节超出绑定摘录范围（F3,F6,F10,F11）——很可能在原文未摘录段落，但<b>就绑定证据而言</b>支撑不完整</td></tr>
+  <tr><td class="miss">无中生有</td><td>0</td><td>没有任何一条 finding 是编造的</td></tr>
+</table>
+
+<div class="callout amber">
+  <h4>两个值得一提的次级发现</h4>
+  <p>① 部分支持的失败模式高度一致：<b>问题不在"编"，在"摘"</b>——finding 写的具体论点（如 36氪评论的"嘴替变杠精"、地铁"守护单身狗的胃"系列）真实存在于原文，但证据摘录没摘到那一段。这把上一轮分析的判断坐实了：证据摘录召回（4×词面重合+1×含数字的启发式）是忠实性的单点瓶颈。<br>
+  ② 系统自带的模型 review 判 6/14 supported，比人工核对（10/14）更严——attributed 类单来源 finding 一律被压成 partial。<b>审查器偏保守，这对一个以可信为卖点的系统是好的方向性偏差</b>，且"机器审 6/14 vs 人工 10/14"本身就是面试里讲校准的好素材。</p>
+</div>
+
+<h2><span class="no">03</span>数字三：对抗点 2/3（冻结材料埋点 replay）</h2>
+
+<p><b>方法。</b>用 s5-b 的 7 篇真实正文快照 + 3 篇手写埋点材料组成 10 篇冻结材料集（哈希校验），真实模型跑完整生产链路（replay 设施），检查报告对三个埋点的处理。埋点设计：<b>反方稿</b>（为广告辩护的专栏，"截图式误杀"论）、<b>更正</b>（"立即下刊"实为仅线上渠道，线下预计 9·20 完成）、<b>错误数字</b>（销售费用 908.9 亿/营收 3160.3 亿，均为真实值 10 倍，与材料集内真实数字直接冲突）。</p>
+
+<table>
+  <tr><th>埋点</th><th>结果</th><th>细节</th></tr>
+  <tr><td>更正采纳</td><td class="hit">✓ 完全命中</td><td>更正说明成为整份报告<b>唯一</b>的「已核查阶段性判断」，带 [引用支持] 审查标签；报告逐条采纳更正版事实（线上已下/线下 9·20/部分点位仍在展示），并明确写出旧表述"与实际情况不符"。</td></tr>
+  <tr><td>反叙事呈现</td><td class="miss">✗ 未命中</td><td>辩护稿被读取、被摘 5 条证据（含核心论点），但<b>零 finding 引用</b>；「不同立场与争议焦点」问题整段留空。最尖锐的细节：系统自己在缺口标注里写下"未覆盖：反对质疑或替广告辩护的意见"——<b>明知缺口存在，却没有回填已读材料</b>。</td></tr>
+  <tr><td>错误数字</td><td class="partial">✓ 未传播，但机制存疑</td><td>908.9 亿/3160.3 亿未进报告——但原因是经营数据问题<b>没轮到综合</b>（步数耗尽），不是矛盾检测拦截。真实数字（316.03 亿）与错误数字（3160.3 亿）在证据目录里静默并存；现有数字护栏只验"数字是否出现在摘录中"（出处），不验可信度——错误数字若被引用，护栏会放行。</td></tr>
+</table>
+
+<div class="verdict">
+  <div class="tag">面 试 可 引 用 的 一 段 话</div>
+  <p>「我给 harness 做了三层验收：<strong>检索召回 60%</strong>（必中清单 6/10，漏检根因是单引擎候选 66% 集中于聚合站、原发站零覆盖）；<strong>忠实性 71% 完全支持、0 虚构</strong>（人工逐条核对 14 条 finding，失败模式是证据摘录没摘到关键段，不是模型编造）；<strong>对抗埋点 2/3</strong>（更正被完美采纳并成为报告核心判断；反方稿被读取却没用进任何结论——系统自己都标注了"缺辩护意见"却没回填；错误数字没传播，但靠的是没跑到而不是矛盾检测）。这套"必中清单+人工抽审+对抗埋点"的验收方法本身，就是我对"怎么知道 agent 做得好不好"的回答。」</p>
+</div>
+
+<h2><span class="no">04</span>产物索引（全部可复核）</h2>
+
+<ul>
+  <li>s5-b 真实运行：<code>artifacts/live-runs/investigations/runs/9b1bf7d631804cffbfc85a00086aef52/</code>（run.json 含 61 候选/11 来源/14 finding/审查记录；report.md 为产出报告）</li>
+  <li>对抗案例：<code>artifacts/adversarial-cases/sanjiu-2026-09/case.json</code>（10 篇哈希校验材料：7 真 + 3 埋点）与 <code>runs-root/runs/452e0b05aca84ad39fb0f9d4427cfb81/report.md</code>（replay 产出）</li>
+  <li>忠实性核对底稿：本节 14 条 finding 的逐条判定基于 run.json 中 findings/evidence/reviews 三个数组，可用同一路径脚本复现</li>
+  <li>必中清单验证：10 个内容项均经 2026-09-21 独立搜索确认存在，漏检 4 项的原发 URL 已在分析中记录</li>
+</ul>
+
+</div>
+</body>
+</html>

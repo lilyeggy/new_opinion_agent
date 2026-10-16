@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-d6013ddc4c2c706c3f99",
+      "url": "https://www.wenxuecity.com/news/2026/09/16/126777111.html",
+      "focus": "野人先生官方账号9月16日首度发声的原文表述、发布时间与同批发布的冰淇淋丰收节信息，以及文中引述的罗永浩9月12日原博措辞",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://www.wenxuecity.com/news/2026/09/16/126777111.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:13:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "authentication",
+      "message": "Jina Reader rejected authentication with HTTP status 401.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

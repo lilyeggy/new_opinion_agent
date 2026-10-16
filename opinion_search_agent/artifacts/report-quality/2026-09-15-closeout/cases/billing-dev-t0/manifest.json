@@ -1,0 +1,28 @@
+{
+  "case_id": "billing-dev-t0",
+  "request_question": "调查重庆燃气2024年4月收费争议：确认当时公开的收费问题、投诉与清退口径、企业和监管回应，以及截至该批材料能够确认和不能确认的事项。",
+  "focus": "这是T0材料时点，只能使用两份2024年4月报道。区分监管认定、企业自述与媒体转述；核对金额、户数、时间与适用范围；不要把宣布清退写成独立核验到账，也不要推断用户总体满意。",
+  "clarification_answers": [],
+  "materials": [
+    {
+      "url": "https://stcn.com/article/detail/1191864.html?u_atoken=0860f31648eb9e8d7bde84aec876f0b1&u_asig=ffbfd",
+      "final_url": "https://stcn.com/article/detail/1191864.html?u_atoken=0860f31648eb9e8d7bde84aec876f0b1&u_asig=ffbfd",
+      "title": "重庆燃气：对有问题收费已全面清退",
+      "snapshot_path": "../../../2026-09-13-s1/cases/billing-dev-v1/snapshots/5657521f8a813e645b77b5803e5571c896584018bfae95f437b571c7feb2d729.txt",
+      "sha256": "5657521f8a813e645b77b5803e5571c896584018bfae95f437b571c7feb2d729",
+      "published_at": "2024-04-28T20:25:00+08:00",
+      "updated_at": null,
+      "role": "reporting"
+    },
+    {
+      "url": "https://www.stcn.com/article/detail/1182346.html?u_atoken=c03565df00029ab96a2fcd6e89bc4dd9&u_asig=ffbfd",
+      "final_url": "https://www.stcn.com/article/detail/1182346.html?u_atoken=c03565df00029ab96a2fcd6e89bc4dd9&u_asig=ffbfd",
+      "title": "退钱！免职！重庆通报燃气费多计多收问题",
+      "snapshot_path": "../../../2026-09-13-s1/cases/billing-dev-v1/snapshots/af792fd76d4f2bedd763ce61cb4123c022035260d0d92623545fb0b46649e4a5.txt",
+      "sha256": "af792fd76d4f2bedd763ce61cb4123c022035260d0d92623545fb0b46649e4a5",
+      "published_at": null,
+      "updated_at": null,
+      "role": "reporting"
+    }
+  ]
+}

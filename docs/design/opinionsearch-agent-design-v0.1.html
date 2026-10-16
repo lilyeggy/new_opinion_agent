@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>舆情搜索 Agent 设计总览 v0.1</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#14213d;--muted:#607089;--line:#dbe4f0;--primary:#2563eb;--soft:#eaf1ff;--green:#15803d;--gsoft:#eaf7ef;--amber:#b45309;--asoft:#fff7e6;--red:#b91c1c;--rsoft:#fef2f2;--purple:#6d28d9;--psoft:#f3ecff;--shadow:0 8px 24px rgba(20,33,61,.07)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+.layout{display:flex;max-width:1400px;margin:0 auto}
+.sidebar{width:240px;height:100vh;position:sticky;top:0;padding:26px 16px;border-right:1px solid var(--line);background:rgba(255,255,255,.75)}
+.brand{font-weight:800;font-size:17px;margin-bottom:4px}.brand-sub{color:var(--muted);font-size:12px;margin-bottom:18px}
+.nav a{display:block;color:var(--muted);text-decoration:none;padding:6px 9px;border-radius:8px;font-size:13px}.nav a:hover{background:var(--soft);color:var(--primary)}
+main{flex:1;min-width:0;padding:40px 48px 72px}h1{font-size:34px;line-height:1.2;margin:0 0 8px}
+h2{font-size:22px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}h3{font-size:16px;margin:18px 0 8px}
+p{margin:6px 0}.lead{color:var(--muted);font-size:16px;max-width:900px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin:12px 0}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;margin:3px 5px 3px 0}
+.blue{color:var(--primary);background:var(--soft)}.green{color:var(--green);background:var(--gsoft)}.amber{color:var(--amber);background:var(--asoft)}.red{color:var(--red);background:var(--rsoft)}.purple{color:var(--purple);background:var(--psoft)}
+.small{font-size:13px}.muted{color:var(--muted)}.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.callout{background:linear-gradient(135deg,#eef4ff,#fff);border:1px solid #cfe0ff;border-left:5px solid var(--primary);border-radius:14px;padding:18px 20px;margin:16px 0}.callout strong{color:var(--primary)}
+.flow{display:flex;flex-direction:column;gap:6px}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.node{flex:1;min-width:130px;text-align:center;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:14px;font-weight:650}
+.node.b{background:var(--soft);border-color:#bfd4ff;color:var(--primary)}.node.g{background:var(--gsoft);border-color:#b8e6c6;color:var(--green)}.node.a{background:var(--asoft);border-color:#f3d08a;color:var(--amber)}.node.p{background:var(--psoft);border-color:#d8c4ff;color:var(--purple)}
+.arrow{color:var(--muted);font-size:18px}.lane{border:1px dashed #cbd8ea;border-radius:14px;padding:14px;background:rgba(255,255,255,.65)}
+.lane-title{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px}
+.lane-row{display:flex;flex-wrap:wrap;gap:7px}.chip{border:1px solid var(--line);border-radius:10px;background:#fff;padding:7px 10px;font-size:13px;font-weight:650}
+table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}th{color:var(--muted);font-size:12px}
+ul{margin:7px 0 7px 20px;padding:0}li{margin:4px 0}.checklist{list-style:none;margin-left:0}.checklist li::before{content:"□";color:var(--primary);font-weight:800;margin-right:8px}
+.code{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:13px 15px;overflow-x:auto;font-size:12.5px;line-height:1.55;font-family:ui-monospace,Menlo,Consolas,monospace}
+.footer{margin-top:52px;color:var(--muted);font-size:12px}
+@media(max-width:1050px){.sidebar{display:none}main{padding:26px 18px 56px}.g2,.g3,.g4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+<div class="brand">舆情搜索 Agent</div><div class="brand-sub">Harness 设计总览 · v0.1</div>
+<nav class="nav">
+<a href="#idea">核心判断</a><a href="#architecture">整体架构</a><a href="#content-render">内容 vs 渲染</a><a href="#roles">Agent 角色</a><a href="#harness">Harness 服务</a><a href="#loop">运行闭环</a><a href="#report">Report Contract</a><a href="#module">ModuleContract</a><a href="#empty">空值与图表</a><a href="#state">状态与单写者</a><a href="#budget">预算与失败</a><a href="#phases">实施边界</a>
+</nav>
+</aside>
+<main>
+<h1>舆情搜索 Agent 设计总览 <span style="font-size:16px;color:#b91c1c;font-weight:600">（多角色提案，已否决）</span></h1>
+<p class="lead">给定一个具体舆情事件，搜索公开材料，产出结构化、可追溯、可审查的 HTML 式报告。内容由 Agent 与 Harness 负责，渲染由 Presentation Contract 负责；两者分离。</p>
+<div class="callout" style="border-left-color:#b91c1c;background:linear-gradient(135deg,#fef2f2,#fff);border-color:#f6c9c9">
+<strong style="color:#b91c1c">状态：已否决（2026-09-21）· 2026-09-24 按代码校正</strong><br>
+本页描述的分层多角色架构（Controller / Research Agent / Analyst / Reviewer，以及 Legal Action Kernel / Scheduler / ResourceLedger / GapAudit）是 2026-09-16 的提案，已实现为独立实验并评估后归档至 <span class="mono">opinion_search_agent/archive/harness-pipeline/</span>，<strong>不是当前系统</strong>。否决理由：① 违反单 Runtime 原则——该流水线是与 Runtime 零共享代码的第二个 loop；② 与生产路径能力重复且更弱——「整体骨架 → 定向搜索」已由 PagePlan + search_targets 实现；③ 工程质量差距无法低成本补齐。决策记录见归档 README。当前实现是唯一 Runtime AgentLoop + 两套领域组合（<span class="mono">domain/opinion</span> / <span class="mono">domain/investigation</span>）。本页的 Report Contract、ModuleContract、空值与图表等渲染契约部分仍然有效。
+</div>
+<div class="callout" id="idea"><strong>核心判断：</strong>不是固定 workflow，也不是自由多 Agent 群，而是<strong>有硬边界的 Agent 自主决策循环</strong>。LLM 只做局部语义判断；全局、确定、可验证的事情归 Harness。</div>
+<section id="architecture">
+<h2>1. 整体架构</h2>
+<div class="card">
+<div class="lane"><div class="lane-title">Interface / Lifecycle</div><div class="lane-row"><span class="chip">Web / API</span><span class="chip">RunManager</span><span class="chip">检查点 / 恢复</span><span class="chip">取消 / 锁</span></div></div>
+<div class="arrow">↓</div>
+<div class="lane"><div class="lane-title">Control Plane · 程序 Harness</div><div class="lane-row"><span class="chip">Legal Action Kernel</span><span class="chip">Scheduler / Coverage</span><span class="chip">ResourceLedger</span><span class="chip">GapAudit</span><span class="chip">Finalizer</span></div></div>
+<div class="arrow">↓</div>
+<div class="lane"><div class="lane-title">Agent Execution Plane · 角色隔离</div><div class="lane-row"><span class="chip">Controller / Lead</span><span class="chip">Research Agent · 唯一局部 Loop</span><span class="chip">Analyst</span><span class="chip">Reviewer</span></div></div>
+<div class="arrow">↓</div>
+<div class="lane"><div class="lane-title">State &amp; Transaction Plane · 单写者</div><div class="lane-row"><span class="chip">Global Domain State</span><span class="chip">Validator</span><span class="chip">Processor</span><span class="chip">Reducer</span><span class="chip">Checkpoint</span><span class="chip">Corpus / FTS</span></div></div>
+<div class="arrow">↓</div>
+<div class="lane"><div class="lane-title">Projection Plane · 渲染与输出</div><div class="lane-row"><span class="chip">Content Contract</span><span class="chip">Presentation Contract</span><span class="chip">Deterministic Renderer</span><span class="chip">HTML / Workbench / Export</span></div></div>
+</div>
+</section>
+
+<section id="content-render">
+<h2>2. 内容 vs 渲染</h2>
+<div class="grid g2">
+<div class="card"><h3>Content Contract · 主 Agent 负责</h3><span class="pill blue">Event</span><span class="pill blue">Issue</span><span class="pill blue">Actor</span><span class="pill blue">Position</span><span class="pill blue">Response</span><span class="pill blue">Source</span><span class="pill blue">Evidence</span><span class="pill blue">Finding</span><span class="pill blue">Review</span><p class="small muted">定义有什么信息、依赖什么、能否发布。事实性内容必须可追溯到 Evidence 和 Review。</p></div>
+<div class="card"><h3>Presentation Contract · 表现层负责</h3><span class="pill green">cards</span><span class="pill green">timeline</span><span class="pill green">comparison-table</span><span class="pill green">position-matrix</span><span class="pill green">relation-graph</span><span class="pill green">distribution-chart</span><span class="pill green">trend-chart</span><span class="pill green">evidence-drawer</span><p class="small muted">定义如何表现、如何交互、缺失时如何显示。图表数据只能由程序从结构化状态生成。</p></div>
+</div>
+<div class="card small"><strong>渲染 LLM 策略：</strong>MVP 不把渲染 LLM 放进主框架。主 Harness 产出结构化内容，Renderer 确定性生成 HTML。未来如需更强版式能力，可增加独立的 PresentationPlanner，只输出 PresentationPlan JSON，不生成 HTML/CSS/JS，不修改 Finding/Evidence/Review。</div>
+</section>
+
+<section id="roles">
+<h2>3. Agent 角色</h2>
+<div class="grid g4">
+<div class="card"><h3>Controller / Lead</h3><p class="small">决定全局下一步：Plan / DispatchResearch / Analyze / Review / ReviseStrategy / Finish。</p><span class="pill purple">无搜索工具</span><span class="pill purple">宏观决策</span></div>
+<div class="card"><h3>Research Agent</h3><p class="small">唯一拥有 Search / Read / Retrieve 的角色，在局部任务内自主搜索并返回 EvidencePacket。</p><span class="pill blue">唯一 AgentLoop</span><span class="pill blue">局部自主</span></div>
+<div class="card"><h3>Analyst</h3><p class="small">只处理冻结证据，形成原子 Finding、Issue 处置、有界叙述和模块字段提案。</p><span class="pill green">无互联网工具</span><span class="pill green">证据分析</span></div>
+<div class="card"><h3>Reviewer</h3><p class="small">独立核查 Finding 和事实性叙述：support / partial / contradicted / insufficient。</p><span class="pill amber">强制门禁</span><span class="pill amber">版本绑定</span></div>
+</div>
+</section>
+
+<section id="harness">
+<h2>4. Harness 程序服务</h2>
+<div class="grid g3">
+<div class="card"><h3>Legal Action Kernel</h3><p class="small">根据当前状态计算 Controller 的合法动作空间，不替 Controller 选择动作。</p></div>
+<div class="card"><h3>Scheduler / Coverage</h3><p class="small">计算 Issue、来源角色、模块字段、Review 补查的优先级，为 Controller 提供建议。</p></div>
+<div class="card"><h3>ResourceLedger</h3><p class="small">统一管理搜索、读取、各角色调用、时间和 publication reserve。</p></div>
+<div class="card"><h3>GapAudit</h3><p class="small">判断继续、深化、策略修订或收束；只读状态，不产生新事实。</p></div>
+<div class="card"><h3>Validator / Reducer</h3><p class="small">所有 Proposal 必须经过校验、Delta、Reducer 才能提交为权威状态。</p></div>
+<div class="card"><h3>Finalizer / PageProjector</h3><p class="small">从 reviewed state 和 Presentation Contract 确定性投影 HTML。</p></div>
+</div>
+</section>
+<section id="loop">
+<h2>5. 运行闭环</h2>
+<div class="card">
+<div class="flow">
+<div class="row"><div class="node b">Plan</div><div class="arrow">→</div><div class="node">DispatchResearch</div><div class="arrow">→</div><div class="node g">Analyze</div><div class="arrow">→</div><div class="node a">Review</div></div>
+<div class="arrow">↑ Controller 根据 observation 自主选择合法下一步 ↓</div>
+<div class="row"><div class="node p">ReviseStrategy</div><div class="arrow">←</div><div class="node">GapAudit</div><div class="arrow">→</div><div class="node b">Finish</div></div>
+</div>
+<p class="small muted">这不是固定顺序：Controller 在 Harness 给出的合法动作空间内，根据当前状态和观察自主选择下一步。Harness 只负责硬门禁、预算、状态提交和发布安全。</p>
+</div>
+</section>
+
+<section id="report">
+<h2>6. Report Contract</h2>
+<div class="grid g2">
+<div class="card"><h3>内容实体</h3><div class="code">Event
+Issue / Component
+Actor
+Statement / Position / Demand
+Response
+Source / SourceVersion / SourceRelation
+Evidence
+Finding / Review
+Module / Metric</div></div>
+<div class="card"><h3>内容关系</h3><ul class="small"><li>Event 是根，Issue 是调查维度。</li><li>Actor 产生 Statement / Position / Demand。</li><li>Response 指向具体 Issue。</li><li>Evidence 是最小可追溯事实单元。</li><li>Finding 是 Issue 级 reviewed 判断。</li><li>SourceRelation 影响来源独立性。</li><li>Module 只做投影，不产生新事实。</li></ul></div>
+</div>
+</section>
+
+<section id="module">
+<h2>7. ModuleContract</h2>
+<div class="card"><div class="code">ModuleContract
+├── semantic_type
+├── applies_when
+├── presence              required / optional / conditional / not_applicable
+├── required_fields
+├── optional_fields
+├── data_binding
+├── evidence_gate
+├── review_gate
+├── visual_encodings
+├── empty_state
+└── priority</div></div>
+<table>
+<tr><th>属性</th><th>含义</th><th>例子</th></tr>
+<tr><td class="mono">semantic_type</td><td>表达什么语义</td><td>event-summary / position-matrix / response-coverage</td></tr>
+<tr><td class="mono">applies_when</td><td>什么事件才适用</td><td>存在官方主体时才启用 official-response</td></tr>
+<tr><td class="mono">presence</td><td>必选 / 可选 / 条件 / 不适用</td><td>required / optional / conditional / not_applicable</td></tr>
+<tr><td class="mono">data_binding</td><td>来自哪些状态对象</td><td>findings / evidence / source_metadata</td></tr>
+<tr><td class="mono">evidence_gate</td><td>发布前需要什么证据</td><td>reviewed supported finding</td></tr>
+<tr><td class="mono">visual_encodings</td><td>允许用什么方式展示</td><td>timeline / matrix / table / donut</td></tr>
+<tr><td class="mono">empty_state</td><td>缺失时怎么表现</td><td>not_applicable / not_found / insufficient / unavailable</td></tr>
+</table>
+</section>
+<section id="empty">
+<h2>8. 空值与图表</h2>
+<div class="grid g2">
+<div class="card"><h3>空值状态</h3><span class="pill blue">not_applicable 本事件不适用</span><span class="pill amber">not_found 搜索后范围内没有</span><span class="pill purple">insufficient 找到但不足以支持结论</span><span class="pill red">unavailable 供应商失败或来源不可访问</span><span class="pill green">pending 尚未调查</span><span class="pill green">omitted 可选模块无内容，直接省略</span><p class="small muted">空值不是失败。页面应区分不适用、没找到、证据不足、失败和还没查。</p></div>
+<div class="card"><h3>视觉编码</h3><span class="pill green">text</span><span class="pill green">cards</span><span class="pill green">timeline</span><span class="pill green">comparison-table</span><span class="pill green">position-matrix</span><span class="pill green">relation-graph</span><span class="pill green">distribution-chart</span><span class="pill green">trend-chart</span><span class="pill green">evidence-drawer</span><p class="small muted">图表由程序从结构化状态生成。没有有效分母，不画比例图；公开网页样本不推断全网热度或公众情感比例。</p></div>
+</div>
+</section>
+
+<section id="state">
+<h2>9. 状态与单写者</h2>
+<div class="card"><div class="row"><div class="node">Agent Proposal</div><div class="arrow">→</div><div class="node">Validator</div><div class="arrow">→</div><div class="node">Processor</div><div class="arrow">→</div><div class="node">Delta</div><div class="arrow">→</div><div class="node g">Reducer</div><div class="arrow">→</div><div class="node b">Checkpoint</div></div><p class="small muted">Agent 不能生成最终 ID，不能直接写 State。Global Domain State 是唯一权威状态。</p></div>
+</section>
+
+<section id="budget">
+<h2>10. 预算与失败</h2>
+<div class="grid g2">
+<div class="card"><h3>ResourceLedger</h3><ul class="small"><li>controller / research / analyst / reviewer 调用</li><li>searches / reads</li><li>elapsed_seconds</li><li>publication_reserve</li><li>runtime transitions</li></ul></div>
+<div class="card"><h3>失败与停止语义</h3><ul class="small"><li>provider_failure ≠ not_found</li><li>budget_exhausted ≠ not_found</li><li>goal_satisfied / results_saturated</li><li>source_unavailable / strategy_revision_required</li><li>max_steps 只作为防循环 Watchdog</li></ul></div>
+</div>
+</section>
+
+<section id="phases">
+<h2>11. 实施边界</h2>
+<div class="card"><ol class="small"><li><strong>Phase 1</strong> · Content Contract + Domain State</li><li><strong>Phase 2</strong> · 确定性 PageProjector</li><li><strong>Phase 3</strong> · Harness Control Kernel + ResourceLedger</li><li><strong>Phase 4</strong> · Research Agent + EvidencePacket</li><li><strong>Phase 5</strong> · Analyst + Reviewer + 强制 Review</li><li><strong>Phase 6</strong> · 端到端验收与空值 / Partial / 失败回放</li></ol></div>
+<div class="card"><h3>下午需要冻结的 10 条边界</h3><ul class="checklist small"><li>渲染 LLM 首版不进主框架，先做确定性 Renderer。</li><li>Content Contract 与 Presentation Contract 分离。</li><li>ModuleContract 按本页定义。</li><li>空值状态采用 not_applicable / not_found / insufficient / unavailable / pending / omitted。</li><li>LLM 角色采用 Controller / ResearchAgent / Analyst / Reviewer。</li><li>Controller Agent 自主选择合法动作，不做固定 workflow。</li><li>所有 Agent 只能提交 Proposal，Global Domain State 单写者。</li><li>首版全局 Checkpoint 唯一权威。</li><li>图表由程序生成，无有效分母不画比例图。</li><li>首版不引入社交平台数据源，相关模块标 unavailable。</li></ul></div>
+</section>
+<div class="footer">舆情搜索 Agent · Harness 设计总览 v0.1 · 内容与渲染分离，单写者状态，确定性输出。</div>
+</main>
+</div>
+</body>
+</html>

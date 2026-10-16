@@ -1,0 +1,91 @@
+{
+  "schema": "opinion-search-faithfulness/1",
+  "case_id": "sanjiu-s5b",
+  "method": "逐条人工核对 finding 文本与其绑定 evidence 摘录：完全支持 = 文本中的事实、引语与归属都能在绑定摘录里找到；部分支持 = 事实成立但摘录未覆盖全部引语或关键归属；无中生有 = 摘录完全不支持。只看摘录，不看系统 review 结论。",
+  "labels": [
+    {
+      "index": 1,
+      "claim_id": "finding-e8b3a4e0090c4f05bafe",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 2,
+      "claim_id": "finding-7cd838969f8b7205a686",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 3,
+      "claim_id": "finding-17767afddc20e2b50f99",
+      "judgement": "partial",
+      "note": "被引用的号名“药识局”与其概括性判断“存在多方面问题”不在绑定摘录的字符区间内，摘录只覆盖了部分论点。"
+    },
+    {
+      "index": 4,
+      "claim_id": "finding-d0777ee9abc90044bc87",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 5,
+      "claim_id": "finding-361712fd5d3c98cb83a5",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 6,
+      "claim_id": "finding-57e7d66462ee78744626",
+      "judgement": "partial",
+      "note": "“别团圆”“和平分手”等引语与七夕投放细节未完整落在绑定摘录区间内，属于摘录不足而非编造。"
+    },
+    {
+      "index": 7,
+      "claim_id": "finding-69e9e953868416e6752a",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 8,
+      "claim_id": "finding-74b109fb3188124b5d25",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 9,
+      "claim_id": "finding-1b3ccc4bf6ae491af582",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 10,
+      "claim_id": "finding-1ffd5e75b7ce435fb737",
+      "judgement": "partial",
+      "note": "36 氪评论的原载出处“超聚焦foci”、作者“白墨”以及“可以反节日套路，不能反文化共识……”等直接引语不在绑定摘录内。"
+    },
+    {
+      "index": 11,
+      "claim_id": "finding-4cb970691bae3a1d94b9",
+      "judgement": "partial",
+      "note": "“守护单身狗的胃”“我在重庆”“养胃饺饺者”等引语不在绑定摘录内（原文存在，摘录未覆盖）。"
+    },
+    {
+      "index": 12,
+      "claim_id": "finding-b78265f75f290659f20b",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 13,
+      "claim_id": "finding-3eed15e0fe47e42c685b",
+      "judgement": "fully_supported",
+      "note": ""
+    },
+    {
+      "index": 14,
+      "claim_id": "finding-006bb06bd5c313b85dcd",
+      "judgement": "fully_supported",
+      "note": ""
+    }
+  ]
+}

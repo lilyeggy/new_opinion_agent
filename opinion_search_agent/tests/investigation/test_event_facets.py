@@ -6,7 +6,7 @@ from opinion_search.domain.investigation.models import (
     EventProfile, Finding, FindingProposal, InvestigationRequest, Issue, SourceVersion,
     State, Evidence, uid, utcnow,
 )
-from opinion_search.investigation.presentation import HIGHLIGHT_LIMIT, confirmed_profile, highlights
+from opinion_search.investigation.presentation import HIGHLIGHT_LIMIT, _facet_fields, confirmed_profile, highlights
 from opinion_search.investigation.report import build_report
 from opinion_search.investigation.workbench import build_workbench
 
@@ -49,6 +49,21 @@ def test_confirmation_drops_unknown_facets_and_keeps_user_questions():
     assert confirmed_profile(general, _state().issues) is None
 
 
+def test_confirmation_recovers_translated_facet_labels_without_widening_whitelist():
+    from opinion_search.domain.investigation.models import PlanProposal, QuestionProposal
+
+    questions = (QuestionProposal(question="规则何时生效"), QuestionProposal(question="机场提供什么替代服务"),
+                 QuestionProposal(question="仍缺什么材料"))
+    issues = tuple(Issue(issue_id=f"issue-{index}", question=item.question)
+                   for index, item in enumerate(questions))
+    plan = PlanProposal(subject="s", questions=questions,
+                        facets=("规则文本与限制内容", "机场服务与替代安排", "完全未知类别"),
+                        facet_rationale="模型翻译了字段")
+    profile = confirmed_profile(plan, issues)
+    assert profile is not None
+    assert profile.facets == ("rule_change", "service_change")
+
+
 def test_two_facets_produce_different_modules_and_general_falls_back():
     rule = build_workbench(build_report(_state(("rule_change",)), "completed", "完成", case_id="c", run_id="r1"))
     billing = build_workbench(build_report(_state(("billing_remedy",)), "completed", "完成", case_id="c", run_id="r2"))
@@ -62,6 +77,12 @@ def test_two_facets_produce_different_modules_and_general_falls_back():
     assert not any(m.get("facet") for m in general["modules"])
     assert rule["views"]["overview"]["highlights"][0]["module_type"] == "rule-comparison"
     assert len(rule["views"]["overview"]["highlights"]) <= HIGHLIGHT_LIMIT
+    rule_focus = next(section for section in rule["page_plan"]["sections"] if section["view"] == "focus")
+    billing_focus = next(section for section in billing["page_plan"]["sections"] if section["view"] == "focus")
+    assert rule_focus["title"] == "规则与适用影响"
+    assert billing_focus["title"] == "计费、复核与补救"
+    assert rule_focus["module_types"] != billing_focus["module_types"]
+    assert not any(section["view"] == "focus" for section in general["page_plan"]["sections"])
 
 
 def test_facet_module_without_findings_is_insufficient_with_gap():
@@ -169,9 +190,40 @@ def test_module_fields_without_review_are_provisional_not_ready():
 
 def test_missing_required_field_keeps_module_insufficient():
     state = _facet_state(("rule_change",), review="supported",
+                         question="新规则适用于谁并在何时生效？",
                          module_fields=(("rule-comparison", "new_value", "工作日末班提前至22时"),))
+    state = state.model_copy(update={"profile": state.profile.model_copy(
+        update={"question_refs": ("issue-0",)})})
     report = build_report(state, "completed", "完成", case_id="c", run_id="facet-missing")
     rule = next(module for module in build_workbench(report)["modules"] if module["module_type"] == "rule-comparison")
     assert rule["state"] == "insufficient"
     assert "缺少专项字段" in rule["gap"]
     assert "适用对象" in rule["gap"]
+
+
+def test_different_supported_field_wording_stays_as_variants_without_claiming_conflict():
+    findings = [
+        {"support": "supported", "evidence_ids": ["e1"], "contradicting_ids": [],
+         "module_fields": [{"module": "billing-remedy", "field": "scope", "value": "居民用户"}]},
+        {"support": "supported", "evidence_ids": ["e2"], "contradicting_ids": [],
+         "module_fields": [{"module": "billing-remedy", "field": "scope", "value": "本市居民用户"}]},
+    ]
+
+    fields, _missing, conflicts, variants, reviews_ok = _facet_fields("billing-remedy", findings)
+    scope = next(field for field in fields if field["key"] == "scope")
+    assert scope["state"] == "multiple"
+    assert conflicts == [] and variants == ["适用范围"] and reviews_ok
+
+
+def test_explicit_contradicting_evidence_keeps_different_field_values_as_conflict():
+    findings = [
+        {"support": "supported", "evidence_ids": ["e1"], "contradicting_ids": [],
+         "module_fields": [{"module": "rule-comparison", "field": "new_value", "value": "22时"}]},
+        {"support": "supported", "evidence_ids": ["e2"], "contradicting_ids": ["e1"],
+         "module_fields": [{"module": "rule-comparison", "field": "new_value", "value": "23时"}]},
+    ]
+
+    fields, _missing, conflicts, variants, _reviews_ok = _facet_fields("rule-comparison", findings)
+    new_value = next(field for field in fields if field["key"] == "new_value")
+    assert new_value["state"] == "conflict"
+    assert conflicts == ["新值"] and variants == []

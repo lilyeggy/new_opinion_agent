@@ -1,0 +1,104 @@
+{
+  "schema": "opinion-report-quality-batch/1",
+  "batch_id": "2026-09-14-s3-live",
+  "created_at": "2026-09-14T16:48:27+08:00",
+  "git_revision_at_start": "443ebf9e12103bd9f052772ba8b48b4ce83bda2d",
+  "workspace_dirty_at_start": true,
+  "evaluation_mode": "frozen_model_comparison",
+  "status": "FAIL",
+  "authorization": {
+    "basis": "User explicitly configured a funded model API key in .env and asked Codex to continue implementation and execution.",
+    "model_request_limit": 42,
+    "brave_request_limit": 0,
+    "jina_request_limit": 0
+  },
+  "case": {
+    "case_id": "billing-dev-v1",
+    "manifest": "../2026-09-13-s1/cases/billing-dev-v1/manifest.json",
+    "manifest_sha256": "18422d06c331fe9f0ea43e4735106c2ab41f3da373d1447ab1b3404f3a55c793",
+    "preannotation": "../2026-09-13-s1/cases/billing-dev-v1/preannotation.json",
+    "preannotation_sha256": "92f343a338b940d4b0c632c8a45b594b11df3658f3fe19aa506091b3a2bc1250",
+    "human_review_status": "UNREVIEWED"
+  },
+  "configuration": {
+    "model": "deepseek-flash",
+    "gateway_kind": "openai_compatible",
+    "agent_model_request_limit": 40,
+    "agent_seconds_limit": 1200,
+    "agent_consolidate_seconds": 900,
+    "agent_search_limit": 20,
+    "agent_read_limit": 24,
+    "baseline_model_request_limit": 2,
+    "baseline_seconds_limit": 300,
+    "brave_requests": 0,
+    "jina_requests": 0
+  },
+  "arms": {
+    "agent": {
+      "status": "partial",
+      "root": "runs/agent/run-001/investigations",
+      "run_id": "88944351cb90499d8d2cd18a4b362535",
+      "report": "runs/agent/run-001/investigations/runs/88944351cb90499d8d2cd18a4b362535/report.json",
+      "validation": "runs/agent/run-001/validation.json"
+    },
+    "single_pass_baseline": {
+      "status": "FAIL",
+      "root": "runs/baseline/run-001",
+      "failure": "runs/baseline/run-001/failure.json"
+    }
+  },
+  "usage": {
+    "agent_model_requests": 40,
+    "baseline_model_requests": 2,
+    "total_model_requests": 42,
+    "brave_requests": 0,
+    "jina_requests": 0,
+    "tokens": null,
+    "cost": null
+  },
+  "execution_attempts": [
+    {
+      "attempt": 1,
+      "result": "REJECTED_BEFORE_PROCESS_START",
+      "reason": "Automatic approval model was at capacity.",
+      "external_requests": 0
+    },
+    {
+      "attempt": 2,
+      "authorization": "User explicitly approved retry after the first rejection was disclosed.",
+      "result": "REJECTED_BEFORE_PROCESS_START",
+      "reason": "Automatic approval model was still at capacity.",
+      "external_requests": 0
+    },
+    {
+      "attempt": 3,
+      "authorization": "User explicitly asked execution to continue after the second rejection was disclosed.",
+      "result": "REJECTED_BEFORE_PROCESS_START",
+      "reason": "Automatic approval model was still at capacity.",
+      "external_requests": 0
+    },
+    {
+      "attempt": 4,
+      "authorization": "User enabled unrestricted execution permissions and asked Codex to retry.",
+      "result": "EXECUTED",
+      "reason": "Execution environment no longer required the failed automatic approval path.",
+      "external_requests": 42
+    }
+  ],
+  "prior_blocked_reason": "The execution environment's automatic approval service rejected three external model execution attempts before process start because its selected approval model was at capacity. Attempts two and three followed explicit user authorization after disclosure. No model, Brave, or Jina request was sent; this is not evidence about project credentials, balance, gateway availability, or Agent behavior.",
+  "execution_result": {
+    "agent": "All eight materials were read and 44 evidence excerpts were saved, but all 40 model requests were consumed without a reflect/review/finish decision. The published report is partial with zero findings.",
+    "baseline": "The two-request baseline budget was consumed by output-cap retries. The model emitted 23847 reasoning characters and no final JSON at an 8192-token cap.",
+    "comparison": "comparison.md"
+  },
+  "fix_status": "IMPLEMENTED_NOT_MODEL_RERUN",
+  "post_fix_validation": {
+    "targeted": "18 passed",
+    "investigation": "160 passed",
+    "all_non_live": "761 passed, 2 deselected",
+    "python_compileall": "PASS",
+    "web_javascript_syntax": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "quality_status": "FAIL"
+}

@@ -10,12 +10,12 @@ module whitelist.
 from __future__ import annotations
 
 from opinion_search.domain.investigation.models import (
-    FACET_MODULE_TYPES,
     MODULE_FACET_FIELDS,
     REQUIRED_MODULE_FIELDS,
     EventProfile,
     PlanProposal,
 )
+from opinion_search.investigation.page_plan import FACET_ISSUE_TERMS
 
 FACET_MODULES = {
     "rule_change": {"module_type": "rule-comparison", "title": "新旧规则对照",
@@ -28,14 +28,6 @@ FACET_MODULES = {
                                  "gap": "已采取行动、结果与承诺待查；启动调查、作出结论与措施落地区分。"},
 }
 HIGHLIGHT_LIMIT = 3
-
-FACET_ISSUE_TERMS = {
-    "rule_change": ("规则", "新规", "标准", "上限", "生效", "实施", "适用", "调整", "提前", "延长"),
-    "service_change": ("停运", "停用", "恢复", "关闭", "暂停", "班次", "服务", "时段", "替代"),
-    "billing_remedy": ("计费", "费用", "收费", "水费", "水价", "票价", "退费", "退还",
-                       "账单", "补缴", "复核", "缴费", "办理"),
-    "investigation_correction": ("调查", "整改", "处置", "问责", "纠正", "更正", "承诺", "结果", "进展"),
-}
 
 MODULE_TERMS = {
     "rule-comparison": FACET_ISSUE_TERMS["rule_change"],
@@ -54,7 +46,20 @@ def confirmed_profile(plan: PlanProposal, issues) -> EventProfile | None:
     later module cannot pull in every finding in the event by default.
     """
 
-    facets = tuple(dict.fromkeys(f for f in getattr(plan, "facets", ()) or () if f in FACET_MODULES))
+    proposed = tuple(getattr(plan, "facets", ()) or ())
+    facets = []
+    for value in proposed:
+        if value in FACET_MODULES:
+            facets.append(value)
+            continue
+        # Older or imperfect planners sometimes translated the enum into a
+        # short Chinese label. Recover only when that label itself contains a
+        # product-owned facet term; arbitrary names still cannot widen the
+        # whitelist.
+        for facet, terms in FACET_ISSUE_TERMS.items():
+            if any(term in value for term in terms):
+                facets.append(facet)
+    facets = tuple(dict.fromkeys(facets))
     if not facets or "general" in facets and len(facets) == 1:
         return None
     question_refs = []
@@ -89,8 +94,9 @@ def _finding_is_relevant(finding: dict, module_type: str, issue_id: str, questio
     return True
 
 
-def _facet_items(profile: EventProfile, module_type: str, findings_by_issue: dict) -> list[dict]:
-    question_refs = tuple(profile.question_refs or ())
+def _facet_items(profile: EventProfile, module_type: str, findings_by_issue: dict,
+                 question_refs: tuple[str, ...] | None = None) -> list[dict]:
+    question_refs = tuple(profile.question_refs or ()) if question_refs is None else question_refs
     items = []
     for issue_id, entry in findings_by_issue.items():
         shown = []
@@ -104,6 +110,7 @@ def _facet_items(profile: EventProfile, module_type: str, findings_by_issue: dic
                 "kind": finding.get("kind", ""), "stakeholder": finding.get("stakeholder", ""),
                 "review": finding.get("support", "unreviewed"),
                 "citation_ids": list(finding.get("evidence_ids", [])),
+                "contradicting_ids": list(finding.get("contradicting_ids", [])),
                 "module_fields": list(finding.get("module_fields", [])),
             })
         if shown:
@@ -111,9 +118,18 @@ def _facet_items(profile: EventProfile, module_type: str, findings_by_issue: dic
     return items
 
 
-def _facet_fields(module_type: str, findings: list[dict]) -> tuple[list[dict], list[str], list[str], bool]:
-    """Return fields, missing required labels, conflict labels and review state."""
+def _facet_fields(module_type: str, findings: list[dict],
+                  required_fields: tuple[str, ...] | None = None) -> tuple[list[dict], list[str], list[str], list[str], bool]:
+    """Return fields, missing labels, conflicts, unresolved variants and review state.
 
+    Different wording is not enough to prove that two source-backed values
+    conflict. A conflict label requires explicit contradicting evidence on one
+    of the findings; otherwise both values remain visible as variants that need
+    scope/time reconciliation.
+    """
+
+    required = set(required_fields if required_fields is not None
+                   else REQUIRED_MODULE_FIELDS.get(module_type, ()))
     entries: dict[str, list[tuple[str, dict]]] = {}
     reviews_ok = True
     for finding in findings:
@@ -126,12 +142,12 @@ def _facet_fields(module_type: str, findings: list[dict]) -> tuple[list[dict], l
                 continue
             entries.setdefault(key, []).append((value, finding))
 
-    fields, missing, conflicts = [], [], []
+    fields, missing, conflicts, variants = [], [], [], []
     for key, label in MODULE_FACET_FIELDS[module_type].items():
         rows = entries.get(key, [])
         if not rows:
             fields.append({"key": key, "label": label, "state": "unknown", "values": []})
-            if key in REQUIRED_MODULE_FIELDS.get(module_type, ()):
+            if key in required:
                 missing.append(label)
             continue
         unique_values = list(dict.fromkeys(value for value, _ in rows))
@@ -140,34 +156,47 @@ def _facet_fields(module_type: str, findings: list[dict]) -> tuple[list[dict], l
             for evidence_id in finding.get("citation_ids", finding.get("evidence_ids", [])):
                 if evidence_id not in citations:
                     citations.append(evidence_id)
-        if len(unique_values) > 1:
+        explicit_conflict = len(unique_values) > 1 and any(
+            finding.get("contradicting_ids") for _, finding in rows
+        )
+        if explicit_conflict:
             fields.append({"key": key, "label": label, "state": "conflict",
                            "values": unique_values, "citations": citations})
             conflicts.append(label)
+        elif len(unique_values) > 1:
+            fields.append({"key": key, "label": label, "state": "multiple",
+                           "values": unique_values, "citations": citations})
+            variants.append(label)
         else:
             fields.append({"key": key, "label": label, "state": "known",
                            "value": unique_values[0], "values": unique_values, "citations": citations})
-    return fields, missing, conflicts, reviews_ok
+    return fields, missing, conflicts, variants, reviews_ok
 
 
-def facet_modules(profile: EventProfile, findings_by_issue: dict, *, terminal: bool) -> list[dict]:
+def facet_modules(profile: EventProfile, findings_by_issue: dict, *, terminal: bool,
+                  requirements_by_module: dict[str, dict] | None = None) -> list[dict]:
     """Candidate modules for confirmed facets with availability states.
 
-    A module is ``ready`` only when its required structured fields are present,
-    the values come from relevant reviewed findings, and the result is terminal.
-    During a run it is ``provisional``; missing fields or unreviewed findings
-    never become a publishable card.
+    A module is ``ready`` when its required structured fields are present (or
+    when a non-required facet has reviewed domain findings without conflicting
+    claims) and the result is terminal. During a run it is ``provisional``.
     """
 
     modules = []
+    requirements_by_module = requirements_by_module or {}
     for facet in profile.facets:
         spec = FACET_MODULES.get(facet)
         if spec is None:
             continue
         module_type = spec["module_type"]
-        items = _facet_items(profile, module_type, findings_by_issue)
+        requirement = requirements_by_module.get(module_type, {})
+        question_refs = tuple(requirement.get("issue_ids", profile.question_refs or ()))
+        required_fields = tuple(requirement.get("required_fields",
+                                                REQUIRED_MODULE_FIELDS.get(module_type, ())))
+        items = _facet_items(profile, module_type, findings_by_issue, question_refs)
         findings = [finding for item in items for finding in item["findings"]]
-        fields, missing, conflicts, reviews_ok = _facet_fields(module_type, findings)
+        fields, missing, conflicts, variants, reviews_ok = _facet_fields(
+            module_type, findings, required_fields)
         has_fields = any(any(_finding_module_fields(finding, module_type) for finding in item["findings"])
                          for item in items)
 
@@ -175,12 +204,19 @@ def facet_modules(profile: EventProfile, findings_by_issue: dict, *, terminal: b
             state, gap = "insufficient", spec["gap"]
         elif terminal and conflicts:
             state, gap = "insufficient", "字段存在冲突：" + "、".join(conflicts) + "；未用一侧说法填充。"
-        elif terminal and missing:
+        elif terminal and has_fields and missing:
             state, gap = "insufficient", "缺少专项字段：" + "、".join(missing) + "；未用通用摘录填充。"
         elif terminal and not has_fields:
-            state, gap = "insufficient", "尚未形成专项字段；未用通用摘录填充。"
+            if requirement.get("required"):
+                state, gap = "insufficient", "尚未形成专项字段；未用通用摘录填充。"
+            elif reviews_ok:
+                state, gap = "ready", "未拆分为专项字段槽位，已展示核查通过的相关调查判断。"
+            else:
+                state, gap = "provisional", "专项字段所依据的判断尚未全部通过证据核查，暂不标为可查看。"
         elif terminal and not reviews_ok:
             state, gap = "provisional", "专项字段所依据的判断尚未全部通过证据核查，暂不标为可查看。"
+        elif terminal and variants:
+            state, gap = "ready", "字段包含多条并列表述：" + "、".join(variants) + "；已保留各方原话供对照。"
         elif terminal:
             state, gap = "ready", None
         elif has_fields:
@@ -193,6 +229,7 @@ def facet_modules(profile: EventProfile, findings_by_issue: dict, *, terminal: b
             "gap": gap,
             "selection_rationale": (f"事件侧重点 {facet}：" + (profile.rationale or "由调查计划确认并经程序校验。")
                                     + f" 命中 {len(items)} 个相关问题的专项字段。"),
+            "required_fields": list(required_fields),
             "fields": fields,
             "items": items,
         })

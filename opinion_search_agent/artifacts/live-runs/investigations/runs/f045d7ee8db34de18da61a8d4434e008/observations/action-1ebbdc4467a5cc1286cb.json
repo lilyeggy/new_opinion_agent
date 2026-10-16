@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-94fd738e3aa6df5d16b8",
+      "url": "https://news.qq.com/rain/a/20260915A0BC4700",
+      "focus": "提取广告发布与争议发酵的时间线、涉事广告文案原文、华润三九方面回应的具体表述与回应主体",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://news.qq.com/rain/a/20260915A0BC4700"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "f045d7ee8db34de18da61a8d4434e008:step:2:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "permission",
+      "message": "Jina Reader denied permission with HTTP status 403.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

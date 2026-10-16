@@ -1,0 +1,65 @@
+{
+  "schema": "opinion-report-quality-batch/1",
+  "batch_id": "2026-09-13-s1",
+  "created_at": "2026-09-13T17:39:50+08:00",
+  "git_revision_at_start": "443ebf9",
+  "workspace_dirty_at_start": true,
+  "evaluation_mode": "no_paid_prep",
+  "completed_at": "2026-09-13T17:48:00+08:00",
+  "status": "COMPLETE_NO_PAID",
+  "scope": [
+    "S0 baseline and budget record",
+    "S1 semantic correctness repairs",
+    "S2 first real-material case preparation"
+  ],
+  "effective_local_configuration_observed": {
+    "model": "deepseek-flash",
+    "gateway_kind": "openai_compatible",
+    "per_run_model_call_limit": 120,
+    "per_run_seconds_limit": 2400,
+    "request_timeout_seconds": 120,
+    "request_attempts": 3,
+    "max_output_tokens": 4096
+  },
+  "authorized_external_budget": {
+    "model_requests": 0,
+    "brave_requests": 0,
+    "jina_requests": 0
+  },
+  "usage": {
+    "model_requests": 0,
+    "brave_requests": 0,
+    "jina_requests": 0,
+    "tokens": null,
+    "cost": null
+  },
+  "case": {
+    "case_id": "billing-dev-v1",
+    "registry_slot": "response-dev",
+    "manifest": "cases/billing-dev-v1/manifest.json",
+    "preannotation": "cases/billing-dev-v1/preannotation.json",
+    "snapshot_distribution": "local_untracked_pending_distribution_review",
+    "human_review_status": "UNREVIEWED"
+  },
+  "paid_runs": {
+    "frozen_agent": "NOT_RUN",
+    "single_pass_baseline": "NOT_RUN",
+    "reason": "No paid batch was authorized. Local credentials do not imply permission to spend model budget."
+  },
+  "validation": {
+    "focused_case_and_replay_tests": "30 passed",
+    "investigation_suite": "139 passed",
+    "web_api_e2e": "7 passed after localhost bind was allowed",
+    "all_non_live": "740 passed, 2 deselected",
+    "javascript_syntax": "passed",
+    "diff_check": "passed",
+    "strict_local_manifest_load": "8 materials, 31138 characters, all hashes matched"
+  },
+  "recommended_next_paid_batch": {
+    "frozen_agent_model_requests": 40,
+    "frozen_agent_seconds": 1200,
+    "single_pass_baseline_model_requests": 2,
+    "brave_requests": 0,
+    "jina_requests": 0
+  }
+}

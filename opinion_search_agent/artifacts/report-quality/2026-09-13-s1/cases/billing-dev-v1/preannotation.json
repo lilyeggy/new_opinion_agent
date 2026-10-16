@@ -1,0 +1,78 @@
+{
+  "schema": "opinion-investigation-preannotation/1",
+  "case_id": "billing-dev-v1",
+  "author_kind": "model_preannotation",
+  "reviewed_by_human": false,
+  "quality_status": "UNREVIEWED",
+  "material_scope": "Eight frozen public-text snapshots collected during a prior live run. This is a material-batch replay, not a reconstruction of the full historical web.",
+  "required_questions": [
+    {
+      "question": "2024年调查确认了哪些收费问题，哪些关于表具或远程操控的说法未被发现？",
+      "importance": "critical",
+      "candidate_materials": ["m02"]
+    },
+    {
+      "question": "2024年的投诉核查、多计多收件数、金额和清退结论分别是谁发布或转述的？",
+      "importance": "critical",
+      "candidate_materials": ["m01", "m02"]
+    },
+    {
+      "question": "2025年调查认定哪些问题仍然存在，哪些整改项目被认为不到位？",
+      "importance": "critical",
+      "candidate_materials": ["m04", "m05"]
+    },
+    {
+      "question": "企业和监管部门分别作出了哪些回应、处罚或后续安排？",
+      "importance": "high",
+      "candidate_materials": ["m03", "m05", "m06", "m07", "m08"]
+    },
+    {
+      "question": "公开材料能否证明退款实际到账、整改措施已全面生效以及受影响用户总体满意？",
+      "importance": "critical",
+      "acceptable_unknown": "现有材料包含企业或报道中的清退表述和后续工作安排，但缺少逐户到账、总体执行成效与代表性满意度证据。",
+      "candidate_materials": ["m01", "m03", "m05", "m06", "m07", "m08"]
+    }
+  ],
+  "candidate_assertions": [
+    {
+      "assertion": "2024年4月的公开调查转述称存在错抄、违规估抄、计费周期混乱、价格政策执行不到位、换表组织无序、力量不足和内部监督不到位。",
+      "support": [{"material_id": "m02", "line_start": 5, "line_end": 17}],
+      "attribution_required": true
+    },
+    {
+      "assertion": "截至2024年4月26日12时，证券时报对公司披露的转述给出22696件投诉、1182件多计多收、285.85万元并称已全部清退。",
+      "support": [{"material_id": "m01", "line_start": 44, "line_end": 44}],
+      "attribution_required": true
+    },
+    {
+      "assertion": "2025年2月通报称整改仍存在周期混乱、估抄错抄和人员不足，并拟处罚810万元。",
+      "support": [{"material_id": "m05", "line_start": 36, "line_end": 46}],
+      "attribution_required": true
+    },
+    {
+      "assertion": "2025年2月企业公告接受调查处理意见、道歉并承诺优化流程、增加服务力量和追责。",
+      "support": [{"material_id": "m03", "line_start": 44, "line_end": 47}],
+      "attribution_required": true
+    }
+  ],
+  "source_dependencies": [
+    {"material_id": "m01", "relation": "reports_company_disclosure", "independence": "not_established"},
+    {"material_id": "m02", "relation": "reports_official_press_conference", "independence": "not_established"},
+    {"material_id": "m03", "relation": "mirror_of_company_announcement", "independence": "not_established"},
+    {"material_id": "m04", "relation": "aggregates_regulator_and_news_agency_material", "independence": "not_established"},
+    {"material_id": "m05", "relation": "publishes_regulator_notification", "independence": "not_established"}
+  ],
+  "forbidden_conclusions": [
+    "所有退款均已由独立证据核验到账",
+    "2025年之后所有整改措施均已全面落实",
+    "受影响用户总体满意",
+    "多篇转述同一通报构成多个独立事实验证",
+    "未发现表具问题等于证明任何表具在所有时间均不存在问题"
+  ],
+  "review_needed": [
+    "人工逐条核对候选断言和行号",
+    "确认各页面的原始发布主体与转载关系",
+    "决定T0与T1评价问题及预期变化",
+    "确认公开正文快照是否适合纳入可提交测试材料"
+  ]
+}

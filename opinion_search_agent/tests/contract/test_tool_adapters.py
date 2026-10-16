@@ -284,6 +284,58 @@ def test_jina_reader_reports_empty_content_as_unreadable() -> None:
     assert outcome.kind is ToolErrorKind.UNREADABLE_CONTENT
 
 
+def test_jina_reader_keyless_401_is_transient_throttling() -> None:
+    """Anonymous 401 is provider throttling, not a configuration fault.
+
+    A keyless deployment hit a 20-minute Jina anonymous-limit window on
+    2026-09-23 and burned 24 consecutive reads because AUTHENTICATION is
+    neither retried nor circuit-breaking. Remapping to RATE_LIMITED gives
+    the executor retry, breaker, and fallback semantics.
+    """
+    transport = FakeHttpTransport(
+        [HttpResponse(status_code=401, headers={}, text="secret raw body")]
+    )
+
+    outcome = _execute(
+        reader_tool_definition(),
+        JinaReaderAdapter(transport=transport),
+        ToolCall(
+            action_id="action-read",
+            tool_name="read.web",
+            arguments={"url": "https://example.com/article"},
+        ),
+    )
+
+    assert isinstance(outcome, ToolError)
+    assert outcome.kind is ToolErrorKind.RATE_LIMITED
+    assert outcome.retryable is True
+    assert "secret raw body" not in outcome.message
+
+
+def test_jina_reader_credentialed_401_stays_authentication() -> None:
+    """A 401 with a configured key is a real configuration fault and must
+    stay visible as AUTHENTICATION instead of being retried or tripping
+    the breaker."""
+    transport = FakeHttpTransport(
+        [HttpResponse(status_code=401, headers={}, text="secret raw body")]
+    )
+
+    outcome = _execute(
+        reader_tool_definition(),
+        JinaReaderAdapter(transport=transport, api_key="jina-key"),
+        ToolCall(
+            action_id="action-read",
+            tool_name="read.web",
+            arguments={"url": "https://example.com/article"},
+        ),
+    )
+
+    assert isinstance(outcome, ToolError)
+    assert outcome.kind is ToolErrorKind.AUTHENTICATION
+    assert outcome.retryable is False
+    assert "secret raw body" not in outcome.message
+
+
 def test_jina_reader_checkpoints_bounded_inline_content_and_artifact_ref(
     tmp_path,
 ) -> None:

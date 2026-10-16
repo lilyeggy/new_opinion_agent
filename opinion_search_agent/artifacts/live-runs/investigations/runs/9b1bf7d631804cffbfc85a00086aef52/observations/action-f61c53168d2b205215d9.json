@@ -1,0 +1,92 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-b72eac24c07826e2b055",
+      "query": "河声 一句“别团圆”为何惹众怒 大河网 评论 三九胃泰 原文 署名",
+      "purpose": "independent",
+      "page": 0,
+      "background": false,
+      "target_gap": "获取大河网“河声”主流媒体评论原文（含署名与刊发载体），替代腾讯转载页，补足主流媒体评论原文缺口"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "河声 一句“别团圆”为何惹众怒 大河网 评论 三九胃泰 原文 署名 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": "2026-09-13to2026-09-21"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "9b1bf7d631804cffbfc85a00086aef52:step:27:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "河声 一句“别团圆”为何惹众怒 大河网 评论 三九胃泰 原文 署名 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "河声丨一句“别团圆”为何惹众怒？_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260917A08VB800",
+            "snippet": "一句“求‘你们’中秋别团圆了”，三九胃泰的电梯广告迅速激起舆论争议。据报道，这则户外广告已经由企业启动撤下处理。广告角落里的小字试图作出补充解释：一家人过节要整整齐齐，但有些食物在胃里团圆，对胃可不好。本意是提醒民众中秋聚餐当心肠胃负担，可惜一番抖机灵，换来的却是一片批评之声。"
+          },
+          {
+            "title": "“求‘你们’中秋别团圆了”，三九胃泰广告遭吐槽：误导大众、博眼球，工作人员：系总部策划，正安排撤下，此前还有“劝你们和平分手”广告令人不适_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915V0BCIP00",
+            "snippet": "首页 · 要闻 · 北京 · 科技 · 财经 · 更多 · 大河网 · 搜索 · 游戏 · 网页设置"
+          },
+          {
+            "title": "三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息 | 大鱼财经_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915A0CVA700",
+            "snippet": "2026-09-15 21:44发布于山东新黄河客户端官方账号 · 外层写着“中秋别团圆了”，掀开后是月饼、冷饮和药房活动——三九胃泰的一则翻页广告，引发网友对节日文案的质疑。"
+          },
+          {
+            "title": "“求‘你们’中秋别团圆了”，三九胃泰广告引争议 - 今日头条",
+            "url": "https://www.toutiao.com/article/7685712358966182426/",
+            "snippet": "【文/王力 编辑/吕栋】 · 中秋本是团圆的节日，三九胃泰却在电梯广告里打出一句看似矛盾的话：“求‘你们’中秋别团圆了。”下方小字随即解释：“一家人过节要整整齐齐，但有些食物若在胃里‘团圆’，对胃可不好。”"
+          },
+          {
+            "title": "“求你们中秋别团圆了” 三九胃泰广告惹争议后撤下 | 文学城",
+            "url": "https://www.wenxuecity.com/news/2026/09/16/126776791.html",
+            "snippet": "中秋本是团圆的节日，三九胃泰却在电梯广告里打出一句看似矛盾的话：“求‘你们’中秋别团圆了。”下方小字随即解释：“一家人过节要整整齐齐，但有些食物若在胃里‘团圆’，对胃可不好。” 9月14日，这则电梯广..."
+          },
+          {
+            "title": "中秋营销伤了“团圆”，三九胃泰文案够菜_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A08VOI00",
+            "snippet": "中秋临近，三九胃泰一则广告引发热议。首页大字写着“求‘你们’中秋别团圆了”，左下角小字解释：“一家人过节要整整齐齐。但有些食物在胃里团圆，对胃可不好。”掀开下一页才知道，原来说的是月饼和冷饮别在胃里“团圆”。"
+          },
+          {
+            "title": "“求你们别团圆了”，三九胃泰中秋广告遭网友吐槽，工作人员：正安排撤→|大众|华润三九|和平分手_网易订阅",
+            "url": "https://www.163.com/dy/article/L6SNPEPA0514R9KQ.html",
+            "snippet": "用微信扫码二维码 · 分享至好友和朋友圈"
+          },
+          {
+            "title": "三九胃泰中秋广告翻车，“别团圆”文案引争议_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916V096II00",
+            "snippet": "首页 · 要闻 · 北京 · 科技 · 财经 · 更多 · 凤凰网财经 · 搜索 · 游戏 · 网页设置"
+          },
+          {
+            "title": "三九胃泰中秋广告文案争议|三九胃泰_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343465749610825.html",
+            "snippet": "#三九胃泰中秋广告翻车# 这文案，简直智障。 因为，在舆论谱系中，中秋倡导的团圆愿景，属于绝对的主流舆论。 以此论之，「求中秋别团圆」的文案，就是典型的反主流舆论。 ..."
+          },
+          {
+            "title": "三九胃泰，莫开玩笑！_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260915A0BP8D00",
+            "snippet": "9月14日，有江苏网友拍到三九胃泰线下广告，大标题写“求‘你们’中秋别团圆了”，引发大量吐槽。9月15日，新京报记者从华润三九工作人员处获悉，相关广告内容系公司总部策划，公司已接到相关反馈，正在安排撤下该广告。"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

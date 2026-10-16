@@ -1,0 +1,64 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-a005936cabd3c860827a",
+      "query": "《完善重庆市城市轨道交通票价机制》政策问答中1+4+5票价及优惠体系的具体内容：延续优惠与新增优惠、累计优惠与换乘优惠不叠加规则",
+      "version_id": "source-7a5d0ae3a672f1c9d407"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-4b274bfac608849ba147",
+        "version_id": "source-7a5d0ae3a672f1c9d407",
+        "excerpt": "《完善重庆市城市轨道交通票价机制》政策问答",
+        "start": 9641,
+        "end": 9662,
+        "locator": "Reader text chars 9641:9662"
+      },
+      {
+        "evidence_id": "evidence-2da552c6d118f56435bf",
+        "version_id": "source-7a5d0ae3a672f1c9d407",
+        "excerpt": "本次完善票价机制，为更好适配线网规模，满足乘客不同出行需求，构建1+4+5的票价及优惠体系（即1套票价结构、4项延续优惠、5项新增优惠）。具体如下：",
+        "start": 1548,
+        "end": 1622,
+        "locator": "Reader text chars 1548:1622"
+      },
+      {
+        "evidence_id": "evidence-eed4b4327e41760a39f8",
+        "version_id": "source-7a5d0ae3a672f1c9d407",
+        "excerpt": "您当前的位置： [首页](https://fzggw.cq.gov.cn/ \"首页\")>[政务公开](https://fzggw.cq.gov.cn/zwgk/ \"政务公开\")>[政府信息公开目录](https://fzggw.cq.gov.cn/zwgk/zfxxgkml/ \"政府信息公开目录\")>[政策咨询问答库](https://fzggw.cq.gov.cn/zwgk/zfxxgkml/zcwdk_1/ \"政策咨询问答库\")>[问答专题](https://fzggw.cq.gov.cn/zwgk/zfxxgkml/zcwdk_1/wdzt/ \"问答专题\")>《完善重庆市城市轨道交通票价机制》政策问答",
+        "start": 1032,
+        "end": 1339,
+        "locator": "Reader text chars 1032:1339"
+      },
+      {
+        "evidence_id": "evidence-223e8c9f4f4f717796bb",
+        "version_id": "source-7a5d0ae3a672f1c9d407",
+        "excerpt": "自然月累计优惠、工作日7点前进站优惠及公共交通一小时“免费·优惠换乘”不叠加，按照就低原则以优惠最多一项计费。",
+        "start": 2206,
+        "end": 2261,
+        "locator": "Reader text chars 2206:2261"
+      },
+      {
+        "evidence_id": "evidence-17a75df58cb5b2f8cafd",
+        "version_id": "source-7a5d0ae3a672f1c9d407",
+        "excerpt": "一是自然月累计优惠。持畅通卡或“渝畅行”码，按自然月内乘坐城市轨道交通累计消费金额设置梯度优惠。月累计消费未满100元，享9折；满100元后，自下一次乘车时起，享7折；满200元后，自下一次乘车时起，享5折；",
+        "start": 1905,
+        "end": 2009,
+        "locator": "Reader text chars 1905:2009"
+      }
+    ],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

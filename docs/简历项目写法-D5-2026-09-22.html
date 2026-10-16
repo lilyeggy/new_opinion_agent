@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简历项目写法 · 舆情搜索 Agent · 2026-09-22</title>
+<style>
+  :root {
+    --ink: #1a2332; --sub: #5a6b7f; --line: #dde4ec; --bg: #f7f9fb;
+    --accent: #1f6feb; --good: #1a7f37; --warn: #b35900; --bad: #c0392b;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; background: var(--bg); color: var(--ink); line-height: 1.8; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 28px 80px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  h2 { font-size: 19px; margin: 42px 0 12px; padding-left: 12px; border-left: 4px solid var(--accent); }
+  .meta { color: var(--sub); font-size: 13px; margin-bottom: 26px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; margin: 14px 0; }
+  .resume { background: #fff; border: 2px solid var(--accent); border-radius: 10px; padding: 22px 26px; margin: 16px 0; }
+  .resume .pname { font-size: 16px; font-weight: 800; }
+  .resume .prole { color: var(--sub); font-size: 13px; margin: 2px 0 10px; }
+  .resume ul { margin: 6px 0; padding-left: 20px; }
+  .resume li { margin: 5px 0; font-size: 14.5px; }
+  .rule { border-left: 3px solid var(--warn); background: #fffaf3; }
+  .good { border-left: 3px solid var(--good); background: #f0fbf4; }
+  code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  .num { color: #0b3d91; font-weight: 700; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13.5px; }
+  th, td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
+  th { background: #f0f4f9; }
+  .strike { text-decoration: line-through; color: var(--sub); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>简历项目写法：舆情搜索 Agent（技术核心：Agent Harness 构建）</h1>
+<div class="meta">2026-09-22 · 秋招 · Agent 构建开发方向 · 所有数字与代码/测试/报告一一对应，可承受追问</div>
+
+<!-- ============ 定位 ============ -->
+<h2>一、定位：产品是舆情搜索 agent，壁垒是 harness 工程</h2>
+<div class="card rule">
+<p><b>这个项目在简历上就是一个「舆情搜索 agent」</b>——输入一个舆情事件，它自主完成多轮搜索、阅读、反思、审查，产出一份每条结论都带证据引用的调查报告。这是面试官第一眼要看到的画面，清晰、具体、有真实场景。</p>
+<p><b>但「舆情搜索 agent」这个品类满地都是 demo</b>：prompt + 搜索 API + 总结，三天能拼一个。所以这个项目的简历叙事必须马上回答下一个问题——「你这个和 tutorial 项目有什么区别？」答案就是技术核心：<b>它的可信度不是来自 prompt 技巧，而是来自底层自研的 Agent Harness</b>——状态事务、崩溃恢复、工具信任边界、上下文工程。舆情只是恰好最能暴露这些机制价值的场景（任务长、外部工具抖、网页内容不可信、结论必须可核查）。</p>
+<p>一句话结构：<b>「舆情搜索 agent 让人有画面，harness 让面试官有题可问，数字让答案有据可查。」</b>三条纪律：</p>
+<ul>
+<li><b>第一条 bullet 讲产品与结果</b>（它做什么、跑出了什么），后三条讲技术核心（它是怎么被造得可信的）。顺序不能反——先给画面再给机制。</li>
+<li><b>数字分两类别混。</b>机制数字（779 测试、100 步/640 证据恢复一致、18 次闸门拒绝）上简历；质量数字（召回 60%）留作面试主动讲，「知道短板在哪」比「声称领先」更打动人。</li>
+<li><b>不夸大终态。</b>live 终态是诚实 partial，别写「自动生成高质量舆情报告」这种会被当场戳穿的话。</li>
+</ul>
+</div>
+
+<!-- ============ 推荐版 ============ -->
+<h2>二、推荐版（4 条 bullet，主投 Agent/AI 工程岗）</h2>
+<div class="resume">
+<div class="pname">舆情搜索 Agent —— 面向公开事件的自主调查系统（技术核心：自研 Agent Harness）</div>
+<div class="prole">个人项目 · 2026.08–2026.09 · Python asyncio / 自研 Agent Loop / OpenAI-compatible LLM / Brave Search / Jina Reader · 779 项自动化测试</div>
+<ul>
+<li><b>实现端到端舆情调查流程</b>：输入舆情事件与必答问题，Agent 自主执行「多轮搜索 → 正文阅读 → 反思补缺 → 交叉审查 → 发布」全流程，产出每条结论均带证据字符级定位的调查报告；真实中文事件 live 闭环 <span class="num">60 步 / 17 次搜索 / 14 条 finding / 92 处证据引用</span>，完成闸门拒绝 finish <span class="num">18 次</span>直至证据闭环——宁可输出 partial 也不强行收尾。</li>
+<li><b>技术核心：设计并实现显式 Agent Runtime</b>。定义 Decision→Action→Observation→Delta 协议与 Processor→Delta→Reducer 纯函数事务，Loop 仅管理时序、Reducer 独占状态写入权；相位级 checkpoint/resume 在「工具成功但状态提交前崩溃」时按 action identity 复用持久化结果，实现 state effect 的 effectively-once——<span class="num">100 步 / 640 条证据压力测试下恢复后模型上下文逐字节一致</span>。</li>
+<li><b>构建工具运行时与上下文工程两层基础设施</b>：ToolExecutor 提供有界重试、跨 provider 熔断 fallback、成功缓存，MCP 收敛为不可信 Tool adapter（schema 哈希契约校验、元数据递归剥离、强制 HTTPS）；分层 Context Compiler 以 required window + 可丢弃 chunks 控制上下文规模不随 run 增长，内容来源信任标记全程不洗白，<span class="num">14 条路径 prompt 注入对抗矩阵进入 CI</span>。</li>
+<li><b>建立舆情报告质量验收方法</b>：人工标注「必中清单」度量检索召回，逐条核对 finding 与证据的忠实性（<span class="num">零虚构</span>），在冻结材料中埋入更正/反方/错误数字三类对抗点做真实模型 replay；曾用九阶段诊断链定位并修复「44 条证据 0 finding」级缺陷，形成「失败 → 诊断 → 修复 → 复跑」的完整工程闭环。</li>
+</ul>
+</div>
+<p class="meta">结构逻辑：第 1 条 = 这是什么（产品+结果）；第 2、3 条 = 为什么可信（技术核心 harness）；第 4 条 = 我怎么知道它work（验收工程）。对应面试节奏：demo 画面 → 机制深挖 → 工程素养。</p>
+
+<!-- ============ 压缩版 ============ -->
+<h2>三、压缩版（2 条 bullet，简历空间紧张时）</h2>
+<div class="resume">
+<div class="pname">舆情搜索 Agent（自研 Agent Harness，个人项目）</div>
+<div class="prole">2026.08–2026.09 · Python asyncio / OpenAI-compatible LLM / Brave Search · 779 项测试</div>
+<ul>
+<li>面向公开舆情事件的自主调查系统：多轮搜索-阅读-反思-审查全流程，产出逐条带证据定位的调查报告；真实事件 live 闭环 <span class="num">60 步 / 92 处证据引用</span>，完成闸门 <span class="num">18 次拒绝 finish</span> 保证诚实终态。</li>
+<li>技术核心为自研显式 Agent Harness：Decision/Action/Observation 协议 + Reducer 独占写权，相位级 checkpoint/resume 实现 state effect effectively-once（<span class="num">100 步/640 证据恢复一致</span>）；工具重试熔断与有界上下文编译，<span class="num">14 路径注入矩阵</span>入 CI；并建立召回/忠实性/对抗埋点三类质量基线。</li>
+</ul>
+</div>
+
+<!-- ============ 英文版 ============ -->
+<h2>四、英文版（外企/海外岗）</h2>
+<div class="resume">
+<div class="pname">Opinion Search Agent — Autonomous Investigation over the Public Web</div>
+<div class="prole">Personal Project · Aug–Sep 2026 · Python asyncio / Custom Agent Loop / OpenAI-compatible LLM / Brave Search / Jina Reader · 779 automated tests</div>
+<ul>
+<li><b>Built an end-to-end opinion-investigation agent</b>: given a public event and required questions, it autonomously runs multi-round search → read → reflect → review → publish, producing a report where every finding carries character-level evidence locators. A real Chinese event completed a <span class="num">60-step live run (17 searches, 14 findings, 92 evidence citations)</span>; the completion gate rejected finish 18 times rather than close with unanswered questions.</li>
+<li><b>Technical core: designed an explicit agent runtime</b> — Decision→Action→Observation→Delta protocol, Processor→Delta→Reducer pure-function transactions (loop owns sequencing, reducer exclusively owns state). Phase-level checkpoint/resume with an action-identity success cache achieves effectively-once state effects: <span class="num">byte-identical context after resume in a 100-step / 640-evidence stress test</span>.</li>
+<li><b>Built the tool runtime and context layer</b>: bounded retry, cross-provider fallback with circuit breaking, success caching; MCP reduced to an untrusted adapter (schema-hash pinning, metadata stripping, HTTPS-only). A layered context compiler (bounded window + droppable chunks, provenance tags with SHA-256) keeps required context from growing with the run; a <span class="num">14-path prompt-injection matrix</span> runs in CI.</li>
+<li><b>Established quality baselines for opinion reports</b>: human-labeled must-hit recall, per-finding faithfulness checks (<span class="num">zero fabrication</span>), and adversarial replay with planted corrections / counter-narratives / wrong numbers; diagnosed and fixed a "44 evidence, 0 findings" failure via a nine-phase diagnostic chain.</li>
+</ul>
+</div>
+
+<!-- ============ 写法对照 ============ -->
+<h2>五、写法对照：为什么这样写</h2>
+<table>
+<tr><th>别这么写</th><th>这么写</th><th>原因</th></tr>
+<tr><td class="strike">调用搜索 API 和大模型 API 实现舆情信息聚合与总结</td><td>自主执行「搜索→阅读→反思→审查→发布」全流程，结论逐条带证据字符级定位</td><td>调 API 是拼装；闭环流程 + 证据可核查才是系统</td></tr>
+<tr><td class="strike">使用 LangChain/AutoGen 搭建多智能体协作流程</td><td>自研单 Agent async loop（决策记录：为什么不用框架）</td><td>用了框架，Runtime 深度就不是你的；「为什么不用 LangGraph」是你的送分题</td></tr>
+<tr><td class="strike">实现了断点续传功能</td><td>相位级 checkpoint/resume；工具成功未提交时按 action identity 复用，effectively-once</td><td>「断点续传」人人会写；相位分类 + 恰好一次语义是分布式系统语言</td></tr>
+<tr><td class="strike">系统稳定可靠，报告准确率高</td><td>779 项测试；100 步/640 证据恢复后上下文逐字节一致；忠实性零虚构</td><td>形容词无价值；可复核的断言才值钱</td></tr>
+<tr><td class="strike">报告质量达到行业领先水平</td><td>（简历不写质量形容词；面试主动讲召回 60% 与短板定位）</td><td>质量是相对的容易被戳；知道短板在哪比声称领先更打动人</td></tr>
+</table>
+
+<!-- ============ 追问预案 ============ -->
+<h2>六、每条 bullet 的追问预案（简历上每个字都要能接三层追问）</h2>
+<div class="card">
+<table>
+<tr><th>Bullet 关键词</th><th>第一层追问</th><th>第二层</th><th>第三层（杀招）</th></tr>
+<tr><td>搜索→阅读→反思→审查</td><td>模型每轮怎么决定搜什么？</td><td>怎么防止重复搜索/原地打转？</td><td>反思触发的依据是什么？（覆盖矩阵 + gap 状态）</td></tr>
+<tr><td>18 次拒绝 finish</td><td>闸门判据是什么？</td><td>拒绝后模型怎么知道补什么？</td><td>会不会永远拒绝下去？（会——这就是 open→not_found 缺失，你的下一步清单第 5 条）</td></tr>
+<tr><td>Reducer 独占写权</td><td>为什么不让 Loop 直接改 state？</td><td>并发/多写者怎么办？</td><td>delta 是事件溯源吗？和 CRDT 什么关系？</td></tr>
+<tr><td>effectively-once</td><td>工具成功但崩溃怎么恢复？</td><td>为什么不能 exactly-once？</td><td>缓存和 checkpoint 的写入顺序怎么保证不丢？</td></tr>
+<tr><td>Context Compiler</td><td>和 messages.append 差在哪？</td><td>压缩会不会丢矛盾？</td><td>信任标记会不会被 resume 洗白？</td></tr>
+<tr><td>对抗埋点 replay</td><td>埋了什么点？</td><td>哪个没中？为什么？</td><td>反方稿已读已摘却零引用——怎么修？（事件内二次检索，下一步第 3 条）</td></tr>
+</table>
+<p class="meta">第三层的答案全在《面试收口手册》§16 十四问和「下一步清单」里——简历和手册是同一份事实的两种粒度，不要出现手册里答不上、简历上却写了的东西。</p>
+</div>
+
+<!-- ============ 放置建议 ============ -->
+<h2>七、放置与搭配建议</h2>
+<div class="card good">
+<ul>
+<li><b>位置：</b>项目经历第一条。它是你唯一一个「有完整产品形态 + Runtime 深度 + 真实验证 + 质量数字」的项目，必须吃第一眼的注意力。</li>
+<li><b>技术栈行：</b>别列「Python, Git, Linux」占位符，列有信息量的：<code>Python asyncio / 自研 Agent Loop / OpenAI-compatible LLM / Brave Search / Jina Reader / MCP SDK v2 / pytest（779 项）</code>。</li>
+<li><b>技能栏呼应：</b>「LLM 应用开发」改成「Agent 系统设计与构建（Runtime / 工具运行时 / 上下文工程）」——简历通篇用同一套词汇，面试官的关键词会自己匹配上。</li>
+<li><b>自我介绍钩子：</b>「我做了一个舆情搜索 agent——给它一个事件，它自己搜、自己读、自己查证，最后交出一份每条结论都能点开看原文出处的报告。技术上最有意思的部分是底层自研的 agent harness：怎么让跑几十步的 agent 挂了能恢复、读到假网页不中毒、证据不足时宁可说不知道。」——三句话，画面、核心、价值观各一句，让面试官自己选从哪句挖。</li>
+<li><b>投递变体：</b>投偏产品/应用的岗，把第 1 条和第 4 条（产品与验收）展开、压缩第 3 条；投偏 infra/平台的岗，把第 2、3 条展开。四条 bullet 的组合不用动，只调详略。</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>

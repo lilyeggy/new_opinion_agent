@@ -1,0 +1,739 @@
+{
+  "run_id": "a30373882a9441139352f83f454d3c88",
+  "case_id": "8d815ff7dc394b99989d4974142e2be1",
+  "parent_id": null,
+  "mode": "live",
+  "request": {
+    "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么？罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？",
+    "topic": "罗永浩吐槽野人先生冰淇淋事件",
+    "time_range": "2026-09-12 至 2026-09-22",
+    "focus": "罗永浩原博内容、野人先生回应过程与效果、钟薛高重启与降价、人民网等官媒评论、西贝被卷入的传闻与回应",
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": [],
+    "region": null,
+    "reference_urls": [],
+    "clarification": null
+  },
+  "fixture": null,
+  "status": "partial",
+  "phase": "部分完成",
+  "created_at": "2026-09-23T01:47:16.253964+00:00",
+  "clarification_questions": [],
+  "clarify_rounds": 0,
+  "progress": {
+    "questions": [
+      {
+        "issue_id": "issue-318e25582109f3bc656d",
+        "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [
+          "罗永浩吐槽野人先生冰淇淋事件的始末是什么"
+        ],
+        "components": []
+      },
+      {
+        "issue_id": "issue-703294a9c84852c34edd",
+        "question": "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [
+          "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展"
+        ],
+        "components": [
+          {
+            "text": "罗永浩说了什么",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "野人先生如何回应",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "事件牵连了哪些品牌",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "后续发展",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-0ca151b5620ea7b28ef8",
+        "question": "罗永浩发布的相关微博原文内容、发布时间与主要指控点是什么，是否附有具体产品、价格或门店信息？",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "罗永浩发布的相关微博原文内容",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "发布时间与主要指控点是什么，是否附有具体产品",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "价格或门店信息",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-d6013ddc4c2c706c3f99",
+        "question": "野人先生方面回应的时间、渠道、具体表述与后续实际调整（如价格、产品、门店或公关动作）是什么，回应效果与舆论反馈如何？",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "野人先生方面回应的时间",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "渠道",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "具体表述与后续实际调整（如价格",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "产品",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "门店或公关动作）是什么，回应效果与舆论反馈如何",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-675e209d603afa8583dc",
+        "question": "事件中钟薛高重启与降价的具体情况、时间线，以及其与本次冰淇淋争议的关联和被提及方式是什么？",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "事件中钟薛高重启与降价的具体情况",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "时间线，",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "其与本次冰淇淋争议的关联和被提及方式是什么",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      },
+      {
+        "issue_id": "issue-5ff9fae7c7065bff6b3b",
+        "question": "人民网等官方媒体对本次事件的评论内容、评论指向与发布情况是什么，西贝被卷入的传闻内容及西贝方面回应是什么？",
+        "required": true,
+        "status": "open",
+        "note": "",
+        "evidence_ids": [],
+        "origin_questions": [],
+        "components": [
+          {
+            "text": "人民网等官方媒体对本次事件的评论内容",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          },
+          {
+            "text": "评论指向与发布情况是什么，西贝被卷入的传闻内容及西贝方面回应是什么",
+            "status": "open",
+            "evidence_ids": [],
+            "note": ""
+          }
+        ]
+      }
+    ],
+    "source_count": 1,
+    "finding_count": 0,
+    "read_errors": 24,
+    "search_errors": 1,
+    "diagnostics": {
+      "format": "opinion-investigation-diagnostics/1",
+      "summary": {
+        "status": "attention",
+        "critical": 0,
+        "warnings": 9,
+        "informational": 4,
+        "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+      },
+      "stages": [
+        {
+          "id": "scope",
+          "label": "事件与问题",
+          "status": "attention",
+          "metrics": {
+            "issues": 6,
+            "required": 6,
+            "unresolved_required": 6,
+            "unresolved_components": 17
+          },
+          "signal_codes": [
+            "required_issues_unresolved",
+            "required_components_unresolved"
+          ]
+        },
+        {
+          "id": "discovery",
+          "label": "搜索与召回",
+          "status": "attention",
+          "metrics": {
+            "attempts": 5,
+            "outcomes": {
+              "candidates": 4,
+              "error": 1
+            },
+            "purposes": {
+              "independent": 1,
+              "official_response": 3,
+              "original": 1
+            },
+            "candidate_urls": 35
+          },
+          "signal_codes": [
+            "search_provider_errors",
+            "search_directions_unattempted"
+          ]
+        },
+        {
+          "id": "acquisition",
+          "label": "正文获取",
+          "status": "attention",
+          "metrics": {
+            "read_attempts": 25,
+            "saved_versions": 1,
+            "read_errors": 24,
+            "unread_candidates": 10
+          },
+          "signal_codes": [
+            "reader_errors",
+            "unread_candidates"
+          ]
+        },
+        {
+          "id": "sources",
+          "label": "来源结构",
+          "status": "attention",
+          "metrics": {
+            "documents": 1,
+            "versions": 1,
+            "domains": {
+              "www.sohu.com": 1
+            },
+            "roles": {
+              "reporting": 1
+            },
+            "hash_duplicates": 0,
+            "relations_recorded": 0,
+            "relations_unverified": 1,
+            "unknown_publication_dates": 0
+          },
+          "signal_codes": [
+            "single_source_domain",
+            "single_source_role",
+            "source_independence_unverified"
+          ]
+        },
+        {
+          "id": "evidence",
+          "label": "证据定位",
+          "status": "observed",
+          "metrics": {
+            "items": 4,
+            "cited_items": 0,
+            "sources_with_cited_evidence": 0,
+            "uncited_source_versions": 1
+          },
+          "signal_codes": [
+            "saved_sources_uncited"
+          ]
+        },
+        {
+          "id": "analysis",
+          "label": "争议与回应分析",
+          "status": "attention",
+          "metrics": {
+            "active_findings": 0,
+            "finding_kinds": {},
+            "stakeholders": [],
+            "response_classes": {},
+            "required_module_gaps": 0,
+            "stance_distribution_eligible": false,
+            "stance_distribution_reason": "材料集没有代表性抽样框，来源关系也未全部核实；只能展示材料内主张构成，不能解释为公众观点占比。"
+          },
+          "signal_codes": [
+            "response_coverage_missing"
+          ]
+        },
+        {
+          "id": "review",
+          "label": "关键结论审查",
+          "status": "pending",
+          "metrics": {
+            "active_findings": 0,
+            "supported": 0,
+            "unreviewed": 0,
+            "not_supported": 0,
+            "review_models": {}
+          },
+          "signal_codes": []
+        },
+        {
+          "id": "completion",
+          "label": "结束判断",
+          "status": "pending",
+          "metrics": {
+            "publication_status": "finalizing",
+            "policy_disposition": "reject_and_continue",
+            "policy_reason": "Required investigation questions remain open.",
+            "conclusions": 0
+          },
+          "signal_codes": []
+        },
+        {
+          "id": "runtime",
+          "label": "运行与预算",
+          "status": "attention",
+          "metrics": {
+            "available": true,
+            "status": "partial",
+            "checkpoint_boundary": "run_terminated",
+            "active_step_phase": null,
+            "committed_steps": 31,
+            "decision_retries": 0,
+            "failure_kinds": {},
+            "actions": {
+              "read": 25,
+              "retrieve": 1,
+              "search": 5
+            },
+            "step_timing_available": false,
+            "token_usage_available": false,
+            "budget": {
+              "available": true,
+              "resources": {
+                "search": {
+                  "used": 5,
+                  "limit": 20,
+                  "ratio": 0.25
+                },
+                "read": {
+                  "used": 24,
+                  "limit": 24,
+                  "ratio": 1.0
+                },
+                "model": {
+                  "used": 45,
+                  "limit": 120,
+                  "ratio": 0.375
+                },
+                "seconds": {
+                  "used": 821.421,
+                  "limit": 2400,
+                  "ratio": 0.3423
+                }
+              }
+            }
+          },
+          "signal_codes": [
+            "fine_grained_cost_latency_unavailable",
+            "budget_read_near_limit"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "code": "required_components_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "17 个必答子项仍未解决。",
+          "action": "逐项处置复合问题，避免父问题状态掩盖缺口。",
+          "details": {
+            "components": [
+              {
+                "issue_id": "issue-703294a9c84852c34edd",
+                "text": "罗永浩说了什么",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-703294a9c84852c34edd",
+                "text": "野人先生如何回应",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-703294a9c84852c34edd",
+                "text": "事件牵连了哪些品牌",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-703294a9c84852c34edd",
+                "text": "后续发展",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0ca151b5620ea7b28ef8",
+                "text": "罗永浩发布的相关微博原文内容",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0ca151b5620ea7b28ef8",
+                "text": "发布时间与主要指控点是什么，是否附有具体产品",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-0ca151b5620ea7b28ef8",
+                "text": "价格或门店信息",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-d6013ddc4c2c706c3f99",
+                "text": "野人先生方面回应的时间",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-d6013ddc4c2c706c3f99",
+                "text": "渠道",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-d6013ddc4c2c706c3f99",
+                "text": "具体表述与后续实际调整（如价格",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-d6013ddc4c2c706c3f99",
+                "text": "产品",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-d6013ddc4c2c706c3f99",
+                "text": "门店或公关动作）是什么，回应效果与舆论反馈如何",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-675e209d603afa8583dc",
+                "text": "事件中钟薛高重启与降价的具体情况",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-675e209d603afa8583dc",
+                "text": "时间线，",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-675e209d603afa8583dc",
+                "text": "其与本次冰淇淋争议的关联和被提及方式是什么",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-5ff9fae7c7065bff6b3b",
+                "text": "人民网等官方媒体对本次事件的评论内容",
+                "status": "open"
+              },
+              {
+                "issue_id": "issue-5ff9fae7c7065bff6b3b",
+                "text": "评论指向与发布情况是什么，西贝被卷入的传闻内容及西贝方面回应是什么",
+                "status": "open"
+              }
+            ]
+          }
+        },
+        {
+          "code": "required_issues_unresolved",
+          "stage": "scope",
+          "severity": "warning",
+          "message": "6 个必答问题仍未得到可用处置。",
+          "action": "继续取证，或明确标为范围内未发现/无法判断。",
+          "details": {
+            "issue_ids": [
+              "issue-318e25582109f3bc656d",
+              "issue-703294a9c84852c34edd",
+              "issue-0ca151b5620ea7b28ef8",
+              "issue-d6013ddc4c2c706c3f99",
+              "issue-675e209d603afa8583dc",
+              "issue-5ff9fae7c7065bff6b3b"
+            ]
+          }
+        },
+        {
+          "code": "search_provider_errors",
+          "stage": "discovery",
+          "severity": "warning",
+          "message": "有 1 次搜索失败，缺失结果不能解释为没有材料。",
+          "action": "核对 provider 错误并尝试其他查询或材料入口。",
+          "details": {
+            "count": 1
+          }
+        },
+        {
+          "code": "reader_errors",
+          "stage": "acquisition",
+          "severity": "warning",
+          "message": "有 24 个页面读取失败。",
+          "action": "重试、寻找原始出处或将对应结论降级为无法判断。",
+          "details": {
+            "urls": [
+              "https://www.sina.cn/news/detail/5342948281024907.html",
+              "https://www.163.com/dy/article/L6Q0NGJV0530RMGL.html",
+              "https://www.worldjournal.com/wj/story/121617/9754948",
+              "https://news.sina.com.cn/c/2026-09-16/doc-iniryzmc4912042.shtml",
+              "https://www.worldjournal.com/wj/story/121343/9755263",
+              "https://www.sina.cn/news/detail/5343051583063673.html",
+              "https://news.qq.com/rain/a/20260916A09EAX00",
+              "https://www.sohu.com/a/1076805594_161795",
+              "https://news.qq.com/rain/a/20260916A08D6B00",
+              "https://news.qq.com/rain/a/20260916A08TZY00",
+              "https://www.wenxuecity.com/news/2026/09/16/126777111.html",
+              "https://www.huxiu.com/article/4892326.html",
+              "https://m.mp.oeeee.com/n/video/BAAFRD0000202609161667308",
+              "https://www.sohu.com/a/1076873285_121417",
+              "https://finance.china.com/xiaofei/13004691/20260917/49749004.html",
+              "https://k.sina.cn/article_7879996426_1d5af340a06801ke0g.html",
+              "https://news.qq.com/rain/a/20260917A053VA00",
+              "https://post.smzdm.com/p/aom9o7x7/",
+              "https://huaren.us/showtopic.html?topicid=3215009",
+              "https://www.sina.cn/weibo/detail/5343682510193564.html",
+              "https://news.qq.com/rain/a/20260917A0BAW900",
+              "https://news.qq.com/rain/a/20260917A05NAK00",
+              "https://news.china.com/socialgd/10000169/20260919/49751947.html",
+              "https://news.china.com/socialgd/10000169/20260920/49753889.html"
+            ]
+          }
+        },
+        {
+          "code": "single_source_domain",
+          "stage": "sources",
+          "severity": "warning",
+          "message": "全部已保存材料来自同一域名，来源视角可能高度集中。",
+          "action": "补查机构原文、独立报道或其他公开材料。",
+          "details": {
+            "domains": {
+              "www.sohu.com": 1
+            }
+          }
+        },
+        {
+          "code": "single_source_role",
+          "stage": "sources",
+          "severity": "warning",
+          "message": "全部材料属于同一来源角色。",
+          "action": "补充与任务相关的其他来源角色。",
+          "details": {
+            "roles": {
+              "reporting": 1
+            }
+          }
+        },
+        {
+          "code": "source_independence_unverified",
+          "stage": "sources",
+          "severity": "warning",
+          "message": "1 个正文版本的来源关系尚未核实，不能据此声称独立验证。",
+          "action": "识别原始出处、转载、摘录和后续跟进关系。",
+          "details": {
+            "count": 1
+          }
+        },
+        {
+          "code": "response_coverage_missing",
+          "stage": "analysis",
+          "severity": "warning",
+          "message": "调查问题要求分析回应，但当前判断没有回应覆盖分类。",
+          "action": "建立诉求与回应的逐项对应，并保留未覆盖部分。",
+          "details": {
+            "issue_ids": [
+              "issue-703294a9c84852c34edd",
+              "issue-d6013ddc4c2c706c3f99",
+              "issue-5ff9fae7c7065bff6b3b"
+            ]
+          }
+        },
+        {
+          "code": "budget_read_near_limit",
+          "stage": "runtime",
+          "severity": "warning",
+          "message": "read 预算已使用 100%。",
+          "action": "优先整理、审查并保留未完成边界。",
+          "details": {
+            "resource": "read",
+            "used": 24,
+            "limit": 24,
+            "ratio": 1.0
+          }
+        },
+        {
+          "code": "search_directions_unattempted",
+          "stage": "discovery",
+          "severity": "info",
+          "message": "有 3 类调查方向未尝试；这不是固定完成配额。",
+          "action": "根据具体问题判断是否需要补查。",
+          "details": {
+            "directions": [
+              "positions",
+              "event_response",
+              "followup"
+            ]
+          }
+        },
+        {
+          "code": "unread_candidates",
+          "stage": "acquisition",
+          "severity": "info",
+          "message": "仍有 10 个已发现候选页未读取。",
+          "action": "确认它们无关或重复，或继续读取后再结束。",
+          "details": {
+            "urls": [
+              "https://k.sina.cn/article_5953740931_162dee08306703z16s.html",
+              "https://post.smzdm.com/p/awwz5dv4",
+              "https://www.sina.cn/weibo/detail/5343887982071837.html",
+              "https://www.sina.cn/weibo/detail/5344559216987255.html",
+              "https://www.sina.cn/weibo/detail/5344664548804913.html",
+              "https://www.sina.cn/weibo/detail/5344736625820360.html",
+              "https://www.sina.cn/weibo/detail/5344743240499956.html",
+              "https://www.sina.cn/weibo/detail/5345016152331504.html",
+              "https://www.wenxuecity.com/news/2026/09/17/126778525.html",
+              "https://www.youtube.com/watch?v=BfdpvbJhQ7A"
+            ]
+          }
+        },
+        {
+          "code": "saved_sources_uncited",
+          "stage": "evidence",
+          "severity": "info",
+          "message": "1 个已保存正文版本未支撑任何当前判断。",
+          "action": "确认其为背景/无关材料，或补充证据绑定。",
+          "details": {
+            "version_ids": [
+              "source-bc622c3cf49b6ae20c11"
+            ]
+          }
+        },
+        {
+          "code": "fine_grained_cost_latency_unavailable",
+          "stage": "runtime",
+          "severity": "info",
+          "message": "StepRecord 尚未保存分步耗时和 token 用量，当前只能定位动作、重试与预算计数。",
+          "action": "后续在 model/tool 边界记录开始结束时间与安全的 usage 元数据。",
+          "details": {}
+        }
+      ]
+    }
+  },
+  "plan": {
+    "subject": "罗永浩吐槽野人先生冰淇淋事件",
+    "region": "中国",
+    "aliases": [
+      "罗永浩吐槽野人先生",
+      "罗永浩 野人先生冰淇淋",
+      "野人先生冰淇淋争议",
+      "罗永浩炮轰野人先生冰淇淋"
+    ],
+    "clarification": [],
+    "questions": [
+      {
+        "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么",
+        "required": true,
+        "covers": [
+          "罗永浩吐槽野人先生冰淇淋事件的始末是什么"
+        ],
+        "components": []
+      },
+      {
+        "question": "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展",
+        "required": true,
+        "covers": [
+          "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展"
+        ],
+        "components": [
+          "罗永浩说了什么",
+          "野人先生如何回应",
+          "事件牵连了哪些品牌",
+          "后续发展"
+        ]
+      },
+      {
+        "question": "罗永浩发布的相关微博原文内容、发布时间与主要指控点是什么，是否附有具体产品、价格或门店信息？",
+        "required": true,
+        "covers": [],
+        "components": []
+      },
+      {
+        "question": "野人先生方面回应的时间、渠道、具体表述与后续实际调整（如价格、产品、门店或公关动作）是什么，回应效果与舆论反馈如何？",
+        "required": true,
+        "covers": [],
+        "components": []
+      },
+      {
+        "question": "事件中钟薛高重启与降价的具体情况、时间线，以及其与本次冰淇淋争议的关联和被提及方式是什么？",
+        "required": true,
+        "covers": [],
+        "components": []
+      },
+      {
+        "question": "人民网等官方媒体对本次事件的评论内容、评论指向与发布情况是什么，西贝被卷入的传闻内容及西贝方面回应是什么？",
+        "required": true,
+        "covers": [],
+        "components": []
+      }
+    ],
+    "facets": [
+      "general"
+    ],
+    "facet_rationale": "该事件属于名人公开吐槽消费品牌引发的舆论争议与品牌回应，涉及争议事实、各方回应和后续变化，但不涉及规则修订（rule_change）、公共服务调整（service_change）、收费退赔（billing_remedy）或官方调查纠错（investigation_correction），因此仅使用 general 标识。"
+  },
+  "followup": null,
+  "updated_at": "2026-09-23T02:00:57.690186+00:00",
+  "subject": "罗永浩吐槽野人先生冰淇淋事件",
+  "published": true
+}

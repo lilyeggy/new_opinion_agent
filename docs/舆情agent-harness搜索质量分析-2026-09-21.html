@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>舆情 Agent Harness 搜索质量深度分析 · 2026-09-21</title>
+<style>
+  :root {
+    --ink: #1a2233;
+    --ink-2: #3d4a63;
+    --ink-3: #6b7690;
+    --line: #e3e7ef;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --accent: #2b5ce6;
+    --accent-soft: #eef3fe;
+    --red: #c0392b;
+    --red-soft: #fdf0ee;
+    --amber: #b3770a;
+    --amber-soft: #fdf6e7;
+    --green: #1e7e4d;
+    --green-soft: #ecf7f1;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.85;
+    font-size: 15.5px;
+  }
+  .page { max-width: 880px; margin: 0 auto; padding: 56px 32px 96px; }
+  header.masthead { border-bottom: 3px solid var(--ink); padding-bottom: 28px; margin-bottom: 40px; }
+  .kicker { font-size: 13px; letter-spacing: 2px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-size: 30px; line-height: 1.4; font-weight: 700; letter-spacing: 0.5px; }
+  .meta { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+  h2 {
+    font-size: 21px; margin: 56px 0 18px; padding-top: 14px;
+    border-top: 1px solid var(--line); font-weight: 700;
+  }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  h3 { font-size: 16.5px; margin: 30px 0 10px; color: var(--ink-2); }
+  p { margin: 12px 0; }
+  strong { font-weight: 650; }
+  code { font-family: var(--mono); font-size: 13.5px; background: #eef0f4; padding: 1px 6px; border-radius: 4px; }
+  .verdict {
+    background: var(--ink); color: #f2f4f8; border-radius: 10px;
+    padding: 28px 30px; margin: 34px 0 8px; line-height: 1.9;
+  }
+  .verdict .tag { color: #8fb0ff; font-size: 13px; letter-spacing: 2px; font-weight: 600; }
+  .verdict p { margin: 10px 0 0; }
+  .verdict strong { color: #ffffff; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; margin: 16px 0;
+  }
+  .card.bad { border-left: 4px solid var(--red); background: var(--red-soft); }
+  .card.warn { border-left: 4px solid var(--amber); background: var(--amber-soft); }
+  .card.good { border-left: 4px solid var(--green); background: var(--green-soft); }
+  .card.info { border-left: 4px solid var(--accent); background: var(--accent-soft); }
+  .card h4 { font-size: 15.5px; margin-bottom: 6px; }
+  .card .ev { font-size: 13px; color: var(--ink-3); margin-top: 8px; font-family: var(--mono); line-height: 1.7; }
+  table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; line-height: 1.7; }
+  th { background: #eef0f5; font-weight: 650; font-size: 13.5px; }
+  td.num { text-align: center; font-family: var(--mono); }
+  .sev { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 9px; border-radius: 20px; white-space: nowrap; }
+  .sev.p0 { background: var(--red); color: #fff; }
+  .sev.p1 { background: var(--amber); color: #fff; }
+  .sev.p2 { background: var(--ink-3); color: #fff; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 6px 0; }
+  blockquote {
+    border-left: 3px solid var(--accent); background: var(--accent-soft);
+    padding: 14px 20px; margin: 16px 0; border-radius: 0 8px 8px 0; color: var(--ink-2);
+  }
+  .flow {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; font-family: var(--mono); font-size: 13px; line-height: 2;
+    overflow-x: auto; white-space: pre; color: var(--ink-2);
+  }
+  .flow .hit { color: var(--red); font-weight: 700; }
+  .footnote { font-size: 13px; color: var(--ink-3); border-top: 1px dashed var(--line); margin-top: 48px; padding-top: 16px; }
+  .q-open {
+    border: 1.5px dashed var(--accent); border-radius: 10px; padding: 18px 22px;
+    margin-top: 16px; color: var(--ink-2); font-style: italic;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">HARNESS 设计评审 · 搜索质量专项</div>
+  <h1>「从渲染结果倒推」能撑住高质量舆情报告吗？<br>——一次只讲证据的客观分析</h1>
+  <div class="meta">分析对象：opinion_search_agent（含 domain/opinion 与 harness 两条链路） · 依据：canonical design、search-rag 分析文档、实现记录、live 报告与源码 · 2026-09-21</div>
+</header>
+
+<div class="verdict">
+  <div class="tag">结 论 先 行</div>
+  <p><strong>1.</strong> 「从渲染结果倒推」的立论<strong>只对了一半</strong>。呈现层的差异化是真的，实现也扎实（报告是状态的确定性投影而非模型拼的 Markdown，这在工程上确实优于 deepresearch 类产品的文本流输出）。但这个立论内含一个错误前提：把「不重复 deepresearch 已近天花板的搜索技术」错误地推导为「自己的搜索管道可以不修」。<strong>通用搜索技术确实接近天花板，但你们报告质量的决定性瓶颈不在那里</strong>——而在「任务约束根本没有传导到搜索调用」和「页面内证据召回」这两个纯自家工程问题上。</p>
+  <p><strong>2.</strong> 当前搜索质量的准确表述不是「差」，而是<strong>「未知」</strong>。设计文档自己承认：真实联网质量与人工验收从未执行，10 个真实材料槽位全部 blocked，所有回放案例标注 <code>quality_claim=mechanism_only</code>。唯一一次真实 live 批次（2026-09-14-s3）以 8 份正文、44 条证据、40 次模型请求、<strong>0 个 Finding</strong> 收场。在没有任何 live 质量基线的情况下讨论「呈现效果已较好」，衡量的其实只是排版，不是报告。</p>
+  <p><strong>3.</strong> 该设计<strong>能</strong>支撑「可信、可审计」的舆情报告——证据哈希校验、字符级 locator、失败不粉饰、数字护栏，这些是真的护城河。<strong>但「高质量」还撑不住</strong>：骨架决定下限（报告结构永不造假），搜索决定上限（报告内容是否配得上这个骨架）。目前上限明显低于下限。</p>
+</div>
+
+<h2><span class="no">01</span>设计立论检验：「从渲染结果倒推」对在哪、错在哪</h2>
+
+<h3>对的部分：呈现驱动不是包装，而是反哺了搜索</h3>
+
+<p>这套设计最有价值、也最容易被低估的一点：PagePlan（<code>opinion-page-plan/1</code>）把页面模块需求反向编译成 <code>search_targets</code>——每个缺失字段生成带 <code>issue_id</code>、依据问题、中文 target_gap 和允许搜索 purpose 的定向目标，由 Context Compiler 注入模型。也就是说，<strong>「呈现需要什么」真的在驱动「搜索去找什么」</strong>。这不是「渲染结果倒推」的修辞，而是一个真实的闭环：</p>
+
+<div class="flow">页面模块缺字段 → module_requirements → search_targets（绑定问题+缺口+purpose）
+  → Compiler 注入 memory.page_plan → Agent 定向 search → Evidence → Finding → 模块 ready
+
+<span class="hit">这是你们设计里最成立的论点，比市面上"先搜一堆再让模型写"的 deepresearch 架构在目标对齐上更优。</span></div>
+
+<p>同样成立的是报告的生成方式：<code>SearchReportView</code> / WorkbenchSnapshot 是从 committed State 一次性投影的只读视图，模型只写内容字段，程序负责章节、引用、计数、布局。对比 deepresearch 类产品「模型输出一大段 Markdown，引用是文本里的装饰」，你们的引用是可回溯到 artifact 字符偏移的。<strong>这是真实的工程优势，不是审美偏好。</strong></p>
+
+<h3>错的部分：把「搜索技术天花板」和「搜索管道质量」混为一谈</h3>
+
+<p>立论中「deepresearch 类 agent 已接近技术天花板，所以核心不在搜索」这个推理，混淆了两件事：</p>
+
+<table>
+  <tr><th>层次</th><th>是否接近天花板</th><th>与你们报告质量的关系</th></tr>
+  <tr>
+    <td><strong>通用网页发现技术</strong>（索引、排序、召回——Brave/Google 做的事）</td>
+    <td>是，自研无意义</td>
+    <td>调用现成 API 即可，你们的判断正确</td>
+  </tr>
+  <tr>
+    <td><strong>任务约束传导</strong>（时间窗/语言/域名/来源方向是否真的约束了检索）</td>
+    <td>否，纯自家工程</td>
+    <td><strong>直接决定召回是否对口。</strong>你们已解析出 TaskFrame，但 freshness、search_lang、country、offset、域名操作符一个都没传给 Brave</td>
+  </tr>
+  <tr>
+    <td><strong>页面内证据选择</strong>（读到的文章里哪几段成为可引用证据）</td>
+    <td>否，纯自家工程</td>
+    <td><strong>直接决定证据召回。</strong>当前是词面重合启发式 + 一次性读取，已知会选进无关段落、漏掉文章后半段</td>
+  </tr>
+</table>
+
+<p>第二、三层不是「重复已有搜索技术」，而是<strong>把自己已经签发的契约真正执行到底</strong>。一个解析出「过去一周」却从不把它变成 <code>freshness=pw</code> 的系统，和一个根本没解析时间窗的系统，在用户眼里的报告质量是一样的——都可能引用窗口外的旧闻。<strong>「倒推」的逻辑应该一视同仁地倒推到搜索：呈现需要窗口内证据，搜索就必须被窗口约束。现在这条链路在搜索边界断掉了。</strong></p>
+
+<div class="card warn">
+  <h4>⚠ 骨架的双刃剑效应</h4>
+  <p>固定骨架（四维 gap / 页面模块白名单）让报告永远结构完整、可读性稳定——这是下限保障。但骨架也可能成为<strong>调查的天花板</strong>：当用户问题不适合「事实/立场/主叙事/反叙事」四格时，completion gate 要求填满四格等于强迫调查回答模板而非回答问题。s3-live 批次的 0-Finding 死循环部分正源于此：模型可以反复换词搜索去填格子，却从不产出研判。后续加的「首次研判闸门」和「发布保留段」本质上是<strong>用程序约束修补骨架驱动带来的不收敛</strong>——它们让循环停下来，但不保证找到的东西更好。</p>
+</div>
+
+<h2><span class="no">02</span>搜索环节的实际质量：三层拆解</h2>
+
+<p>「搜索」在这个系统里实际是三个不同层次，质量状况各不相同。以下每条都有代码或文档级证据。</p>
+
+<h3>第一层：网页发现（Brave）——约束传导断裂</h3>
+
+<div class="card bad">
+  <h4>实际行为与缺口</h4>
+  <ul>
+    <li>每次搜索固定 <code>count=5</code>，模型无法调量（SearchDecision 没有 max_results 字段），无分页 offset。</li>
+    <li><code>freshness</code>、<code>search_lang</code>、<code>country</code> 全部未传——<code>language=zh</code> 不控制搜索语言，时间窗不约束结果时效。</li>
+    <li>域名 include/exclude 是<strong>事后过滤</strong>而非查询操作符：若返回的 5 条全被过滤掉，本轮就是零候选，不会补满。</li>
+    <li>查询去重是同 gap 内<strong>字符串精确判等</strong>：同义改写、大小写变化、跨 gap 重复都不算重复。</li>
+    <li>live 组合只注册 Brave 一家；Serper adapter 存在但未接入，无多引擎聚合，无本地 reranker（provider 排名分甚至被丢弃）。</li>
+  </ul>
+  <div class="ev">证据：brave_search.py / action_resolver.py / decisions.py；docs/opinion-search-search-rag-analysis.md §4–§6</div>
+</div>
+
+<p>查询生成是模型逐步自由发挥：没有 QueryPlan 对象记录目标实体、时间、来源方向、改写理由。harness 层的 <code>LlmResearchAgent</code> 稍好（一次产 ≤4 条带 source_goal 的查询、有停止条件），但兜底逻辑是「LLM 失败就用 task.objective 原句当查询」——<strong>一个中文长句直接丢给 Brave，召回质量可想而知</strong>。而驱动这两层的是 deepseek-v4-flash 这个 flash 级模型：查询规划恰恰是它最容易省成本省出错的地方。</p>
+
+<h3>第二层：页面内证据选择——词面启发式 + 一次性读取</h3>
+
+<div class="card bad">
+  <h4>实际算法与已知失败</h4>
+  <p><code>score = 4 × 块中出现的不同 focus term 数 + 1 × 是否含数字</code>，取正分最多 3 块，每块 ≤1200 字符，无滑动重叠。</p>
+  <ul>
+    <li><strong>实测失败：</strong>focus 为 battery recall 时，一段无关旅游文本因含数字「2026」获得正分被选为证据候选。「代码规则的确定性 ≠ 相关性质量」。</li>
+    <li>中文短文本门槛（有效字符 &lt; 24 丢弃）可能抛弃信息量极高的短回应——而舆情事件中官方回应往往就是一两句话。</li>
+    <li><strong>一次性读取是结构性限制：</strong>已读 URL 全局禁止再 read。完整 artifact 已落盘，但动作空间没有 retrieve/re-read——第一轮 focus 错过文章后半段，就永远错过。</li>
+  </ul>
+  <div class="ev">证据：processor.py `_select_evidence_excerpts`；search-rag 分析 §7（含实测探针）</div>
+</div>
+
+<p>这意味着：<strong>每篇文章对报告的贡献被预先封顶在 3.6K 字符的词面匹配结果里</strong>。一次 20 步预算的 run，假设一半步骤用于 read，有效证据池大约是 8–10 篇 × 3 段——这就是「搜索覆盖较薄」的精确含义。GPT-5.4 那份 live 报告看着不错（4 源 32 证据），但那是英文科技发布事件，Brave 的舒适区；你们目标域是中文社会争议事件，转载链长、官方口径短、反方声音散，这个词面启发式会更吃力。</p>
+
+<h3>第三层：决策上下文选择——这一层反而是最强的</h3>
+
+<div class="card good">
+  <h4>做得好的地方（客观承认）</h4>
+  <ul>
+    <li>Context Compiler 四层结构 + trust 边界 + 确定性降级，100 步 / 640 证据压力测试通过，这不是玩具。</li>
+    <li>证据完整性：<code>artifact_text[start:end] == excerpt</code> 在 Reader 边界与发布前双重校验，content_hash 绑定，版本不可变。</li>
+    <li>review_checks 数字护栏：Finding 中的数字/日期/百分比必须出现在支持摘录里，否则自动降级 supported→partial。</li>
+    <li>失败不粉饰：search_failures/read_failures 分别计数；链路诊断九阶段只报信号不打虚假综合分；<code>stance_distribution_eligible=false</code> 明确阻止把材料构成解释为公众观点占比。</li>
+  </ul>
+</div>
+
+<p>但注意：第三层再强，也只能在「前两层递进来的东西」里做选择。<strong>一个从没被召回的证据，没有任何编译策略能把它变出来。</strong></p>
+
+<h2><span class="no">03</span>主要短板（按严重度排序）</h2>
+
+<table>
+  <tr><th style="width:70px">级别</th><th>短板</th><th>为什么它压垮报告质量</th></tr>
+  <tr>
+    <td class="num"><span class="sev p0">P0</span></td>
+    <td><strong>live 质量从未被评测</strong></td>
+    <td>所有质量断言都是 mechanism_only；唯一一次真实 live 运行 0 Finding。没有基线就没有「改进」——任何优化都无法证明有效，也无法证伪。「呈现效果已较好」这个自我评估目前无证据支撑。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p0">P0</span></td>
+    <td><strong>任务约束不传导</strong></td>
+    <td>时间窗/语言/域名解析了却不传给 Brave。UI placeholder 写着「例如：过去 30 天」而解析器恰恰不识别带空格的这个写法——用户照抄示例即静默失效，Runtime 的时间校验随之整体旁路。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p0">P0</span></td>
+    <td><strong>证据选择质量 + 不可重读</strong></td>
+    <td>词面启发式有实测失败案例；一次性读取让完整 artifact 成为死资产。这是证据召回的最大单点。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p1">P1</span></td>
+    <td><strong>来源独立性幻觉</strong></td>
+    <td>completion 要求「≥2 distinct Source」，但按 URL 计数：同一通讯社稿被两个门户转载即满足。「两个网页 ≠ 两个独立信息源」——舆情报告最值钱的多方印证恰恰是这里最虚。source.relation 契约（same_text/repost/未核实）已建，但「未证明重复就当独立」的统计口径仍在。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p1">P1</span></td>
+    <td><strong>单引擎 + 无查询规划</strong></td>
+    <td>Brave 单点、5 条/次、无扩展无分页；查询质量完全押注 flash 模型的即兴发挥。s3-live 证明模型可以「换词搜索」空转到预算耗尽。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p1">P1</span></td>
+    <td><strong>最终总结无逐句支持验证</strong></td>
+    <td>FinalSynthesis 的引用是程序按 gap 聚合的，不是模型为每句话提交的——「总结旁边有引用，但句子自身未受支持检查」。数字护栏只覆盖 Finding，没覆盖总结句。</td>
+  </tr>
+  <tr>
+    <td class="num"><span class="sev p2">P2</span></td>
+    <td><strong>语义校验只到关系层</strong></td>
+    <td>「证据 ID 存在且与 gap 有交集」不等于「这段文字真的支持这个主张」——没有蕴含验证。这是所有结构化 agent 的通病，但你们的引用可审计性让这个问题<span style="color:var(--ink-3)">（相对）</span>不那么致命。</td>
+  </tr>
+</table>
+
+<h2><span class="no">04</span>一个绕不开的反驳，正面回答</h2>
+
+<blockquote>
+  <strong>反驳：</strong>「呈现差异化构不成护城河。deepresearch 产品真要学，一个前端团队两个月就能把白名单模块、证据抽屉、字符级定位抄走；而它们背后的搜索规模、索引和模型你们永远追不上。把差异化押在呈现上，是选了一个最容易被复制的战场。」
+</blockquote>
+
+<p><strong>我的回答：这个反驳对了一半，但打偏了靶心。</strong>值得防守的从来不是「呈现样式」（确实好抄），而是样式背后的<strong>可信提交链</strong>：Processor→Delta→Reducer 的权威状态、artifact 哈希与字符偏移校验、版本不可变、失败计数不粉饰、诊断不造分数。这套东西抄一个前端抄不走，因为它要求整个 Runtime 围着「可审计」重新设计——而 deepresearch 类产品的架构是为「流畅生成」优化的，转身成本恰恰很高。<strong>所以真正的差异化定位应该是「可审计的调查系统」，呈现只是它的皮肤。</strong>但请注意这个定位的隐含要求：可审计性只在证据为真、召回够用时才值钱。一个完美审计了一条错误证据链的系统，审计越严格越尴尬。这又回到了同一结论——搜索质量不是可选项，是你们自己定位的必答题。</p>
+
+<h2><span class="no">05</span>改进方向（按投入产出排序）</h2>
+
+<div class="card info">
+  <h4>P0-1 · 先测量，再优化：建立 live 质量基线（成本：中；收益：一切的前提）</h4>
+  <p>解冻 10 个真实材料槽位，用冻结材料 + 真实模型跑通 replay，再跑 5–10 个真实事件的人工评分。固定指标：<strong>关键证据召回率、无关证据比例、独立来源数（按转载关系去重后）、时间窗符合率、Finding 支持率、completed-but-thin 比例</strong>。没有这组数，后面所有 P0/P1 都是盲修。特别注意：completed 率只能当流程指标，它上升可能只是模型更会填表。</p>
+</div>
+
+<div class="card info">
+  <h4>P0-2 · 约束传导：让 TaskFrame 抵达搜索边界（成本：低；收益：立竿见影）</h4>
+  <p>把时间窗编译为 Brave <code>freshness</code>，语言映射 <code>search_lang/country</code>，域名约束编译为查询操作符 + 保留事后过滤双保险；修复「过去 30 天」空格解析与 UI placeholder 不一致；不支持的时间表达触发澄清而非静默 unspecified。这是全系统性价比最高的修复——契约已经签了，只是没送达。</p>
+</div>
+
+<div class="card info">
+  <h4>P0-3 · 开放 artifact 二次检索（成本：中；收益：直接抬高证据召回）</h4>
+  <p>新增 run 内 <code>retrieve.evidence</code> 能力：对已落盘的完整 artifact 按新 focus 重新取段。设计文档已预留「事件内 FTS5/BM25」的位置——先上词法基线（中文分词 + BM25），用 P0-1 的基线证明词法不够再考虑 embedding。同时修评分边界：数字奖励单独不能入选（至少命中 1 个 focus term），中文短回应单独设白名单通道。返回仍是 untrusted observation，chunk 带 source_id/hash/offset，不绕开 Processor→Reducer 边界。</p>
+</div>
+
+<div class="card">
+  <h4>P1-1 · 结构化查询规划（成本：中）</h4>
+  <p>把 QueryPlan 变成可持久化对象：目标实体、别名、时间、来源方向（官方/媒体/反方）、改写理由、覆盖检查。不必另起一个 agent，单 agent 加一个结构化阶段即可。配合每 gap 多查询变体 + 有界分页（offset），替换掉「模型每轮即兴写一句」。</p>
+</div>
+
+<div class="card">
+  <h4>P1-2 · 来源独立性去重（成本：中）</h4>
+  <p>用已有的 SourceRelation 契约（same_text/repost/excerpt）把「distinct URL」升级为「distinct 独立信源」：程序哈希判重为底，模型提议关系为候选（标「待复核」），依赖关系来源不进独立计数。completion 的「≥2 来源」改为按去重后口径计算。</p>
+</div>
+
+<div class="card">
+  <h4>P1-3 · 第二引擎与模型分层（成本：低-中）</h4>
+  <p>Serper adapter 已存在，注册进 live 组合做多引擎聚合（RRF 融合），或至少做失败切换之外的并行召回。查询规划/reflect 这类关键判断考虑换非 flash 模型，搜索词生成继续用 flash——按判断密度分配模型成本。</p>
+</div>
+
+<div class="card">
+  <h4>P2 · 最终总结的逐句支持验证（成本：中-高）</h4>
+  <p>把数字护栏的思路推广到 FinalSynthesis：总结拆为原子句，每句要求证据支撑，未支撑句降级或删除。这是对抗「引用装饰化」的最后一道闸，但也最耗预算——建议先在基线评测里量化「总结无支持句比例」，再决定是否值得。</p>
+</div>
+
+<h2><span class="no">06</span>总结：一张图看清现状</h2>
+
+<div class="flow">报告质量链条（当前实际状态）
+
+  任务理解 ──✓── TaskFrame 解析        （有，但有边界 bug）
+     │
+     ├─ ✗ 约束传导到 Brave              【断裂：freshness/lang/domain 全没传】
+     │
+  网页发现 ──~── Brave 单引擎 ×5 条      【单薄：无规划/扩展/分页/第二引擎】
+     │
+  正文获取 ──✓── Jina 全文 + artifact    （扎实：哈希、版本、大小上限）
+     │
+     ├─ ✗ 页面内证据选择                【瓶颈：词面启发式 + 一次性读取】
+     │
+  语义研判 ──~── reflect/review          （关系校验强，蕴含校验无；曾 0-Finding）
+     │
+  呈现投影 ──✓── PagePlan/Workbench      【最强：确定性、可审计、反哺搜索目标】
+     │
+  质量验证 ──✗── live 基线               【缺失：从未评测，质量=未知】
+
+  <span class="hit">最强的一环在最末端，最弱的一环在最上游——下游再精确，也放大不了上游没捞到的东西。</span></div>
+
+<p>最终回答原问题：<strong>该设计能支撑高质量舆情报告的「形」（可信、可审计、可读），但当前支撑不了高质量舆情报告的「实」（覆盖、召回、独立性）。</strong>骨架是对的，血肉没跟上。三个 P0（建基线、通约束、开重读）都不需要追逐任何 deepresearch 的前沿技术，全是把自家契约执行到底——这恰恰说明「从渲染结果倒推」的逻辑应该贯彻得比现在更彻底：倒推不该停在页面，该一路倒推到 Brave 的查询参数。</p>
+
+<div class="q-open">
+  我还没想清楚的一个问题：当「页面模块需要什么」成为搜索的主要驱动力（PagePlan → search_targets），调查会不会逐渐退化为「填表」——只找页面要的东西，不再找页面没想到要问的东西？反叙事、意外线索、不在模板里的第三立场，恰恰是最不容易被模块需求枚举出来的。如何在「呈现驱动搜索」和「开放式意外发现」之间留出余量，可能需要给 search_targets 显式保留一类「无模块归属的探索性搜索预算」——但这和收敛压力怎么平衡，我没有好答案。
+</div>
+
+<div class="footnote">
+  证据基础：docs/public-opinion-search-agent-design.md（§18–§19 含全部已落地契约与失败记录）、docs/opinion-search-search-rag-analysis.md（含 2026-09-09 实测探针）、reports/gpt-5.4-opinion-search-live-report.md、源码 processor.py / brave_search.py / research_agent.py / review_checks.py / compiler.py 等。所有「已实现」表述均以设计文档中标注「已进入仓库并经测试」的契约为准；所有「未验证」表述均直接引自文档自身声明（mechanism_only、blocked、尚未用真实模型复跑）。
+</div>
+
+</div>
+</body>
+</html>

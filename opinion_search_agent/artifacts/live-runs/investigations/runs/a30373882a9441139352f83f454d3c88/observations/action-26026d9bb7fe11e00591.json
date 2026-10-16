@@ -1,0 +1,39 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-5ff9fae7c7065bff6b3b",
+      "query": "人民网评 罗永浩 野人先生 冰淇淋 难吃 流量权力 site:people.com.cn",
+      "purpose": "official_response",
+      "page": 0,
+      "background": false,
+      "target_gap": "人民网评论的官方原文（people.com.cn 首发），用以替代目前唯一的自媒体改写/转述版本"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "人民网评 罗永浩 野人先生 冰淇淋 难吃 流量权力 site:people.com.cn -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": "2026-09-12to2026-09-22"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "a30373882a9441139352f83f454d3c88:step:29:attempt:1:action",
+      "tool_name": "search.web",
+      "kind": "unknown_provider_error",
+      "message": "Brave Search returned no web result object.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

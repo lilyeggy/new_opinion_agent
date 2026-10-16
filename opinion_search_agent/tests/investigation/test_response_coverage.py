@@ -195,6 +195,32 @@ def test_completion_stays_partial_when_an_answered_issue_has_an_open_component()
     assert verdict.disposition == CompletionDisposition.ACCEPT_PARTIAL
 
 
+def test_required_disputed_issue_with_unavailable_component_stays_partial():
+    from opinion_search.domain.investigation.engine import completion
+    from opinion_search.domain.investigation.models import (
+        Finding, FindingProposal, QuestionComponent, ReviewRecord, finding_hash,
+    )
+    from opinion_search.runtime.completion import CompletionDisposition
+
+    state = _compound_state(component_status="answered", issue_status="disputed")
+    issue = state.issues[0].model_copy(update={
+        "components": (
+            QuestionComponent(text="用户范围", status="answered", evidence_ids=("e1",)),
+            QuestionComponent(text="退费标准", status="unavailable", note="关键原文读取失败"),
+            QuestionComponent(text="执行时间", status="answered", evidence_ids=("e1",)),
+        ),
+    })
+    proposal = FindingProposal(issue_id=issue.issue_id, text="机构称已公布退费安排。",
+                               kind="attributed", stakeholder="机构", evidence_ids=("e1",))
+    finding = Finding(**proposal.model_dump(), finding_id="f-completion")
+    review = ReviewRecord(finding_id=finding.finding_id, verdict="supported", reason="构造验证",
+                          finding_hash=finding_hash(finding), model="test", reviewed_at=utcnow())
+    state = state.model_copy(update={"issues": (issue,), "findings": (finding,), "reviews": (review,)})
+
+    verdict = completion(state)
+    assert verdict.disposition == CompletionDisposition.ACCEPT_PARTIAL
+
+
 def test_unbacked_numeric_specifics_are_detected_for_review_downgrade():
     from opinion_search.domain.investigation.models import (
         Evidence, Finding, FindingProposal,
@@ -206,5 +232,140 @@ def test_unbacked_numeric_specifics_are_detected_for_review_downgrade():
                       finding_id="f1")
     evidence = (Evidence(evidence_id="e1", version_id="v1", excerpt="末班提前至22时，补贴30%。",
                          start=0, end=12, locator="chars 0:12"),)
-    assert unbacked_specifics(finding, evidence) == ("10",)
+    assert unbacked_specifics(finding, evidence) == ("10条",)
     assert "named measure" in REVIEW_INSTRUCTIONS
+
+
+def test_numeric_guard_requires_the_cited_unit_but_accepts_equivalent_amount_scales():
+    from opinion_search.domain.investigation.models import Evidence, Finding, FindingProposal
+    from opinion_search.investigation.service import unbacked_specifics
+
+    wrong_unit = Finding(**FindingProposal(
+        issue_id="i", text="机构称已退款200元。", kind="attributed", stakeholder="机构",
+        evidence_ids=("e1",)).model_dump(), finding_id="f-unit")
+    evidence = (Evidence(evidence_id="e1", version_id="v1", excerpt="已退款100元，涉及200户。",
+                         start=0, end=15, locator="chars 0:15"),)
+    assert unbacked_specifics(wrong_unit, evidence) == ("200元",)
+
+    converted = Finding(**FindingProposal(
+        issue_id="i", text="机构称涉及金额285.85万元。", kind="attributed", stakeholder="机构",
+        evidence_ids=("e2",)).model_dump(), finding_id="f-scale")
+    converted_evidence = (Evidence(evidence_id="e2", version_id="v1", excerpt="涉及金额2858500元。",
+                                   start=0, end=13, locator="chars 0:13"),)
+    assert unbacked_specifics(converted, converted_evidence) == ()
+
+
+def test_per_issue_read_error_does_not_block_unrelated_issue_not_found():
+    issue_a = uid("issue", "发生了什么")
+    issue_b = uid("issue", "回应如何")
+    searches = tuple(
+        SearchAttempt(issue_id=issue_b, query=f"q-{purpose}", purpose=purpose, page=0, outcome="empty", count=0)
+        for purpose in ("official_response", "event_response", "followup")
+    )
+    state = _base_state(
+        searches=searches,
+        candidates=(
+            {"url": "https://failed.example/a", "title": "失败页", "issue_id": issue_a},
+        ),
+        read_attempts=("https://failed.example/a",),
+        read_errors=("https://failed.example/a",),
+    )
+    assert response_search_complete(state, issue_a) is False
+    assert response_search_complete(state, issue_b) is True
+
+
+def test_chunks_filter_markdown_image_noise_and_preserve_exact_offsets():
+    from opinion_search.investigation.storage import chunks, verify_evidence
+
+    raw_doc = (
+        "![Image 7: 头像](https://img.example.com/avatar.png)\n\n"
+        "https://track.example.com/click?id=1234567890\n\n"
+        "2026年9月16日，品牌官方正式回应称：“我们门店坚持当日鲜奶现制，已启动内部复核。”"
+    )
+    extracted = list(chunks(raw_doc))
+    assert len(extracted) == 1
+    start, end, excerpt = extracted[0]
+    assert "![Image" not in excerpt
+    assert "当日鲜奶现制" in excerpt
+    ev = Evidence(evidence_id="e-clean", version_id="v1", excerpt=excerpt, start=start, end=end, locator=f"chars {start}:{end}")
+    verify_evidence(ev, raw_doc)
+
+
+def test_evidence_quality_signals_detect_saturation_near_duplicates_counter_and_numeric_conflicts():
+    from opinion_search.domain.investigation.engine import evidence_quality_signals
+
+    s1 = SourceVersion(
+        version_id="v1", url="https://news.qq.com/a1", final_url="https://news.qq.com/a1",
+        title="报道1", fetched_at=utcnow(), artifact_ref="artifact://1", content_hash="1" * 64,
+    )
+    s2 = SourceVersion(
+        version_id="v2", url="https://news.qq.com/a2", final_url="https://news.qq.com/a2",
+        title="报道2", fetched_at=utcnow(), artifact_ref="artifact://2", content_hash="2" * 64,
+    )
+    text_a = "财报显示华润三九年度营业收入达到316.03亿元，同比增长显著，但也有消费者质疑广告创意边界。"
+    text_b = "转载稿称华润三九年度营业收入达到3160.3亿元，同比增长显著，但也有消费者质疑广告创意边界。"
+    ev1 = Evidence(evidence_id="e1", version_id="v1", excerpt=text_a, start=0, end=len(text_a), locator="chars")
+    ev2 = Evidence(evidence_id="e2", version_id="v2", excerpt=text_b, start=0, end=len(text_b), locator="chars")
+    candidates = tuple(
+        {"url": f"https://news.qq.com/item{i}", "title": f"候选{i}", "issue_id": uid("issue", "发生了什么")}
+        for i in range(4)
+    )
+    state = _base_state(candidates=candidates).model_copy(update={"sources": (s1, s2), "evidence": (ev1, ev2)})
+    signals = evidence_quality_signals(state)
+
+    assert signals["domain_saturation"][0]["domain"] == "news.qq.com"
+    assert len(signals["near_duplicate_sources"]) == 1
+    assert len(signals["undisposed_counter_evidence"]) >= 1
+    assert len(signals["numeric_conflicts"]) == 1
+    conflict = signals["numeric_conflicts"][0]
+    assert {conflict["value_a"], conflict["value_b"]} == {"316.03亿元", "3160.3亿元"}
+
+
+def test_reduce_state_auto_detects_syndicated_repost_and_compiler_uses_truncate(tmp_path):
+    from opinion_search.context.models import CompactionMode
+    from opinion_search.domain.investigation.engine import reduce_state
+    from opinion_search.domain.investigation.models import Delta, Observation, ReadDecision
+    from opinion_search.investigation.context import Compiler
+    from opinion_search.investigation.service import InvestigationRun
+    from opinion_search.investigation.storage import Budget
+    from opinion_search.runtime.transaction import open_step, start_run
+
+    s1 = SourceVersion(
+        version_id="v1", url="https://news.example.com/1", final_url="https://news.example.com/1",
+        title="首发报道", fetched_at=utcnow(), artifact_ref="artifact://1", content_hash="1" * 64,
+    )
+    text_a = "监管部门通报称涉事门店使用的是当日采购鲜奶，单杯定价28元符合菜单公示标准。"
+    ev1 = Evidence(evidence_id="e1", version_id="v1", excerpt=text_a, start=0, end=len(text_a), locator="chars")
+    state = _base_state().model_copy(update={"sources": (s1,), "evidence": (ev1,)})
+
+    s2 = SourceVersion(
+        version_id="v2", url="https://repost.example.com/2", final_url="https://repost.example.com/2",
+        title="转载通稿", fetched_at=utcnow(), artifact_ref="artifact://2", content_hash="2" * 64,
+    )
+    text_b = "据转载，监管部门通报称涉事门店使用的是当日采购鲜奶，单杯定价28元符合菜单公示标准。"
+    ev2 = Evidence(evidence_id="e2", version_id="v2", excerpt=text_b, start=0, end=len(text_b), locator="chars")
+    read_dec = ReadDecision(issue_id=uid("issue", "发生了什么"), url="https://repost.example.com/2", focus="核查通报原文", role="reporting")
+    obs = Observation(action="read", sources=(s2,), evidence=(ev2,))
+    next_state = reduce_state(state, Delta(decision=read_dec, observation=obs))
+
+    assert len(next_state.relations) == 1
+    rel = next_state.relations[0]
+    assert {rel.source_version_id, rel.related_version_id} == {"v1", "v2"}
+    assert rel.relation in {"repost", "same_text"}
+    assert set(rel.basis_evidence_ids) == {"e1", "e2"}
+
+    # Verify Compiler sets CompactionMode.TRUNCATE for unlinked peripheral evidence and NEVER for counter-evidence
+    ev_counter = Evidence(
+        evidence_id="e-counter", version_id="v1",
+        excerpt="但也有消费者反驳称部分门店在晚间时段仍使用了冷冻奶浆。",
+        start=0, end=27, locator="chars",
+    )
+    state_with_counter = next_state.model_copy(update={"evidence": (*next_state.evidence, ev_counter)})
+    budget = Budget(tmp_path / "budget.json")
+    budget.start()
+    run = open_step(start_run(InvestigationRun(run_id="r1", domain_state=state_with_counter)), step_id="s1")
+    compiled = Compiler(budget).compile(run)
+    by_id = {sec.section_id: sec for sec in compiled.sections}
+    assert by_id["evidence.e-counter"].compaction is CompactionMode.NEVER
+    assert by_id["evidence.e1"].compaction is CompactionMode.TRUNCATE
+

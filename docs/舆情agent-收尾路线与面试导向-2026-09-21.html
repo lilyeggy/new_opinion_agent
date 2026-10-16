@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>收尾路线与面试导向 · 2026-09-21</title>
+<style>
+  :root {
+    --ink: #1a2233; --ink-2: #3d4a63; --ink-3: #6b7690;
+    --line: #e3e7ef; --bg: #f7f8fa; --card: #ffffff;
+    --accent: #2b5ce6; --accent-soft: #eef3fe;
+    --red: #c0392b; --red-soft: #fdf0ee;
+    --amber: #b3770a; --amber-soft: #fdf6e7;
+    --green: #1e7e4d; --green-soft: #ecf7f1;
+    --mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--ink); line-height: 1.85; font-size: 15.5px; }
+  .page { max-width: 880px; margin: 0 auto; padding: 56px 32px 96px; }
+  header.masthead { border-bottom: 3px solid var(--ink); padding-bottom: 28px; margin-bottom: 36px; }
+  .kicker { font-size: 13px; letter-spacing: 2px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  h1 { font-size: 29px; line-height: 1.4; font-weight: 700; }
+  .meta { margin-top: 14px; font-size: 13px; color: var(--ink-3); }
+  h2 { font-size: 21px; margin: 52px 0 16px; padding-top: 14px; border-top: 1px solid var(--line); font-weight: 700; }
+  h2 .no { color: var(--accent); font-family: var(--mono); font-size: 15px; margin-right: 10px; }
+  h3 { font-size: 16.5px; margin: 26px 0 8px; color: var(--ink-2); }
+  p { margin: 12px 0; }
+  code { font-family: var(--mono); font-size: 13.5px; background: #eef0f4; padding: 1px 6px; border-radius: 4px; }
+  .verdict { background: var(--ink); color: #f2f4f8; border-radius: 10px; padding: 26px 30px; margin: 32px 0 8px; line-height: 1.9; }
+  .verdict .tag { color: #8fb0ff; font-size: 13px; letter-spacing: 2px; font-weight: 600; }
+  .verdict p { margin: 10px 0 0; }
+  .verdict strong { color: #fff; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 24px; margin: 14px 0; }
+  .card.bad { border-left: 4px solid var(--red); background: var(--red-soft); }
+  .card.warn { border-left: 4px solid var(--amber); background: var(--amber-soft); }
+  .card.good { border-left: 4px solid var(--green); background: var(--green-soft); }
+  .card.info { border-left: 4px solid var(--accent); background: var(--accent-soft); }
+  .card h4 { font-size: 15.5px; margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; background: var(--card); }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; line-height: 1.7; }
+  th { background: #eef0f5; font-weight: 650; font-size: 13.5px; }
+  ul, ol { padding-left: 24px; margin: 10px 0; }
+  li { margin: 7px 0; }
+  .stage { display: flex; gap: 16px; margin: 14px 0; }
+  .stage .day { flex: 0 0 92px; font-family: var(--mono); font-size: 12.5px; color: var(--accent); font-weight: 700; padding-top: 20px; text-align: right; }
+  .stage .body { flex: 1; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 22px; }
+  .stage .body h4 { font-size: 15.5px; margin-bottom: 4px; }
+  .nogo { background: var(--red-soft); border: 1px solid #eccfca; border-radius: 10px; padding: 16px 22px; margin: 14px 0; }
+  .nogo h4 { color: var(--red); font-size: 15px; margin-bottom: 6px; }
+  .footnote { font-size: 13px; color: var(--ink-3); border-top: 1px dashed var(--line); margin-top: 48px; padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <div class="kicker">收尾决策 · 秋招面试导向</div>
+  <h1>项目思路对不对？先改哪里？<br>——一份以「面试能讲透」为验收标准的收尾路线</h1>
+  <div class="meta">前提：秋招进行中，可用时间按 1–2 周计 · 核心技术叙事锚定 Agent Harness 构建 · 2026-09-21</div>
+</header>
+
+<div class="verdict">
+  <div class="tag">两 个 问 题 的 直 接 回 答</div>
+  <p><strong>Q1 · 整体思路对不对？——对。</strong>「只深做 Agent Harness/Runtime 与 Tool/MCP/Context/Memory 两层，舆情作验证 workload」这个定位，和 agent 构建开发岗的面试考点几乎逐项对齐：loop 设计、状态机、崩溃恢复、effectively-once、工具协议、上下文工程、失败模型——你们的设计文档 §16 列的面试题就是证据。思路不需要转向，需要收尾。</p>
+  <p><strong>Q2 · 先合流再改质量？——顺序对，但「合流」必须换一种做法。</strong>现在距离面试是以周计，<strong>不做代码级大重构，做「决策级合流」</strong>：确立唯一 harness、隔离或归档第二套循环、统一叙事。质量修改也要换成「面试友好」的版本：不做搜索管道大改，做<strong>质量基线测量</strong>——因为面试里「我怎么验证我的 harness 有效」比「我又加了什么功能」值钱得多。</p>
+</div>
+
+<h2><span class="no">01</span>一个必须先点破的事实：harness/ 第二层循环违反了你们自己的 canonical design</h2>
+
+<p>设计文档 §4.1 白纸黑字：<strong>「第一版不做 planner/researcher/writer/verifier 多 Agent 拓扑，也不做 subagent」</strong>。而 <code>harness/</code> 目录恰好就是 planner + research + analyst + reviewer 四个角色的流水线，且只接在 mock 和测试里、没进产品路径。</p>
+
+<p>这反而让合流决策变得容易了：<strong>不是「两套实现选一套」的工程取舍，而是「要不要遵守自己已经签发的契约」</strong>。处理方案有三个：</p>
+
+<table>
+  <tr><th>方案</th><th>成本</th><th>面试效果</th><th>结论</th></tr>
+  <tr>
+    <td><strong>甲 · 归档 B</strong>：harness/ 整体移入 archive/ 或标记 experimental，canonical design 补一条「曾评估多角色流水线拓扑，因违反单一 runtime 原则与维护成本，决策不采用」</td>
+    <td>半天</td>
+    <td>「为什么砍掉第二个 loop」是绝佳的 scope discipline 故事——面试官最缺的就是见过「会做减法」的候选人</td>
+    <td style="color:var(--green);font-weight:700">推荐</td>
+  </tr>
+  <tr>
+    <td><strong>乙 · 叙事保留 B</strong>：把 B 改造成 A 之上的「确定性调度策略」（上次报告的 P0-1 完整合流）</td>
+    <td>1–2 周，有风险</td>
+    <td>故事最好（「两种拓扑在同一 runtime 上」），但秋招前做不完或做不扎实，反而引入新的讲不清楚的半成品</td>
+    <td style="color:var(--amber);font-weight:700">秋招后再做</td>
+  </tr>
+  <tr>
+    <td><strong>丙 · 维持现状</strong>：两套并存，面试被问「为什么有两个 loop」时现场解释</td>
+    <td>0</td>
+    <td>减分项。一个讲不出取舍理由的 fork，会让面试官怀疑系统是不是你主导设计的</td>
+    <td style="color:var(--red);font-weight:700">不可接受</td>
+  </tr>
+</table>
+
+<p>选甲之后，「骨架→渲染」这个产品思路并没有丢——它在生产路径里已经由 <strong>PagePlan + Workbench</strong> 实现了（事件专项模块白名单、程序投影、模型不碰 HTML），那是讲渲染差异化的正当载体。harness/ 目录只是这个想法的一个没被接线的草稿。</p>
+
+<h2><span class="no">02</span>面试视角下，这个项目的资产盘点</h2>
+
+<p>秋招面试里，这个项目能打的牌按价值排序——你会发现<strong>好牌几乎全在 harness 层，缺的只有一张「验收牌」</strong>：</p>
+
+<div class="card good">
+  <h4>已经有的硬牌（直接可讲，且有测试背书）</h4>
+  <ul>
+    <li><strong>相位状态机 + 三个崩溃窗口的恢复语义</strong>：工具返回后、状态提交前崩溃怎么办——这是 agent loop 面试的「区分度题」，你们有测试显式覆盖。</li>
+    <li><strong>effectively-once 的诚实表述</strong>：不吹 exactly-once，用稳定 action ID + 幂等 Reducer + 内容寻址缓存逼近——这种「知道边界在哪」的表述比吹概念更加分。</li>
+    <li><strong>Context Compiler 四层结构 + 100 步 / 640 证据压力测试</strong>：有数字的上下文工程，全场没几个候选人拿得出。</li>
+    <li><strong>Tool Runtime 的错误分类学</strong>：invalid_args 不重试 / timeout 有限重试 / auth 立即失败 / cancelled 不重试——成体系的失败模型。</li>
+    <li><strong>真实生产失败 → 确定性修复的完整故事</strong>：s3-live 批次 40 次模型请求 0 Finding → 链路诊断定位 → 首次研判闸门 → 发布保留段 → 机制回归。<strong>这是你们最有价值的一张牌</strong>：它同时展示了调试能力、权衡能力（不用 prompt 哀求模型，用程序约束）、和诚实（文档里写明「尚未用真实模型复跑，不能宣称改善」）。</li>
+    <li><strong>「模型提议、程序处置」的一贯立场</strong>：review 数字护栏、PagePlan 白名单渲染、Completion Gate——这条主线贯穿全项目，是你回答「agent 可靠性怎么保证」的总纲。</li>
+  </ul>
+</div>
+
+<div class="card warn">
+  <h4>缺的一张牌：验收数字</h4>
+  <p>现在被问「你的 agent 效果怎么样」，只能答「机制测试全过 + 一份 live 报告」，没有检索质量数字。面试官顺着问「你怎么知道搜索质量够好」就会露出「从未评测」的底。<strong>这就是质量工作在面试语境下的正确定位：不是产品打磨，是 harness 的验收工程</strong>——补齐「我怎么验证我的系统」这一环叙事。</p>
+</div>
+
+<h2><span class="no">03</span>收尾路线：三个阶段，约 7–9 个工作日</h2>
+
+<div class="stage">
+  <div class="day">D1–D2</div>
+  <div class="body">
+    <h4>阶段一 · 决策级合流（不重构）</h4>
+    <ul>
+      <li>harness/ 归档或标记 experimental；canonical design §4.1 补决策记录（试过、权衡过、不采用、原因）。</li>
+      <li>统一叙事：唯一 harness = runtime AgentLoop；产品形态 = investigation 域 + PagePlan 渲染；README 与 implementation memory 同步。</li>
+      <li>统一概念词汇表的「讲法」（不逐字重构代码）：面试口径里 Evidence/Finding/Review 只有一套，harness/ 里的重复概念作为「已归档探索」处理。</li>
+    </ul>
+    <p style="color:var(--ink-3);font-size:13.5px">产出：系统 5 分钟能讲清，fork 变成减法故事。风险：零。</p>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="day">D3–D6</div>
+  <div class="body">
+    <h4>阶段二 · 质量基线（验收工程，不是产品优化）</h4>
+    <ul>
+      <li>给两套冻结材料标「必中清单」（合格调查必须找到的文档/段落，半天人工）；</li>
+      <li>跑 replay 出 <strong>recall@k / 无关证据比例 / 时间窗符合率</strong> 三个数字；</li>
+      <li>在合成事件里埋 3–5 个对抗点（已知反方文档、已知更正、已知数字错误），验证反叙事命中与数字护栏拦截；</li>
+      <li>把数字护栏从 finding 推广到 FinalSynthesis 逐句（如果 D6 前来得及；来不及就列为已知限制）。</li>
+    </ul>
+    <p style="color:var(--ink-3);font-size:13.5px">产出：「我的 harness 检索召回 xx%、忠实性支持率 xx%、对抗点命中 x/5」——面试里可直接引用的验收数字。顺带把「placeholder 写着过去 30 天但解析器不识别空格」这种真 bug 修掉，又是一个小故事。</p>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="day">D7–D9</div>
+  <div class="body">
+    <h4>阶段三 · 面试资产收口</h4>
+    <ul>
+      <li>用自己的话过一遍设计文档 §16 的 13 个问题（opinion_search_interview_guide/ 已有基础，补齐「为什么」而非「是什么」）；</li>
+      <li>准备一张架构图 + 三个数字（压力测试、恢复窗口、质量基线）+ 一个失败故事（s3-live），这是 3 分钟电梯陈述的全部弹药；</li>
+      <li>把「已知限制」练成加分项：主动讲「搜索约束未传导到 provider、来源独立性按 URL 计数是简化」——能讲清自己系统短板的人，比假装没有短板的人可信十倍。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="nogo">
+  <h4>秋招前明确不做（做了就是负资产）</h4>
+  <ul>
+    <li>✗ 代码级 harness 合流重构（方案乙）——大改必引入新的讲不清楚的中间态；</li>
+    <li>✗ 搜索管道大改（QueryPlan 对象、第二引擎、BM25 二次检索）——都是对的，但都改变系统行为，改完需要重新验证，时间不够；写进「下一步计划」讲给面试官听即可；</li>
+    <li>✗ 全异步化、checkpoint 增量化——纯工程优化，面试零增益；</li>
+    <li>✗ 任何「让报告看起来更好」的表面打磨——面试官不评报告排版，评你对系统的理解深度。</li>
+  </ul>
+</div>
+
+<h2><span class="no">04</span>最后一句话</h2>
+
+<p style="font-size:16.5px; line-height:1.9; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px 26px;">
+<strong>这个项目对秋招的价值，不在于它还能加什么功能，而在于它已经有的深度能不能被你在 30 分钟内完整讲出来。</strong>思路不用转向，harness 定位不用动摇。收尾的正确姿势是三件事：<strong>砍掉那个违反自己契约的 fork（并把这个取舍讲成故事）、给 harness 补上验收数字（而不是给产品补功能）、把已有深度练成流畅的讲述。</strong>做完这三件，这就是一个完整、自洽、有真实失败与修复、有验收证据的 agent harness 项目——比 90% 的「玩具 demo + 华丽报告」型项目硬得多。</p>
+
+<div class="footnote">
+  依据：canonical design §4.1 与 §16、前两轮分析（搜索质量评估、harness 设计评估）、harness/ 与 runtime/ 源码、opinion_search_interview_guide/ 既有资产。本路线假设可用时间 1–2 周；若面试时间更紧，阶段三优先于阶段二（讲述能力 > 新数字）。
+</div>
+
+</div>
+</body>
+</html>

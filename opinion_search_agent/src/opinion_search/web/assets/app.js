@@ -310,6 +310,7 @@ async function renderProvisionalWorkbench(runId, token = routeToken) {
 function paintProgress(root, runId, snapshot) {
   clear(root);
   const progress = snapshot.progress || {};
+  const diagnosticSummary = (progress.diagnostics || {}).summary || {};
   const issues = progress.questions || [];
   const errorBox = el("p", { class: "error", hidden: true });
   root.append(el("section", { class: "card" }, [
@@ -330,6 +331,10 @@ function paintProgress(root, runId, snapshot) {
     el("p", { class: "muted", text: "调查正在进行；这里展示阶段、已提交的问题与材料，不显示精确进度百分比。" }),
     el("ul", {}, issues.map((issue) => el("li", { text: `${LABELS[issue.status] || issue.status}：${issue.question}` }))),
     el("p", { class: "muted", text: `已保存材料 ${progress.source_count || 0} 个｜当前有效判断 ${progress.finding_count || 0} 条｜读取失败 ${progress.read_errors || 0}｜搜索失败 ${progress.search_errors || 0}` }),
+    diagnosticSummary.status ? el("p", {
+      class: diagnosticSummary.critical ? "notice error" : diagnosticSummary.warnings ? "notice" : "muted",
+      text: `链路诊断：阻塞 ${diagnosticSummary.critical || 0} 项｜待处理 ${diagnosticSummary.warnings || 0} 项。结构信号不代表事实正确率。`,
+    }) : null,
     (progress.read_errors || progress.search_errors)
       ? el("p", { class: "notice", text: "本轮存在读取或搜索失败：失败不等于“没有材料”，相关问题的结论会如实标注无法判断或材料不足。" })
       : null,

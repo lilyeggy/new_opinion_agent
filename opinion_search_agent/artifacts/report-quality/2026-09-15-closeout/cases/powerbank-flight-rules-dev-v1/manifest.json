@@ -1,0 +1,68 @@
+{
+  "case_id": "powerbank-flight-rules-dev-v1",
+  "request_question": "调查2025年6月28日起国内航班充电宝携带新规：规则具体限制什么、为什么出台、机场如何执行并提供暂存或邮寄服务、执行中暴露了哪些服务问题，以及后续监管材料是否改变了对安全风险和执行成效的判断。",
+  "focus": "严格区分民航局规则、地区监管部署、单个机场服务实践与后续产品召回监管；不得把机构工作总结写成旅客总体满意，也不得把材料中的自弃数量变化直接解释为政策认同。",
+  "clarification_answers": [],
+  "materials": [
+    {
+      "url": "https://www.caac.gov.cn/XWZX/MHYW/202506/t20250626_227805.html",
+      "final_url": "https://www.caac.gov.cn/XWZX/MHYW/202506/t20250626_227805.html",
+      "title": "民航局：禁止旅客携带无3C标识及被召回的充电宝乘坐境内航班",
+      "published_at": "2025-06-26T13:01:00+08:00",
+      "updated_at": null,
+      "role": "original",
+      "snapshot_path": "snapshots/117f1ed502728681369b6f6b74a960ad63d137afde88ee03466facad7bfd2864.txt",
+      "sha256": "117f1ed502728681369b6f6b74a960ad63d137afde88ee03466facad7bfd2864"
+    },
+    {
+      "url": "https://xb.caac.gov.cn/XB_XWZX/XB_DQYW/202507/t20250710_227953.html",
+      "final_url": "https://xb.caac.gov.cn/XB_XWZX/XB_DQYW/202507/t20250710_227953.html",
+      "title": "西北局扎实推进充电宝乘机新规落地",
+      "published_at": "2025-07-10T16:59:00+08:00",
+      "updated_at": null,
+      "role": "original",
+      "snapshot_path": "snapshots/003ba22b349e2e02ac4422ca11b960351cb41a473ae50507748a3bb980d1479f.txt",
+      "sha256": "003ba22b349e2e02ac4422ca11b960351cb41a473ae50507748a3bb980d1479f"
+    },
+    {
+      "url": "https://www.beijing.gov.cn/fuwu/bmfw/sy/jrts/202507/t20250724_4156426.html",
+      "final_url": "https://www.beijing.gov.cn/fuwu/bmfw/sy/jrts/202507/t20250724_4156426.html",
+      "title": "首都机场完善禁限带物品暂存服务",
+      "published_at": "2025-07-24T09:27:00+08:00",
+      "updated_at": null,
+      "role": "reporting",
+      "snapshot_path": "snapshots/347d395b46c67da2589a6007e1989b280c4d45995492e10013497a909a257517.txt",
+      "sha256": "347d395b46c67da2589a6007e1989b280c4d45995492e10013497a909a257517"
+    },
+    {
+      "url": "https://www.caac.gov.cn/local/HBGLJ/HB_DQYW/202507/t20250711_227969.html",
+      "final_url": "https://www.caac.gov.cn/local/HBGLJ/HB_DQYW/202507/t20250711_227969.html",
+      "title": "华北局召开华北地区旅客携带充电宝乘机专题工作会",
+      "published_at": "2025-07-11T16:51:00+08:00",
+      "updated_at": null,
+      "role": "original",
+      "snapshot_path": "snapshots/57c6efce7e9b15e5039e25a35cb9dc6212630b5e8611ddf1c037f27f00e453e0.txt",
+      "sha256": "57c6efce7e9b15e5039e25a35cb9dc6212630b5e8611ddf1c037f27f00e453e0"
+    },
+    {
+      "url": "https://www.caac.gov.cn/local/XBGLJ/XB_XXGK/XB_GZDT/202509/t20250902_228513.html",
+      "final_url": "https://www.caac.gov.cn/local/XBGLJ/XB_XXGK/XB_GZDT/202509/t20250902_228513.html",
+      "title": "陕西监管局开展充电宝新规执行情况专项检查",
+      "published_at": "2025-09-02T16:05:00+08:00",
+      "updated_at": null,
+      "role": "original",
+      "snapshot_path": "snapshots/19b168425c2d55f54635d1ddc36380380111fde287fd471d76acf9fd58d3319a.txt",
+      "sha256": "19b168425c2d55f54635d1ddc36380380111fde287fd471d76acf9fd58d3319a"
+    },
+    {
+      "url": "https://www.samr.gov.cn/xw/mtjj/art/2025/art_74499e2a831d4bf19d3e9c43b5c890bc.html",
+      "final_url": "https://www.samr.gov.cn/xw/mtjj/art/2025/art_74499e2a831d4bf19d3e9c43b5c890bc.html",
+      "title": "充电宝产品召回以及3C认证监管有哪些新进展？市场监管总局回应",
+      "published_at": "2025-09-26T11:22:00+08:00",
+      "updated_at": null,
+      "role": "original",
+      "snapshot_path": "snapshots/43abface98f784edd04b3eb5dfdfaba32ec34aafd95ff541d021d558f719d868.txt",
+      "sha256": "43abface98f784edd04b3eb5dfdfaba32ec34aafd95ff541d021d558f719d868"
+    }
+  ]
+}

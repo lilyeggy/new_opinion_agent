@@ -1,0 +1,50 @@
+{
+  "schema": "opinion-search-closeout-batch/1",
+  "batch_id": "2026-09-15-closeout",
+  "started_at": "2026-09-15T11:15:42+08:00",
+  "deadline": "2026-09-15T18:00:00+08:00",
+  "feature_freeze": "2026-09-15T14:30:00+08:00",
+  "status": "CLOSED_WITH_FAILURES",
+  "quality_status": "ENGINEERING_ACCEPTANCE_ONLY_V1_NOT_ACCEPTED",
+  "completed_at": "2026-09-16T10:24:15+08:00",
+  "deadline_result": "MISSED",
+  "code": {
+    "head": "443ebf9e12103bd9f052772ba8b48b4ce83bda2d",
+    "working_diff_sha256_excluding_artifacts": "a26cae92bfb411148da1a6e8393275af55f30ed7d3a403b25f8c7c510797861f",
+    "feature_frozen_at": "2026-09-15T14:30:00+08:00",
+    "hash_scope": "all modified and untracked workspace files excluding opinion_search_agent/artifacts"
+  },
+  "limits": {
+    "model_requests_total": 146,
+    "external_searches_total": 18,
+    "external_reads_total": 24
+  },
+  "usage": {
+    "model_requests": 103,
+    "external_searches": 20,
+    "external_reads": 11
+  },
+  "stages": {
+    "C0": "PASS",
+    "C1": "FAIL",
+    "C2": "PASS",
+    "C3": "PASS_WITH_LIMITATIONS",
+    "C4": "PARTIAL_B_READY_LIVE_H_AVAILABLE_H_UNANNOTATED",
+    "C5": "FAIL_REPORT_CLOSURE",
+    "C6": "FAIL_T0_NO_FINDINGS_T1_NOT_RUN",
+    "C7": "PASS_WEB_PATH_WITH_PARTIAL_REPORT",
+    "C8": "PASS",
+    "C9": "PASS_WITH_UI_AND_CONTENT_LIMITATIONS",
+    "C10": "NOT_RUN_HUMAN_REVIEW",
+    "C11": "CLOSED_V1_NOT_ACCEPTED"
+  },
+  "acceptance": {
+    "citation_locator_integrity": "PASS_34_OF_34_FOR_LIVE_H",
+    "required_question_quality": "NOT_ACCEPTED_6_OF_6_ISSUES_OPEN",
+    "important_claim_review": "NOT_ACCEPTED_11_OF_11_ACTIVE_FINDINGS_UNREVIEWED",
+    "update_path": "NOT_ACCEPTED_T1_NOT_RUN",
+    "browser_main_path": "PASS_CREATE_PROGRESS_REFRESH_STATIC_EXPORT_EVIDENCE_NAVIGATION",
+    "human_review": "NOT_RUN"
+  },
+  "budget_note": "The batch exceeded the external-search limit by 2 because three holdout-selection searches and seven live-agent searches were counted. The live holdout itself remained within its per-run search/read/model limits."
+}

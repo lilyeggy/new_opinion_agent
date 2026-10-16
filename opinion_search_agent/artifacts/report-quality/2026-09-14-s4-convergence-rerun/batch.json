@@ -1,0 +1,73 @@
+{
+  "schema": "opinion-report-quality-batch/1",
+  "batch_id": "2026-09-14-s4-convergence-rerun",
+  "created_at": "2026-09-14T19:58:02+08:00",
+  "git_revision_at_start": "443ebf9e12103bd9f052772ba8b48b4ce83bda2d",
+  "workspace_dirty_at_start": true,
+  "evaluation_mode": "post_fix_frozen_agent_rerun",
+  "status": "FAIL",
+  "authorization": {
+    "basis": "User configured a funded model API key, enabled unrestricted execution, and asked Codex to continue implementation and execution.",
+    "model_request_limit": 24,
+    "brave_request_limit": 0,
+    "jina_request_limit": 0
+  },
+  "case": {
+    "case_id": "billing-dev-v1",
+    "manifest": "../2026-09-13-s1/cases/billing-dev-v1/manifest.json",
+    "manifest_sha256": "18422d06c331fe9f0ea43e4735106c2ab41f3da373d1447ab1b3404f3a55c793",
+    "human_review_status": "UNREVIEWED"
+  },
+  "configuration": {
+    "model": "deepseek-flash",
+    "agent_model_request_limit": 24,
+    "agent_seconds_limit": 1200,
+    "agent_consolidate_seconds": 900,
+    "agent_max_steps": 20,
+    "agent_max_decision_attempts": 3,
+    "initial_model_output_tokens": 16384,
+    "baseline_requests": 0,
+    "brave_requests": 0,
+    "jina_requests": 0
+  },
+  "change_under_test": {
+    "first_reflection_gate": true,
+    "live_config_loop_limits": true,
+    "configured_model_output_cap": true
+  },
+  "arms": {
+    "agent": {
+      "status": "partial",
+      "root": "runs/agent/run-001/investigations",
+      "run_id": "c1967902782a423d9671c8e6c12a56c0",
+      "report": "runs/agent/run-001/investigations/runs/c1967902782a423d9671c8e6c12a56c0/report.json",
+      "stop_reason": "Decision recovery was exhausted: missing-response assessment requires successful scoped response searches"
+    }
+  },
+  "usage": {
+    "model_requests": 9,
+    "brave_requests": 0,
+    "jina_requests": 0,
+    "tokens": null,
+    "cost": null
+  },
+  "execution_result": {
+    "committed_steps": 5,
+    "actions": {"search": 3, "read": 1, "retrieve": 1, "reflect": 0},
+    "sources": 1,
+    "evidence": 6,
+    "findings": 0,
+    "decision_retries": 3,
+    "evidence_locator_validation": "6/6 PASS",
+    "comparison": "comparison.md"
+  },
+  "second_fix_status": "IMPLEMENTED_NOT_MODEL_RERUN",
+  "post_second_fix_validation": {
+    "targeted": "20 passed",
+    "investigation": "161 passed",
+    "all_non_live": "762 passed, 2 deselected",
+    "python_compileall": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "quality_status": "FAIL"
+}

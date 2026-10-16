@@ -7,11 +7,16 @@ repaired contract (normalization + actionable feedback).
 
 from __future__ import annotations
 
+import json
+from types import SimpleNamespace
+
 import pytest
 
 from opinion_search.domain.investigation.engine import Validator
 from opinion_search.domain.investigation.models import (
-    InvestigationRequest, Issue, ReadDecision, State, utcnow,
+    ComponentAssessment, Evidence, Finding, FindingProposal, InvestigationRequest, Issue,
+    IssueAssessment, QuestionComponent, ReadDecision, ReflectDecision, SearchAttempt,
+    SearchDecision, SourceVersion, State, utcnow,
 )
 
 
@@ -55,3 +60,178 @@ def test_already_read_url_points_at_retrieve() -> None:
         Validator().validate(_state(read_attempts=("https://a.example/1",)),
             ReadDecision(action="read", issue_id="issue-0", url="https://a.example/1", focus="重读"))
     assert "retrieve" in str(captured.value)
+
+
+def _evidence_state(*, source_count: int = 4, duplicate_searches: int = 0,
+                    with_finding: bool = False) -> State:
+    state = _state()
+    sources = tuple(SourceVersion(
+        version_id=f"source-{index}", url=f"https://source{index}.example/doc",
+        final_url=f"https://source{index}.example/doc", title=f"材料{index}",
+        fetched_at=utcnow(), artifact_ref=f"artifact://{index}", content_hash=str(index) * 64,
+    ) for index in range(source_count))
+    evidence = tuple(Evidence(
+        evidence_id=f"evidence-{index}", version_id=source.version_id,
+        excerpt="可核查原文", start=0, end=5, locator="chars 0:5",
+    ) for index, source in enumerate(sources))
+    searches = tuple(SearchAttempt(
+        issue_id="issue-0", query=f"查询{index}", purpose="independent", page=0,
+        outcome="duplicate",
+    ) for index in range(duplicate_searches))
+    findings = ()
+    if with_finding:
+        findings = (Finding(
+            finding_id="finding-0", issue_id="issue-0", text="已有初步判断",
+            kind="fact", evidence_ids=(evidence[0].evidence_id,),
+        ),)
+    return state.model_copy(update={
+        "sources": sources, "evidence": evidence, "searches": searches,
+        "findings": findings,
+    })
+
+
+def test_first_reflection_gate_rejects_more_acquisition_after_enough_evidence() -> None:
+    state = _evidence_state()
+    with pytest.raises(ValueError, match="reflect is required"):
+        Validator().validate(state, SearchDecision(
+            issue_id="issue-0", query="继续搜索", purpose="independent"))
+
+    Validator().validate(state, ReflectDecision(
+        findings=(FindingProposal(
+            issue_id="issue-0", text="已有原文支持一项初步判断。", kind="fact",
+            evidence_ids=("evidence-0",),
+        ),),
+        assessments=(IssueAssessment(
+            issue_id="issue-0", status="answered", reason="已有原文支持。",
+            evidence_ids=("evidence-0",),
+        ),),
+        reason="先整理已有证据",
+    ))
+
+
+def test_first_reflection_gate_rejects_empty_reflection() -> None:
+    with pytest.raises(ValueError, match="must create at least one evidence-linked finding"):
+        Validator().validate(_evidence_state(), ReflectDecision(reason="稍后再说"))
+
+
+def test_first_reflection_requires_a_finding_instead_of_assessment_only() -> None:
+    with pytest.raises(ValueError, match="leave assessments empty"):
+        Validator().validate(_evidence_state(), ReflectDecision(
+            assessments=(IssueAssessment(
+                issue_id="issue-0", status="answered", reason="已有原文支持。",
+                evidence_ids=("evidence-0",),
+            ),),
+            reason="只处置问题但没有形成报告判断",
+        ))
+
+
+def test_partial_reflection_can_keep_uncovered_components_open() -> None:
+    state = _evidence_state().model_copy(update={
+        "issues": (
+            _evidence_state().issues[0].model_copy(update={
+                "components": (
+                    QuestionComponent(text="监管认定"),
+                    QuestionComponent(text="独立核验"),
+                ),
+            }),
+            *_evidence_state().issues[1:],
+        ),
+    })
+    Validator().validate(state, ReflectDecision(
+        findings=(FindingProposal(
+            issue_id="issue-0", text="现有材料记录了一项监管认定。", kind="fact",
+            evidence_ids=("evidence-0",),
+        ),),
+        assessments=(IssueAssessment(
+            issue_id="issue-0", status="open", reason="独立核验仍缺材料。",
+            evidence_ids=("evidence-0",),
+            components=(
+                ComponentAssessment(text="监管认定", status="answered", evidence_ids=("evidence-0",)),
+                ComponentAssessment(text="独立核验", status="open"),
+            ),
+        ),),
+        reason="先提交已覆盖部分",
+    ))
+
+
+def test_duplicate_search_streak_drains_unread_candidates_before_reflection() -> None:
+    state = _evidence_state(source_count=1, duplicate_searches=2)
+    with pytest.raises(ValueError, match="read is required"):
+        Validator().validate(state, SearchDecision(
+            issue_id="issue-0", query="第三次换词", purpose="independent"))
+    Validator().validate(state, ReadDecision(
+        issue_id="issue-0", url="https://a.example/1", focus="读取已知候选"))
+
+
+def test_duplicate_search_streak_requires_reflection_when_no_candidates_remain() -> None:
+    state = _evidence_state(source_count=1, duplicate_searches=2).model_copy(update={
+        "read_attempts": ("https://a.example/1", "https://b.example/2"),
+    })
+    with pytest.raises(ValueError, match="reflect is required"):
+        Validator().validate(state, SearchDecision(
+            issue_id="issue-0", query="第三次换词", purpose="independent"))
+
+
+def test_ongoing_synthesis_gate_redirects_acquisition_when_undisposed_piles_up() -> None:
+    """After the first finding, undisposed evidence must not pile up.
+
+    A 2026-09-23 live run converted only 4 of 8 read sources into findings;
+    once 8+ excerpts sit undisposed, acquisition is redirected into synthesis.
+    Unlike the first reflection, ongoing synthesis accepts assessment-only
+    reflections: linking evidence to an issue disposes it too.
+    """
+    state = _evidence_state(source_count=10, with_finding=True)
+    with pytest.raises(ValueError, match="reflect is required"):
+        Validator().validate(state, SearchDecision(
+            issue_id="issue-0", query="继续搜索", purpose="independent"))
+
+    # Assessment-only synthesis is legal for the ongoing gate.
+    Validator().validate(state, ReflectDecision(
+        assessments=(IssueAssessment(
+            issue_id="issue-0", status="answered", reason="已有原文支持。",
+            evidence_ids=("evidence-1", "evidence-2"),
+        ),),
+        reason="处置堆积证据",
+    ))
+
+    # An empty reflection still disposes nothing.
+    with pytest.raises(ValueError, match="must dispose evidence"):
+        Validator().validate(state, ReflectDecision(reason="什么都不做"))
+
+
+def test_ongoing_synthesis_gate_stays_open_below_threshold() -> None:
+    state = _evidence_state(source_count=8, with_finding=True)
+    Validator().validate(state, SearchDecision(
+        issue_id="issue-0", query="继续搜索", purpose="independent"))
+
+
+def test_first_reflection_gate_releases_after_a_finding_exists() -> None:
+    state = _evidence_state(with_finding=True)
+    Validator().validate(state, SearchDecision(
+        issue_id="issue-0", query="针对剩余缺口继续搜索", purpose="followup"))
+
+
+def test_compiler_exposes_first_reflection_as_a_protected_runtime_constraint(tmp_path) -> None:
+    from opinion_search.investigation.context import Compiler
+    from opinion_search.investigation.storage import Budget
+
+    state = _evidence_state()
+    run = SimpleNamespace(
+        run_id="run", domain_state=state, next_step_index=9, committed_steps=(),
+        active_step=SimpleNamespace(step_id="step", failures=()),
+    )
+    context = Compiler(Budget(tmp_path / "budget.json")).compile(run)
+    constraint = next(
+        section for section in context.sections
+        if section.section_id == "memory.next_action_constraint"
+    )
+    payload = json.loads(constraint.content)
+    assert payload["required_action"] == "reflect"
+    assert "Prefer assessments=[]" in payload["minimum_result"]
+    assert payload["allowed_issue_ids"] == ["issue-0", "issue-1", "issue-2"]
+    assert payload["allowed_evidence_ids"] == [
+        "evidence-0", "evidence-1", "evidence-2", "evidence-3"
+    ]
+    assert constraint.required is False
+    assert constraint.compaction.value == "never"
+    assert "memory.next_action_constraint" not in context.plan.dropped_section_ids

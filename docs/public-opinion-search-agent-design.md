@@ -1,7 +1,11 @@
 # OpinionSearch Agent 项目设计
 
+> V1 产品范围、完成标准与停止条件以 [OpinionSearch V1 产品边界与完成标准](./opinionsearch-v1-scope-and-acceptance.md) 为准。本文描述体系结构和领域契约；设计提案不得静默扩大 V1 范围。
+
+> **2026-09-14 收尾约束**：执行以 [两天收尾计划](./opinionsearch-two-day-closeout-plan-2026-09-14.md) 为入口，9月15日18:00 截止。讨论中的 Investigation Blueprint 首先限定为从既有状态重建的需求视图，让问题、搜索缺口和页面内容共用依据；本轮不建设五套独立持久化对象或通用覆盖调度器。该增量仍为计划，是否实施及验证以实现记录和实际产物为准。
+
 > 文档状态：唯一 Canonical Design  
-> 最后更新：2026-08-21  
+> 最后更新：2026-09-14
 > 项目定位：以舆情搜索为 workload 的 Agent Harness / Capability Runtime  
 > 基础实施计划：[OpinionSearch Agent 5 天高强度实施计划](./opinion-search-agent-5-day-plan.md)  
 > Agent Infra 深化路线：[Harness / Tool / MCP / Context / Memory 深化总纲](./agent-infra-interview-deepening.md)
@@ -421,6 +425,8 @@ MCP result/error -> ToolResult/ToolError
 
 ### 7.2 Context Engine
 
+> **适用范围（2026-09-25 按代码补注）**：本节描述的流水线与四层结构由 `context/models.py` + `context/compactor.py`（两域共享）与 `context/compiler.py` 的 `OpinionContextCompiler`（opinion 域专用）实现。`domain/investigation` 使用 `investigation/context.py` 的独立 `Compiler`：它复用同一套 `ContextSection` 模型与压缩算法，但 section 集合不同（额外携带 `issues` / `findings` / `page_plan` / `next_action_constraint` / `consolidate` 指令）。两个 compiler 并存是当前事实，见 §10。
+
 #### 7.2.1 Context Compiler，而不是 prompt 拼接
 
 每轮输入通过明确流水线生成：
@@ -474,6 +480,8 @@ Reader adapter 对 HTTP response、artifact 和 checkpoint inline content 分别
 - 引用页面只提供证据，不改变 action schema。
 
 ### 7.3 Run-scoped Working Memory
+
+> **适用范围（2026-09-25 按代码补注）**：`WorkingMemory` 是 opinion 域的实现——`memory/projector.py` 的 `project_working_memory` 输入类型是 `OpinionSearchState`，并依赖 `domain/opinion/provenance.py`。`domain/investigation` **没有**等价对象，其上下文由 `investigation/context.py` 的 `Compiler` 直接从 `State` 组装 section。因此不要把它描述为服务两条路径的通用层。
 
 #### 7.3.1 对象边界
 
@@ -642,61 +650,84 @@ Checkpoint 只持久化由 app 配置计算出的不透明 execution profile ID�
 
 ## 10. 模块结构
 
+以下为当前实现的真实结构（2026-09-25 按代码校正）。标注 `【共享】` 的模块被两条路径复用，标注 `【域】` 的只服务单一领域，标注 `【保留未接线】` 的有单测覆盖但生产路径未引用。
+
 ```text
 opinion_search_agent/
 ├── pyproject.toml
 ├── README.md
-├── src/opinion_search/
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── app/
-│   │   ├── contracts.py
-│   │   └── service.py
-│   ├── runtime/
-│   │   ├── lifecycle.py
-│   │   ├── protocols.py
-│   │   ├── loop.py
-│   │   ├── reducer.py
-│   │   ├── transaction.py
-│   │   ├── checkpoint.py
-│   │   └── completion.py
-│   ├── tools/
-│   │   ├── contracts.py
-│   │   ├── registry.py
-│   │   ├── executor.py
-│   │   └── adapters/
-│   │       ├── fake.py
-│   │       ├── brave_search.py
-│   │       ├── jina_reader.py
-│   │       └── mcp.py
-│   ├── context/
-│   │   ├── models.py
-│   │   ├── compiler.py
-│   │   ├── selector.py
-│   │   └── compactor.py
-│   ├── memory/
-│   │   ├── models.py
-│   │   └── projector.py
-│   ├── models/
-│   │   ├── contracts.py
-│   │   ├── fake.py
-│   │   └── openai_compatible.py
-│   └── domain/opinion/
-│       ├── decisions.py
-│       ├── state.py
-│       ├── reducer.py
-│       ├── processor.py
-│       ├── completion.py
-│       └── brief.py
-└── tests/
-    ├── unit/
-    ├── contract/
-    ├── integration/
-    ├── e2e/
-    └── fixtures/
+├── archive/harness-pipeline/          已归档的多角色流水线实验（不属当前实现）
+└── src/opinion_search/
+    ├── __init__.py
+    ├── __main__.py                    CLI 入口（offline / live / resume）
+    ├── app/                           组合根与运行产物
+    │   ├── contracts.py               SearchRequest
+    │   ├── config.py                  LiveConfig（含 max_steps / 预算 / provider 凭据）
+    │   ├── service.py                 build_offline_service / build_live_service / _build_loop
+    │   ├── action_executor.py         OpinionActionExecutor（Decision → ToolCall 落点）
+    │   └── run_bundle.py              RunBundleWriter（report.md + outcome.json 原子写）
+    ├── runtime/                       Runtime 骨架（领域无关）
+    │   ├── lifecycle.py               RunStatus / StepPhase / 合法转移集合
+    │   ├── protocols.py               DecisionEnvelope / ActionRequest / ObservationEnvelope / StateDelta / StepRecord
+    │   ├── loop.py                    AgentLoop / CheckpointBoundary / 7 个 Protocol 声明
+    │   ├── transaction.py             RunState / 事务原语 / classify_resume
+    │   ├── checkpoint.py              JsonCheckpointStore（临时文件 + fsync + os.replace）
+    │   ├── completion.py              CompletionDisposition / CompletionVerdict / RunResult
+    │   ├── errors.py                  RuntimeFailureKind / RecoveryDirective
+    │   └── cancellation.py            CancellationSignal / EventCancellationSignal
+    ├── tools/                         工具运行时
+    │   ├── contracts.py               ToolDefinition / ToolCall / ToolResult / ToolError / RetryPolicy
+    │   ├── registry.py  routing.py    名称解析与 provider 绑定
+    │   ├── executor.py                参数校验 / 同 provider 重试 / 跨 provider 回退 / 超时
+    │   ├── circuit.py                 per tool+provider 熔断
+    │   ├── cache.py  persistent_cache.py
+    │   ├── artifacts.py  url.py  http.py
+    │   ├── capabilities/web.py        search.web / read.web 定义与返回契约
+    │   └── adapters/                  fake / brave_search / jina_reader / serper / mcp / mcp_sdk
+    ├── context/                       上下文
+    │   ├── models.py                  【共享】ContextSection / ContextBudget / CompiledContext / render_sections
+    │   ├── compactor.py               【共享】compact_context_sections（TRUNCATE / DROP 降级）
+    │   ├── compiler.py                【opinion 域】OpinionContextCompiler（硬类型检查 OpinionSearchState）
+    │   ├── selector.py                【opinion 域】去重与排序
+    │   └── catalog.py                 【opinion 域】Evidence ID catalog 的必需窗口 / 历史分区
+    ├── memory/                        【opinion 域】Working Memory
+    │   ├── models.py                  WorkingMemory / WorkingEvidence 等
+    │   └── projector.py               project_working_memory（依赖 domain/opinion/provenance）
+    ├── models/                        模型客户端
+    │   ├── contracts.py               ModelClient / ModelErrorKind
+    │   ├── fake.py                    ScriptedModelClient / DeterministicIdFactory
+    │   └── openai_compatible.py       OpenAICompatibleModelClient / HttpxModelTransport
+    ├── domain/
+    │   ├── opinion/                   【域】4 动作（search / read / reflect / finish），10 个模块
+    │   │   ├── decisions.py           Decision 联合类型 + OpinionSearchDecisionValidator
+    │   │   ├── actions.py  action_resolver.py
+    │   │   ├── state.py  reducer.py  processor.py
+    │   │   ├── completion.py  provenance.py
+    │   │   └── framing.py  brief.py
+    │   └── investigation/             【域】6 动作（+ retrieve / review），只有 2 个模块
+    │       ├── models.py              State / Decision 联合类型 / Issue / Finding / Review / ModuleField
+    │       └── engine.py              Validator / Resolver / Processor / completion / reduce_state
+    ├── investigation/                 Web 生产路径的应用层
+    │   ├── manager.py                 运行生命周期 / CaseLock / 澄清 / 计划调用
+    │   ├── service.py                 build_loop / ConsolidationValidator / Executor / 计量包装
+    │   ├── context.py                 【investigation 域】Compiler（内联组装 section，含 next_action_constraint）
+    │   ├── storage.py                 Corpus / Budget / 原子写 / 证据校验
+    │   ├── page_plan.py               PagePlan 与 required_module_gaps
+    │   ├── workbench.py  export.py  presentation.py  metrics.py
+    │   ├── report.py  diagnostics.py  baseline.py  offline.py  replay.py
+    ├── report_contract/               【保留未接线】PresentationPlan / ModuleRegistry / projector / renderer / validator
+    ├── presentation_skill/            【保留未接线】llm_planner
+    └── web/                           stdlib HTTP + SSE
+        ├── server.py
+        ├── investigation.html         主页面（服务在 `/`）
+        ├── index.html                 旧 opinion console（服务在 `/legacy`）
+        ├── dev.html                   开发者控制台（服务在 `/dev`）
+        └── assets/
 ```
 
-这是一张目标结构图，不要求第一天创建所有空目录。文件只在出现真实职责和测试消费者时建立。
+两条路径的分工：CLI（`python -m opinion_search`）走 `app/service.py` → `domain/opinion`；Web（`python -m opinion_search.web`）的主页面与 `/api/investigations/*` 走 `investigation/manager.py` → `investigation/service.build_loop` → `domain/investigation`，同时保留 `/legacy` 与 `/api/runs/*` 服务旧的 opinion console。
+
+`runtime/` 下**没有** `reducer.py`：Reducer 是领域层职责（`domain/opinion/reducer.py` 与 `domain/investigation/engine.reduce_state`），因为状态不变量属于领域语义。
 
 ## 11. 技术选型
 
@@ -971,6 +1002,53 @@ opinion_search_agent/
 - `build_loop()` 可注入 frozen `search_adapter` / `reader_adapter`，仍使用生产 live model/reviewer 与正常 loop/report 管线；`Manager` 提供可选 `loop_builder` 注入点，web 产品路径不变。
 - `investigation/replay.py` 定义 manifest、sha256 快照校验、只服务冻结材料的 search/read adapter，以及 `run_replay_case()`；不访问 Brave/Jina 页面。
 - 机制层回放案例继续使用 synthetic fixtures；固定材料模型回放用于真实模型 + 冻结材料，真实执行与人工评分仍待 P5 预算和材料决定。
+
+### 19.11 生产调查链路诊断契约（2026-09-14）
+
+生产质量问题不能只从最终报告倒推。新流程在既有 LoopHook、checkpoint、Domain State、budget 与 report 投影上增加确定性链路诊断，格式为 `opinion-investigation-diagnostics/1`，覆盖九个阶段：事件与问题、搜索与召回、正文获取、来源结构、证据定位、争议与回应分析、关键结论审查、结束判断、运行与预算。
+
+- 诊断只读取已经提交的 State/StepRecord/budget，不修改领域状态，也不成为第二事实源。运行中随 checkpoint 写入 draft.progress 和 provisional workbench；终态固化到 report.json 与 workbench.json。
+- 每个阶段保留状态（observed/attention/blocked/pending）、可复现计数和信号代码。信号包括必答问题/子项未解决、搜索/读取失败、候选未读、单域名或单来源角色、来源关系未核实、证据缺失或过宽、表达主体不足、回应覆盖缺失、判断未审查/未通过、发布状态与完成策略不一致、决策重试与预算接近上限。
+- `GET /api/investigations/{id}/diagnostics` 返回当前持久化诊断；在线工作台新增“链路诊断”视图，自包含 HTML 导出也包含同一诊断。刷新和深链接仍绑定当前 workbench snapshot。
+- 诊断不输出综合质量分数，不证明事实正确、来源独立、样本代表性或公众满意度。`stance_distribution_eligible=false` 明确阻止把当前公开材料中的主张构成解释为公众观点占比。
+- 当前 StepRecord 没有分步耗时和 token usage，诊断会以 `fine_grained_cost_latency_unavailable` 显式暴露这一缺口。多 run 聚合、长期指标存储、告警和仪表盘仍不在本次范围；本能力是单次调查的可审计投影，不扩张成独立 Observability/Eval 平台。
+
+### 19.12 PagePlan：统一可信框架与事件专项内容（2026-09-14）
+
+事件页面不由模型临时编写 HTML，也不为每种事件复制一套页面代码。系统新增确定性 `opinion-page-plan/1`：程序依据已确认的 `EventProfile`、当前 Issue 和 active Finding 重建页面与调查计划。PagePlan 是可重建投影，不写入 checkpoint，不成为 Domain State 之外的第二事实源。
+
+固定可信框架依次包含事件总览、争议/主张/回应、材料与来源关系、证据与原文、链路诊断和终态完整报告；规则变化、服务变化、计费补救、调查纠正按 facet 插入独立的事件专项视图。多个 facet 可以组合，同一白名单 renderer 依计划调整标题、顺序和模块，不接收模型生成的组件名、HTML、CSS 或脚本。
+
+PagePlan 同时维护 `module_requirements` 与 `search_targets`。专项模块只有在关联 user-required Issue 时才成为完成条件；字段要求也从关联问题、子项和原始用户问题确定性推导。每类模块只保留一个使模块具有基本语义的锚点字段，适用对象、生效时间、办理路径、执行结果等字段只有在用户问题实际涉及它们时才升级为 required。每个字段保存 `required_field_basis`，缺失字段生成带 `issue_id`、依据问题、字段、中文 target_gap 与允许搜索 purpose 的定向目标。Context Compiler 以 `memory.page_plan` 把同一契约交给 Agent，要求后续 search 绑定问题与缺口；材料没有明确字段时必须保持缺失，不能为了页面完整而推断。
+
+Completion 在原有问题处置、证据和独立审查条件之外检查 required module gap：仍缺则允许发布 partial，不把页面填满误当成调查完成。显式、带证据的专项字段可以在页面展示，但只有与该模块关联的问题范围内的字段才闭合对应完成缺口，避免无关 Issue 的值误将必答问题标为完成。Workbench 投影升级为 `workbench-projection-5`，在线 Web 和自包含 HTML 按 `page_plan.sections` 生成导航与章节顺序；历史投影仍按旧固定顺序只读展示。
+
+同一缺口进入生产链路诊断信号 `required_page_modules_incomplete`，运行中提示定向补查，终态阻止把 incomplete 专项页解释为完整调查。诊断和 PagePlan 仍是派生投影，不改变 Processor → Delta → Reducer 的权威提交边界。
+
+本阶段没有扩大事件分类、增加社交采集或代表性观点比例，也没有让 PagePlan 取代动态问题。它解决的是调查目标、搜索缺口与页面表达此前相互脱节的问题；真实报告深度仍须通过冻结材料、真实模型运行和人工断言评分验证。
+
+### 19.13 首次研判收敛与生产配置生效（2026-09-14）
+
+真实冻结材料运行表明，仅在提示词中要求模型“Reflect creates atomic findings”不足以保证 Loop 收敛：模型可以读取全部正文并持续换词搜索，直到耗尽模型预算，仍没有一次 `reflect`。领域层因此新增确定性首次研判闸门，而不是把该规则放入通用 Runtime。
+
+- 当没有 active Finding 且连续两次搜索只返回已知 URL 时，`required_next_action()` 先检查已发现候选：仍有候选未读则要求读取其中一个，没有未读候选才要求 `reflect`。当已有至少 4 个正文版本及证据却仍无 Finding 时，无论是否还有候选，都要求先做一次 `reflect`。该策略避免重复搜索，也避免只读一份材料就过早处置全部问题；一旦产生 Finding，Agent 仍可根据未解决问题继续搜索和读取。
+- Compiler 把 `memory.next_action_constraint` 作为可信、不可压缩的 Runtime working-memory section 交给模型。首次 reflect 明确只处置当前证据能够覆盖的问题，未解决问题可以省略 assessment，不能用不满足查找前提的 not_found 填充。Validator 独立执行同一动作约束，并拒绝不产生 Finding 或问题处置的空 reflection。提示和强制约束因此不会静默漂移。
+- 生产模型配置必须真实进入执行边界：`live_model()` 传递 `model_max_output_tokens`；`build_loop()` 使用 `LiveConfig.max_steps` 与 `max_decision_attempts`。离线脚本模型没有 LiveConfig 时继续使用原测试默认值，避免把生产预算规则硬塞进通用 Runtime。
+- 闸门不判断材料是否足够成为真相，也不强制把未知写成事实。模型可以用有证据的 Finding，或以有界理由将问题处置为 unavailable；最终仍需 reviewer 和 completion 检查。
+
+该改动来自批次 `2026-09-14-s3-live` 的生产失败：8 份正文、44 个证据、40 次模型请求后仍为 0 Finding。首次修复在 `2026-09-14-s4-convergence-rerun` 中真实触发并促使模型尝试 reflect，但因过早处置和 schema/领域约束错误耗尽三次决策恢复；上述“先读候选、后研判”的第二版策略已通过机制回归，尚未用真实模型复跑，不能宣称报告质量已经改善。
+
+### 19.14 调查预算的发布保留段与阶段性判断（2026-09-15）
+
+真实模型回放证明“首次形成 Finding”仍不足以保证报告闭环：Agent 可能在审查后继续搜索或改写，导致 review 与当前文本失配，并在 Finish 前耗尽模型请求。OpinionSearch 因此把模型预算最后三分之一定义为调查领域的发布保留段，而不是通用 Runtime 策略。
+
+进入保留段后，程序按当前领域状态约束下一动作：已有 Evidence 但无 active Finding 时必须 Reflect 并建立原子判断；存在无当前 review 的 active Finding 时必须 Review；所有 active Finding 已有当前 review 后必须 Finish。模型提示与 `ConsolidationValidator` 执行同一规则。Finish 只能选择 supported 判断；必答问题、子项、模块字段或支持性仍不完整时，Completion 发布 partial。保留段保证有限预算优先转化为可审查产物，不保证材料本身充分。
+
+partial 报告允许展示 `interim_findings`，但仅包含拥有与当前文本 hash 匹配的 supported review 的 active Finding。Workbench 明确标记 `judgment_mode=interim` 和 provisional 状态，标题写明调查未完成；Conclusion 仍为空。这样用户能看到已经核查的局部结果，同时不会把阶段结果误认为完整研判。
+
+事件专项页面仍由受控 facet 选择。Planner 只能建议 canonical facet identifier；程序保留白名单，并可将包含产品词表的简短中文标签恢复为既有 facet，不能创建新模块。来源角色按页面实际发布关系判断，域名只提供线索，不能把政府门户转载的新闻自动视为机构原文。
+
+冻结材料更新验收必须通过同一事件 parent/update 路径。`run_replay_update_case()` 只替换 Search/Reader 材料集，仍复用生产的父状态复制、UpdateIntent、版本关联、锁、checkpoint、diff 与原子发布；父版没有可比较判断时，更新质量验收应停止并报告失败。
 
 ### 19.3 浏览器主路径验收（2026-09-11）
 

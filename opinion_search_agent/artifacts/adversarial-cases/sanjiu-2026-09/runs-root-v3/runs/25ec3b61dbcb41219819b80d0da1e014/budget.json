@@ -1,0 +1,14 @@
+{
+  "started_at": "2026-09-23T11:29:13.447952+00:00",
+  "accumulated_seconds": 0.0,
+  "search": 4,
+  "read": 6,
+  "model": 24,
+  "limits": {
+    "search": 20,
+    "read": 24,
+    "model": 120,
+    "seconds": 2400,
+    "consolidate_seconds": 900
+  }
+}

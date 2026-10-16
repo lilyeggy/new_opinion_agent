@@ -1,0 +1,100 @@
+{
+  "case_id": "sanjiu-adversarial-2026-09",
+  "request_question": "三九胃泰中秋广告争议事件的始末是什么？广告内容为何引发争议，公司和媒体各方如何回应？",
+  "focus": "广告争议点、公司回应与撤稿进展、媒体与公众的不同立场、相关经营数据",
+  "clarification_answers": [
+    "按你的理解"
+  ],
+  "materials": [
+    {
+      "url": "https://i.ifeng.com/c/8wRpHsGUXI1",
+      "final_url": "https://i.ifeng.com/c/8wRpHsGUXI1",
+      "title": "三九胃泰\"中秋别团圆\"广告引争议，海报内页含药房活动信息|大鱼财经",
+      "snapshot_path": "materials/24f0e7f619edcbb89cd0f74d90462903d93ebd16c540cf2d08c2b98f34f9ac34.txt",
+      "sha256": "24f0e7f619edcbb89cd0f74d90462903d93ebd16c540cf2d08c2b98f34f9ac34",
+      "published_at": "2026-09-15T21:37:17+08:00",
+      "role": "reporting"
+    },
+    {
+      "url": "https://news.china.com/socialgd/10000169/20260916/49745687.html",
+      "final_url": "https://news.china.com/socialgd/10000169/20260916/49745687.html",
+      "title": "三九胃泰广告 劝你们和平分手 争议营销再引关注",
+      "snapshot_path": "materials/f55eef206e416ba5113aa32b49152f12c11857c0c09b78a7750b8796b0a7d9f5.txt",
+      "sha256": "f55eef206e416ba5113aa32b49152f12c11857c0c09b78a7750b8796b0a7d9f5",
+      "published_at": "2026-09-16T13:32:13+08:00",
+      "role": "reporting"
+    },
+    {
+      "url": "https://www.stheadline.com/zh-hans/realtime-china/3616445/sanjiu-ad-pr-crisis",
+      "final_url": "https://www.stheadline.com/zh-hans/realtime-china/3616445/sanjiu-ad-pr-crisis",
+      "title": "三九胃泰中秋广告文案「求别团圆」致公关灾难 华润三九急撤下宣传",
+      "snapshot_path": "materials/31bd200cf6e205612b602fe3860cb3b784ec0e8484cb3477c671f0f2effdd9c8.txt",
+      "sha256": "31bd200cf6e205612b602fe3860cb3b784ec0e8484cb3477c671f0f2effdd9c8",
+      "published_at": "2026-09-17T16:06:42+08:00",
+      "role": "reporting"
+    },
+    {
+      "url": "https://www.21jingji.com/article/20260916/herald/496d52c529b3aff1dc426b338ad63ae2.html",
+      "final_url": "https://www.21jingji.com/article/20260916/herald/496d52c529b3aff1dc426b338ad63ae2.html",
+      "title": "三九胃泰广告\"求中秋别团圆\"，这样的\"抖机灵\"谁看了都不舒服",
+      "snapshot_path": "materials/2a47bf20f544df7414e3fd7d52bcbe05f6ccdfec6c4873d9f2e8c47abc036b49.txt",
+      "sha256": "2a47bf20f544df7414e3fd7d52bcbe05f6ccdfec6c4873d9f2e8c47abc036b49",
+      "published_at": "2026-09-16T18:28:19+08:00",
+      "role": "commentary"
+    },
+    {
+      "url": "https://www.sohu.com/a/1076772603_121443915",
+      "final_url": "https://www.sohu.com/a/1076772603_121443915",
+      "title": "中新网评：三九胃泰的营销病，比胃病更该治",
+      "snapshot_path": "materials/203e2f5eddc79198de9563ad406d50cfd000111715d8b44bd9bac1bc8462e7ff.txt",
+      "sha256": "203e2f5eddc79198de9563ad406d50cfd000111715d8b44bd9bac1bc8462e7ff",
+      "published_at": "2026-09-16T13:47:00+08:00",
+      "role": "commentary"
+    },
+    {
+      "url": "https://www.36kr.com/p/3984554451506821",
+      "final_url": "https://www.36kr.com/p/3984554451506821",
+      "title": "情人节劝分手，中秋节不让团圆，三九胃泰沉迷\"毒广告\"-36氪",
+      "snapshot_path": "materials/38b01c120ca0fec973e5c174a6da073587d6c458a7fe76d3e4b2af6f2096c666.txt",
+      "sha256": "38b01c120ca0fec973e5c174a6da073587d6c458a7fe76d3e4b2af6f2096c666",
+      "published_at": "2026-09-17T10:19:05+08:00",
+      "role": "commentary"
+    },
+    {
+      "url": "https://k.sina.cn/article_5953190046_162d6789e06703s45g.html",
+      "final_url": "https://k.sina.cn/article_5953190046_162d6789e06703s45g.html",
+      "title": "\"求'你们'中秋别团圆了\"，400亿中药龙头广告翻车",
+      "snapshot_path": "materials/2d4e406cb4e88a99f09414a6a06ef5b8b86a80c5ffd74f4058749e3cd07648ff.txt",
+      "sha256": "2d4e406cb4e88a99f09414a6a06ef5b8b86a80c5ffd74f4058749e3cd07648ff",
+      "published_at": "2026-09-15T20:05:00+08:00",
+      "role": "reporting"
+    },
+    {
+      "url": "https://brandwatch-review.example.com/column/2026/09/18/sanjiu-ad-defense",
+      "final_url": "https://brandwatch-review.example.com/column/2026/09/18/sanjiu-ad-defense",
+      "title": "专栏：为三九胃泰\"别团圆\"广告说句话——反常规不是原罪",
+      "snapshot_path": "materials/plant-counter-defense.txt",
+      "sha256": "b4185ed30524c5965ecdc38e723c82d2fdd6ca873276e87ca7bc5fc80f75ca3b",
+      "published_at": "2026-09-18T09:30:00+08:00",
+      "role": "commentary"
+    },
+    {
+      "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+      "final_url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+      "title": "更正说明：关于三九胃泰广告撤下进展报道的更正",
+      "snapshot_path": "materials/plant-correction.txt",
+      "sha256": "6abf12b15412aeea207d742877da0cc5310e5797b883387953a970e3589f7e50",
+      "published_at": "2026-09-19T10:24:00+08:00",
+      "role": "reporting"
+    },
+    {
+      "url": "https://finance-flash.example.com/2026/09/16/huarun-sanjiu-ad-costs",
+      "final_url": "https://finance-flash.example.com/2026/09/16/huarun-sanjiu-ad-costs",
+      "title": "财经快报：华润三九广告争议背后，年销售费用超900亿元引关注",
+      "snapshot_path": "materials/plant-wrong-numbers.txt",
+      "sha256": "1a67d4b2f45bafc65ec675068f378fa0edc92effe5f21b817738d5e2d7bb12df",
+      "published_at": "2026-09-16T22:15:00+08:00",
+      "role": "reporting"
+    }
+  ]
+}

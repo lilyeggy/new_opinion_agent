@@ -1,0 +1,33 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-b463e7c541bab8891a9b",
+      "url": "https://m.21jingji.com/article/20260919/herald/c78dd9f0da825a8e99b54268ef4027cd.html",
+      "focus": "确认《批评是一种权利，谨防成为“流量权力”》一文的署名媒体与原始出处（人民网观点频道/人民锐评/人民日报）、首发或转载时间，以及该评论针对罗永浩吐槽野人先生的核心论断原话与限定条件",
+      "role": "commentary"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://m.21jingji.com/article/20260919/herald/c78dd9f0da825a8e99b54268ef4027cd.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "cb39508854dd491a8d9752fae46e2ec6:step:29:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unknown_provider_error",
+      "message": "Jina Reader rejected the request with HTTP status 422.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

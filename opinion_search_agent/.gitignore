@@ -1,8 +1,16 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.pytest_tmp/
+.pytest_run/
+.pytest_iso2/
+.mypy_cache/
+.ruff_cache/
 *.egg-info/
 .venv/
 .env
 .opinion_search/
 .opinion_search_web/
+artifacts/*.log
+artifacts/report-quality/*/runs/
+artifacts/report-quality/*/cases/*/snapshots/

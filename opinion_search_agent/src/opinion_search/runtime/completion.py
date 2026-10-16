@@ -8,10 +8,10 @@ from opinion_search.runtime.lifecycle import RunStatus
 from opinion_search.runtime.transaction import RunState
 
 
-DomainStateT = TypeVar("DomainStateT")
-DecisionT = TypeVar("DecisionT")
-ObservationT = TypeVar("ObservationT")
-FinishProposalT = TypeVar("FinishProposalT")
+DomainStateT = TypeVar("DomainStateT", contravariant=True)
+DecisionT = TypeVar("DecisionT", contravariant=True)
+ObservationT = TypeVar("ObservationT", contravariant=True)
+FinishProposalT = TypeVar("FinishProposalT", contravariant=True)
 
 NonEmptyText = Annotated[str, Field(min_length=1)]
 

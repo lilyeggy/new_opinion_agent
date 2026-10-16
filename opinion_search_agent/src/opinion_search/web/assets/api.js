@@ -24,6 +24,7 @@ export const api = {
   snapshot: (id) => request("GET", `/api/investigations/${id}`),
   workbench: (id, snapshotId) => request("GET", `/api/investigations/${id}/workbench` +
     (snapshotId ? `?snapshot_id=${encodeURIComponent(snapshotId)}` : "")),
+  diagnostics: (id) => request("GET", `/api/investigations/${id}/diagnostics`),
   clarify: (id, answer) => request("POST", `/api/investigations/${id}/clarify`, { answer }),
   cancel: (id) => request("POST", `/api/investigations/${id}/cancel`, {}),
   resume: (id) => request("POST", `/api/investigations/${id}/resume`, {}),
@@ -36,6 +37,12 @@ export const api = {
     (snapshotId ? `?snapshot_id=${encodeURIComponent(snapshotId)}` : ""),
   pageDownloadUrl: (id, snapshotId) => `/api/investigations/${id}/page?download=1` +
     (snapshotId ? `&snapshot_id=${encodeURIComponent(snapshotId)}` : ""),
+  dossierUrl: (id, snapshotId) => `/api/investigations/${id}/dossier` +
+    (snapshotId ? `?snapshot_id=${encodeURIComponent(snapshotId)}` : ""),
+  dossierDownloadUrl: (id, snapshotId) => `/api/investigations/${id}/dossier?download=1` +
+    (snapshotId ? `&snapshot_id=${encodeURIComponent(snapshotId)}` : ""),
+  presentationPlan: (id, snapshotId) => request("GET", `/api/investigations/${id}/presentation-plan` +
+    (snapshotId ? `?snapshot_id=${encodeURIComponent(snapshotId)}` : "")),
 };
 
 export const TERMINAL = new Set(["completed", "partial", "failed", "cancelled"]);

@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>重庆轨道交通票价机制调整 · 舆情报告</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#14213d;--muted:#607089;--line:#dbe4f0;--blue:#2563eb;--blue-soft:#eaf1ff;--green:#15803d;--green-soft:#eaf7ef;--amber:#b45309;--amber-soft:#fff7e6;--red:#b91c1c;--red-soft:#fef2f2;--purple:#6d28d9;--purple-soft:#f3ecff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.65}
+.page-header{max-width:1160px;margin:0 auto;padding:42px 28px 18px}.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:800}.page-header h1{font-size:34px;line-height:1.2;margin:8px 0}.meta{color:var(--muted);font-size:13px}
+main{max-width:1160px;margin:0 auto;padding:10px 28px 70px}.section{margin-top:36px}.section h2{font-size:22px;margin:0 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+.module-grid{display:grid;gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:0 8px 24px rgba(20,33,61,.06)}
+.module-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.module-head h3{margin:0;font-size:17px}state{font-size:12px;padding:3px 9px;border-radius:999px;white-space:nowrap;font-weight:700}.state-ready{color:var(--green);background:var(--green-soft)}.state-provisional{color:var(--amber);background:var(--amber-soft)}.state-insufficient,.state-not_found,.state-pending{color:var(--amber);background:var(--amber-soft)}.state-unavailable{color:var(--red);background:var(--red-soft)}.state-not_applicable,.state-omitted{color:var(--muted);background:#eef1f6}
+.summary{margin:12px 0 0}.empty-state,.empty-reason{color:var(--muted);background:#f8fafc;border:1px dashed var(--line);border-radius:10px;padding:12px;margin-top:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}.item-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfdff}.item-title{font-weight:750}.item-text{margin-top:6px;font-size:13px}.item-meta{margin-top:8px;color:var(--muted);font-size:12px}
+.timeline{position:relative;margin-top:14px;padding-left:20px}.timeline:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--line)}.timeline-item{position:relative;padding:0 0 16px 14px}.timeline-dot{position:absolute;left:-20px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 2px var(--blue-soft)}.timeline-time{font-size:12px;color:var(--blue);font-weight:750}.timeline-title{font-weight:750;margin-top:2px}.timeline-text{font-size:13px;color:var(--muted);margin-top:3px}
+.timeline-meta{font-size:11px;color:#91a0b6;margin-top:3px}
+.timeline-arrow{color:var(--blue);font-size:18px;line-height:1;margin:2px 0 2px 1px;font-weight:800}
+.table-wrap{overflow:auto;margin-top:14px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:left;vertical-align:top}th{color:var(--muted);font-size:12px;background:#f8fafc}
+.coverage-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:14px}
+.coverage-card{border:1px solid #e4ebf5;border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.coverage-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.coverage-question{font-weight:750;color:var(--ink);font-size:14px}
+.coverage-reason{margin-top:8px;color:#526177;font-size:13px}
+.coverage-uncovered{margin-top:8px;color:var(--amber);font-size:12px}
+.coverage-badge{font-size:11px;font-weight:800;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.coverage-direct{color:var(--green);background:var(--green-soft)}
+.coverage-partial{color:var(--amber);background:var(--amber-soft)}
+.coverage-non_substantive,.coverage-unknown{color:var(--muted);background:#eef1f6}
+.coverage-not_found{color:var(--red);background:var(--red-soft)}
+.donut-wrap{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center;margin-top:14px}
+.donut{width:160px;height:160px;border-radius:50%;position:relative;box-shadow:inset 0 0 0 1px rgba(20,33,61,.06)}
+.donut-hole{position:absolute;inset:38px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:var(--ink)}
+.donut-legend{display:grid;gap:8px}
+.donut-legend-row{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:13px}
+.donut-dot{width:10px;height:10px;border-radius:50%}
+.donut-label{color:#526177;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-value{font-weight:800;color:var(--ink)}
+.distribution{margin-top:14px}.bar-row{display:grid;grid-template-columns:120px 1fr 70px;gap:10px;align-items:center;margin:8px 0;font-size:13px}.bar-label{color:var(--muted)}.bar-track{height:12px;background:#edf1f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),#60a5fa);border-radius:999px}.bar-value{text-align:right;font-weight:700}
+.evidence-grid{display:grid;gap:12px;margin-top:14px}
+.evidence-card{border:1px solid #e4ebf5;border-radius:14px;padding:14px;background:linear-gradient(180deg,#fff,#fbfdff)}
+.evidence-source{font-weight:800;color:var(--blue);font-size:14px;margin-bottom:8px}
+.evidence-excerpt{color:#334155;font-size:13px;line-height:1.7}
+.limitations{margin-top:12px;font-size:12px;color:var(--muted)}.limitations ul{margin:4px 0 0 18px}
+.page-footer{max-width:1160px;margin:0 auto;padding:20px 28px 40px;color:var(--muted);font-size:12px}
+
+body{background:radial-gradient(circle at top left,#eef4ff 0,#f7f9fd 34%,#f5f7fb 100%)}
+.status-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.summary-pill{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px;color:#526177;background:#eef2f7}
+.summary-ready{color:var(--green);background:var(--green-soft)}
+.summary-provisional{color:var(--amber);background:var(--amber-soft)}
+.summary-insufficient,.summary-pending{color:var(--amber);background:var(--amber-soft)}
+.summary-unavailable{color:var(--red);background:var(--red-soft)}
+.review-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;margin-left:8px;vertical-align:middle}
+.review-partial{color:var(--amber);background:var(--amber-soft)}
+.review-insufficient{color:var(--muted);background:#eef1f6}
+.review-reason{font-size:12px;color:var(--amber);background:var(--amber-soft);border-radius:8px;padding:6px 8px;margin-top:6px}
+.view-tabs{display:flex;gap:8px;overflow:auto;padding:4px 0 12px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.view-tab{border:1px solid var(--line);background:rgba(255,255,255,.8);color:var(--muted);padding:9px 16px;border-radius:999px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.view-tab:hover{color:var(--blue);border-color:#bfd4ff}
+.view-tab.active{color:#fff;background:linear-gradient(135deg,#2563eb,#3b82f6);border-color:transparent;box-shadow:0 8px 18px rgba(37,99,235,.25)}
+.view-panel{display:none}.view-panel.active{display:block}
+.view-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 0 10px}
+.view-actions button{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer}
+.view-actions button:hover{color:var(--blue);border-color:#bfd4ff}
+.section{margin-top:26px}.section h2{font-size:19px;border-bottom:0;margin-bottom:12px;color:#334155}
+.card.module{border-radius:18px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-color:#e2e9f3}
+.module-head h3{letter-spacing:-.2px}
+.module-summary{color:#334155;font-size:14px;margin:12px 0 4px;padding-left:10px;border-left:3px solid #93c5fd;font-weight:600}
+.item-summary{color:#334155}
+.item-card{transition:transform .16s ease,box-shadow .16s ease;background:linear-gradient(180deg,#fff,#fbfdff)}
+.item-card:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(20,33,61,.08)}
+.item-summary{font-size:13px;line-height:1.6;color:#526177}
+.item-meta{color:#8b99ad;border-top:1px dashed #e6edf6;padding-top:8px}
+.item-details{margin-top:8px}.item-details summary{cursor:pointer;color:var(--blue);font-size:12px;font-weight:700;list-style:none}
+.item-details summary::-webkit-details-marker{display:none}.item-details summary:before{content:"▸ ";}
+.item-details[open] summary:before{content:"▾ ";}
+.item-details p{margin:8px 0 0;color:#334155;font-size:13px;line-height:1.7}
+.timeline-item{background:rgba(255,255,255,.72);border:1px solid #e4ebf5;border-radius:14px;padding:12px 14px;margin-left:6px}
+.timeline-title{font-size:15px}.timeline-arrow{text-align:left;margin-left:16px;color:#93c5fd}
+.evidence-row{background:#fff;border:1px solid #e4ebf5;border-radius:12px;padding:12px;margin:8px 0}
+.page-footer{text-align:center}
+@media(max-width:720px){.page-header h1{font-size:26px}.cards{grid-template-columns:1fr}.view-tab{padding:8px 12px;font-size:13px}}
+</style>
+</head>
+<body>
+<header class="page-header">
+  <div class="kicker">OpinionSearch · 舆情事件报告</div>
+  <h1>重庆轨道交通票价机制调整</h1>
+  <div class="meta">状态：部分完成 · 内容版本：1 · 生成时间：2026-09-16T12:00:00+08:00</div>
+  <div class="status-strip"><span class="summary-pill summary-ready">完整 6</span><span class="summary-pill summary-provisional">阶段性 3</span></div>
+</header>
+<main>
+<nav class="view-tabs" aria-label="报告视图"><button class="view-tab active" data-view-target="overview">总览</button><button class="view-tab" data-view-target="issues">议题与观点</button><button class="view-tab" data-view-target="response">回应与处置</button><button class="view-tab" data-view-target="evidence">来源与证据</button></nav><div class="view-actions"><button type="button" data-expand-all>展开全部</button><button type="button" data-collapse-all>收起全部</button></div>
+<div class="view-panels"><div class="view-panel active" id="panel-overview"><section class="section" id="overview">
+<h2>事件总览</h2>
+<div class="module-grid"><article class="card module" data-module="executive-summary">
+<header class="module-head">
+  <div>
+    <h3>报告摘要</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">重庆轨道交通票价机制调整：当前可核查要点</p>
+<div class="cards"><div class="item-card"><div class="item-title">事件总述</div><div class="item-summary">程序与公众参与环节：市发展改革委先于4月底发布听证有关事项公告（渝发改收费〔2025〕511号），说明2005年形成的票价机制已不适应线网扩张与需求变化；随后于5月14日发布听证会… 媒体与舆论侧的关注点集中在「调价合理性」与「财务效果」：在2024年已实现扭亏为盈的背景下仍要上调票价的疑问被反复提出，媒体估算调价后每人次票价涨幅或超10%，预计为重庆轨交集团年… 调价方案与最终票价：听证公告同步公开两套方案（或将起步价由2元提高至3元，或减少单位价格可乘坐公里数），2025年7月25日发布的《关于完善重庆市城市轨道交通票价机制的通知》（渝发…</div><div class="item-meta"></div></div><div class="item-card"><div class="item-title">关键不确定性</div><div class="item-summary">证据标题及URL可佐证2023年9月21日重庆市政府网发布5号线、10号线剩余段里程票价且起步价2元；但所给摘录仅为页面导航头部，正文未包含“起步价2元/里程票价”内容，且“本次调整之前”“新开通线路曾按里程票价公布”属于超出该单一来源的概…；“每公里7—10亿元建设成本”“2023年全国29个公布数据的城市中扣除政府补贴后仅福州盈利0.1亿元、其余全部亏损”与证据原文完全一致，属支持部分；但“重庆轨道交通集团亦面临补贴压力”在证据中仅有“以重庆为例，轨道交通集团在扣……”这一被…；主体、程序与依据基本可核：ev-1（渝发改收费〔2025〕566号）确为市发展改革委依《价格法》《政府制定价格行为规则》《政府制定价格听证办法》及交运发〔2023〕144号拟召开听证会的公告；ev-2（渝发改收费〔2025〕511号）为听证…</div><div class="item-meta"></div></div></div>
+
+
+</article>
+<article class="card module" data-module="current-judgments">
+<header class="module-head">
+  <div>
+    <h3>核心判断</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">当前可核查的核心判断</p>
+<div class="cards"><div class="item-card"><div class="item-title">程序与公众参与环节：市发展改革委先于4月底发布听证有关事…</div><div class="item-summary">程序与公众参与环节：市发展改革委先于4月底发布听证有关事项公告（渝发改收费〔2025〕511号），说明2005年形成的票价机制已不适应线网扩张与需求变化；…</div><details class="item-details"><summary>展开详情</summary><p>程序与公众参与环节：市发展改革委先于4月底发布听证有关事项公告（渝发改收费〔2025〕511号），说明2005年形成的票价机制已不适应线网扩张与需求变化；随后于5月14日发布听证会公告（渝发改收费〔2025〕566号），同步公开两套方案征集公众意见，听证会定于5月29日召开。</p></details><div class="item-meta">今日起，重庆轨道交通票价正式变动！</div></div><div class="item-card"><div class="item-title">媒体与舆论侧的关注点集中在「调价合理性」与「财务效果」：…</div><div class="item-summary">媒体与舆论侧的关注点集中在「调价合理性」与「财务效果」：在2024年已实现扭亏为盈的背景下仍要上调票价的疑问被反复提出，媒体估算调价后每人次票价涨幅或超10%，…</div><details class="item-details"><summary>展开详情</summary><p>媒体与舆论侧的关注点集中在「调价合理性」与「财务效果」：在2024年已实现扭亏为盈的背景下仍要上调票价的疑问被反复提出，媒体估算调价后每人次票价涨幅或超10%，预计为重庆轨交集团年增收约11亿元，并有助于降低当地财政补贴压力。</p></details><div class="item-meta">重庆轨道交通首度盈利背后，为何仍要上调票价？两种方案公布</div></div><div class="item-card"><div class="item-title">调价方案与最终票价：听证公告同步公开两套方案（或将起步价…</div><div class="item-summary">调价方案与最终票价：听证公告同步公开两套方案（或将起步价由2元提高至3元，或减少单位价格可乘坐公里数），…</div><details class="item-details"><summary>展开详情</summary><p>调价方案与最终票价：听证公告同步公开两套方案（或将起步价由2元提高至3元，或减少单位价格可乘坐公里数），2025年7月25日发布的《关于完善重庆市城市轨道交通票价机制的通知》（渝发改规范〔2025〕1号）最终确定按里程计价，0—4（含）公里2元起逐段递增；前后对比显示调整后各里程区间票价普遍上移。</p></details><div class="item-meta">重庆轨道交通票价将调整？现征求你意见！</div></div><div class="item-card"><div class="item-title">政府官方文件共3条，构成政策原始依据：听证会公告（tas…</div><div class="item-summary">政府官方文件共3条，构成政策原始依据：听证会公告（task-sources-ev-1）、听证事项公告（task-sources-ev-2）、最终票价机制通知（task-sources-ev-3…</div><details class="item-details"><summary>展开详情</summary><p>政府官方文件共3条，构成政策原始依据：听证会公告（task-sources-ev-1）、听证事项公告（task-sources-ev-2）、最终票价机制通知（task-sources-ev-3）。</p></details><div class="item-meta">地铁涨价争议背后，“赚钱”难题有解吗？</div></div><div class="item-card"><div class="item-title">从现有证据可见政策推进时间线：2025年5月发布听证会公…</div><div class="item-summary">从现有证据可见政策推进时间线：2025年5月发布听证会公告并公开两套方案征集意见，2025年7月25日发布正式票价机制通知，2025年7月30日起执行。</div><div class="item-meta">重庆市发展和改革委员会关于召开完善我市城市轨道交通票价机制听证会的公告_通知公告_重庆市发展和改革委员会</div></div></div>
+
+
+</article>
+<article class="card module" data-module="event-timeline">
+<header class="module-head">
+  <div>
+    <h3>事件时间线</h3>
+  </div>
+  <span class="state state-provisional">阶段性</span>
+</header>
+<p class="module-summary">2025年5月13日，重庆市发展和改革委员会发布《关于召开完善我市城市轨道交通票价机制听证会的公告》（渝发改收费〔2025〕566号），宣布拟组织召开完善我市城市轨道交通票价机制听证会，…</p>
+<div class="timeline"><div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">2023-09-21</div><div class="timeline-title">5号线、10号线剩余段里程票价出炉（起步价2元）<span class="review-badge review-partial">部分支持</span></div><div class="review-reason">审查看法：证据标题及URL可佐证2023年9月21日重庆市政府网发布5号线、10号线剩余段里程票价且起步价2元；但所给摘录仅为页面导航头部，正文未包含“起步价2元/里程票价”内容，且“本次调整之前”“新开通线路曾按里程票价公布”属于超出该单一来源的概括性推断，不能完全由现有证据支持。</div><div class="timeline-text">重庆市政府网发布消息，重庆轨道交通5号线、10号线剩余段里程票价出炉，起步价2元，反映调整前的计价口径。</div><div class="timeline-meta"></div></div><div class="timeline-arrow" aria-hidden="true">↓</div><div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">2025-05-13</div><div class="timeline-title">市发展改革委发布轨道票价机制听证会公告</div><div class="timeline-text">渝发改收费〔2025〕566号公告称，为构建以城市轨道交通为骨干的绿色出行服务体系，根据《价格法》《政府制定价格行为规则》《政府制定价格听证办法》等规定，…</div><details class="item-details"><summary>展开详情</summary><p>渝发改收费〔2025〕566号公告称，为构建以城市轨道交通为骨干的绿色出行服务体系，根据《价格法》《政府制定价格行为规则》《政府制定价格听证办法》等规定，市发展改革委拟组织召开完善我市城市轨道交通票价机制听证会。</p></details><div class="timeline-meta"></div></div><div class="timeline-arrow" aria-hidden="true">↓</div><div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">2025-07-25</div><div class="timeline-title">《关于完善重庆市城市轨道交通票价机制的通知》发布</div><div class="timeline-text">2025年7月25日消息，重庆市发展改革委发布《关于完善重庆市城市轨道交通票价机制的通知》，披露最新票价信息。</div><div class="timeline-meta"></div></div><div class="timeline-arrow" aria-hidden="true">↓</div><div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">2025-07-30</div><div class="timeline-title">票价调整前后里程区间对比</div><div class="timeline-text">调整前0-6公里2元/6-11公里3元/11-17公里4元/17-24公里5元/24-32公里6元/32-41公里7元/41-51公里8元/51-63公里9元；…</div><details class="item-details"><summary>展开详情</summary><p>调整前0-6公里2元/6-11公里3元/11-17公里4元/17-24公里5元/24-32公里6元/32-41公里7元/41-51公里8元/51-63公里9元；调整后0-4公里2元/4-8公里3元/8-12公里4元/12-17公里5元/17-23公里6元/23-30公里7元/30-40公里8元/40-55公里9元。</p></details><div class="timeline-meta"></div></div><div class="timeline-arrow" aria-hidden="true">↓</div><div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-time">2025-07-30</div><div class="timeline-title">新票价机制开始执行</div><div class="timeline-text">按乘坐里程计价：0—4（含）公里2元；4—8（含）公里3元；8—12（含）公里4元；12—17（含）公里5元；17—23（含）公里6元；23—30（含）公里7元。</div><div class="timeline-meta"></div></div></div>
+
+<div class="limitations"><strong>限制</strong><ul><li>部分判断未通过完整审查，已标注为部分支持。</li></ul></div>
+</article>
+<article class="card module" data-module="event-summary">
+<header class="module-head">
+  <div>
+    <h3>事件概况</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">重庆市发展改革委分两步完善城市轨道交通票价机制：2025年5月发布听证会公告并公开两套备选方案征集意见、召开听证会，2025年7月发布正式通知确定新票价机制，自2025年7月30日起执行。</p>
+<div class="cards"><div class="item-card"><div class="item-title"></div><div class="item-summary"></div><div class="item-meta"></div></div><div class="item-card"><div class="item-title">重庆城市轨道交通票价机制完善</div><div class="item-summary">先听证、后定案，票价机制于2025年7月30日起执行</div><details class="item-details"><summary>展开详情</summary><p>2025年5月，重庆市发展改革委发布听证会公告（渝发改收费〔2025〕566号），同步公开两套方案征集公众意见；2025年7月25日发布正式通知（渝发改规范〔2025〕1号），明确新票价机制自2025年7月30日起执行。</p></details><div class="item-meta"></div></div><div class="item-card"><div class="item-title">发布听证会公告并公开两套方案</div><div class="item-summary">市发展改革委发布听证会公告，公开两套待听证方案并征集公众意见。</div><div class="item-meta">2025-05-14</div></div><div class="item-card"><div class="item-title">发布正式通知并确定执行日期</div><div class="item-summary">渝发改规范〔2025〕1号明确新票价机制自2025年7月30日起执行，并界定适用线路范围。</div><div class="item-meta">2025-07-25</div></div><div class="item-card"><div class="item-title"></div><div class="item-summary"></div><div class="item-meta"></div></div><div class="item-card"><div class="item-title"></div><div class="item-summary"></div><div class="item-meta"></div></div></div>
+
+
+</article></div>
+</section></div><div class="view-panel" id="panel-issues"><section class="section" id="issues">
+<h2>议题、观点与回应</h2>
+<div class="module-grid"><article class="card module" data-module="issue-map">
+<header class="module-head">
+  <div>
+    <h3>议题与争议</h3>
+  </div>
+  <span class="state state-provisional">阶段性</span>
+</header>
+<p class="module-summary">核心争议在于票价调整的方案与幅度：官方同步公开两套听证方案，或将起步价由2元提高至3元，或减少单位价格可乘坐的公里数；…</p>
+<div class="table-wrap"><table><thead><tr><th>议题</th><th>状态</th><th>说明</th></tr></thead><tbody><tr><td>听证程序与公众参与</td><td>已履行并完成</td><td>先发布听证有关事项公告（511号），再发布听证会公告（566号）并公开两套方案征求意见，5月29日召开听证会</td></tr><tr><td>调价结果与执行时效</td><td>已生效执行</td><td>渝发改规范〔2025〕1号，2025年7月30日起按里程计价，覆盖主城多条线路、不含市郊铁路；被称为2011年以来首次票价改革</td></tr><tr><td>调价方案与幅度</td><td>已听证并最终确定执行</td><td>两套方案分别为起步价2元→3元或缩短单位价格可乘里程；媒体测算涨幅超10%、年增收约11亿元，可缓解财政补贴压力</td></tr><tr><td>文件名称与适用范围的口径差异</td><td>待以官方原文核实</td><td>媒体报道称《关于调整中心城区轨道交通票价的通知》，官方文件为《关于完善重庆市城市轨道交通票价机制的通知》，适用范围为全市城市轨道交通线路</td></tr><tr><td>调价的成本与财政动因</td><td>存在争议</td><td>建设成本每公里7—10亿元、人工与安检等运营成本高企，全国多数城市扣除补贴后亏损，重庆轨交集团同样承压</td></tr></tbody></table></div>
+
+<div class="limitations"><strong>限制</strong><ul><li>部分判断未通过完整审查，已标注为部分支持。</li></ul></div>
+</article>
+<article class="card module" data-module="position-matrix">
+<header class="module-head">
+  <div>
+    <h3>立场矩阵</h3>
+  </div>
+  <span class="state state-provisional">阶段性</span>
+</header>
+<p class="module-summary">媒体与舆论侧的关注点集中在「调价合理性」与「财务效果」：在2024年已实现扭亏为盈的背景下仍要上调票价的疑问被反复提出，媒体估算调价后每人次票价涨幅或超10%，…</p>
+<div class="table-wrap"><table><thead><tr><th>主体</th><th>立场</th><th>目标</th><th>依据</th><th>_importance</th><th>_review_reason</th><th>_review_status</th></tr></thead><tbody><tr><td>媒体与舆论（网易、知乎、搜狐等报道与转载）</td><td>对调价持追问与解读姿态，质疑盈利背景下涨价的必要性，同时提示财政补贴与运营成本压力</td><td>解释票价调整的来龙去脉及对市民出行的影响</td><td>来源：网易《重庆轨道交通首度盈利背后，为何仍要上调票价？两种方案公布》、知乎问答题与专栏《重庆城市轨道交通拟听证调价，公布两套票价方案》等报道</td><td>3</td><td></td><td></td></tr><tr><td>重庆市发展和改革委员会（政策说明口径）</td><td>以线网扩张、成本与需求变化为据，主张现行2005年形成的票价机制已不适应发展</td><td>为完善票价机制提供必要性依据，指向可持续运营</td><td>来源：重庆市发展和改革委员会《关于完善我市城市轨道交通票价机制听证有关事项的公告》（渝发改收费〔2025〕511号）及《关于完善重庆市城市轨道交通票价机制的通知》（渝发改规范〔2025〕1号）</td><td>2</td><td></td><td></td></tr><tr><td>重庆市发展和改革委员会（听证与公众意见征集环节）</td><td>以两套方案并行的方式提交听证并征集公众意见，未在听证阶段锁定单一方案</td><td>通过听证程序与公众意见征集形成可执行的票价机制方案</td><td>来源：搜狐《重庆轨道交通票价将调整？现征求你意见！》与知乎转载报道（引述市发展改革委5月14日听证会公告同步公开的两套方案）</td><td>2</td><td></td><td></td></tr><tr><td>重庆市城市轨道交通线路运营方</td><td>按里程计价机制对城市轨道交通线路执行新票价，市郊铁路线路不纳入本次执行范围</td><td>自2025年7月30日起在指定线路范围内落实新票价</td><td>来源：重庆本地宝《2025重庆轨道交通票价调整最新消息》（引述7月25日市发展改革委《关于完善重庆市城市轨道交通票价机制的通知》）</td><td>1</td><td></td><td></td></tr><tr><td>重庆城市交通开发投资（集团）有限公司、重庆轨道交通运营有限公司、重庆轨道四号线建设运营有限公司、重庆轨道十八号线建设运营有限公司</td><td>作为政策受文与执行方，按市发展改革委通知落实新票价机制</td><td>执行经市政府同意的完善后城市轨道交通票价机制</td><td>来源：重庆市发展和改革委员会《关于完善重庆市城市轨道交通票价机制的通知》（渝发改规范〔2025〕1号）受文单位列示</td><td>1</td><td></td><td></td></tr><tr><td>重庆市发展和改革委员会</td><td>支持并主导完善城市轨道交通票价机制，强调依法定程序（价格法、政府制定价格行为规则、政府制定价格听证办法）并经市政府同意后实施</td><td>构建以城市轨道交通为骨干的绿色出行服务体系，助力打造“轨道上的都市区”，不断提高公众出行品质</td><td>来源：重庆市发展和改革委员会《关于完善我市城市轨道交通票价机制听证有关事项的公告》（渝发改收费〔2025〕511号）、《关于召开完善我市城市轨道交通票价机制听证会的公告》（渝发改收费〔2025〕566号）、《关于完善重庆市城市轨道交通票价机制的通知》（渝发改规范〔2025〕1号）；并援引交运发〔2023〕144号</td><td>3</td><td>主体、程序与依据基本可核：ev-1（渝发改收费〔2025〕566号）确为市发展改革委依《价格法》《政府制定价格行为规则》《政府制定价格听证办法》及交运发〔2023〕144号拟召开听证会的公告；ev-2（渝发改收费〔2025〕511号）为听证有关事项公告；ev-3（渝发改规范〔2025〕1号）确含「经市政府同意」。但日期细节与证据不完全吻合：511号公告证据页面标注「日期：2025-04-29」，与所称「2025年4月28日」相差一日（仅URL为20250428）；566号公告证据（官方页URL为202505/t20250513）未直接显示发布日期，「5月14日发布」仅见于搜狐报道（ev-3，陈述5月14日发布召开听证会公告），「5月29日召开」由知乎/网易报道（ev-2、ev-1）佐证。故属大体成立但个别日期需修正。</td><td>partial</td></tr></tbody></table></div>
+
+<div class="limitations"><strong>限制</strong><ul><li>部分判断未通过完整审查，已标注为部分支持。</li></ul></div>
+</article></div>
+</section></div><div class="view-panel" id="panel-response"><section class="section" id="response">
+<h2>回应与处置</h2>
+<div class="module-grid"><article class="card module" data-module="response-coverage">
+<header class="module-head">
+  <div>
+    <h3>回应覆盖</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">调价必要性与政策依据：市发展改革委在听证会公告中说明，我市城市轨道交通票价机制于2005年2号线开通时初步形成，…</p>
+<div class="coverage-grid"><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">调价后的具体票价与计费方式</span><span class="coverage-badge coverage-direct">直接回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：两套听证方案与最终方案之间的取舍理由未公开说明</div></div><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">为什么要调整我市城市轨道交通票价机制</span><span class="coverage-badge coverage-direct">直接回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：未量化运营成本缺口与财政补贴压力的测算依据</div></div><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">公众如何参与听证并提出意见</span><span class="coverage-badge coverage-partial">部分回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：意见提交渠道、听证参加人构成与意见采纳结果</div></div><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">调价对乘客出行成本与既有优惠的影响</span><span class="coverage-badge coverage-partial">部分回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：调整后的具体优惠细则与分人群成本测算</div></div><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">新票价何时执行、覆盖哪些线路</span><span class="coverage-badge coverage-direct">直接回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：市郊铁路线路与城市轨道线路之间的换乘计价衔接规则</div></div><div class="coverage-card"><div class="coverage-head"><span class="coverage-question">调价对财政补贴与运营收入的影响</span><span class="coverage-badge coverage-partial">部分回答</span></div><div class="coverage-reason"></div><div class="coverage-uncovered">未覆盖：官方未公布增收规模与补贴变化的测算口径</div></div></div>
+
+
+</article></div>
+</section></div><div class="view-panel" id="panel-evidence"><section class="section" id="evidence">
+<h2>来源、证据与限制</h2>
+<div class="module-grid"><article class="card module" data-module="source-structure">
+<header class="module-head">
+  <div>
+    <h3>来源结构</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">政府官方文件共3条，构成政策原始依据：听证会公告（task-sources-ev-1）、听证事项公告（task-sources-ev-2）、最终票价机制通知（task-sources-ev-3…</p>
+<div class="donut-wrap"><div class="donut" style="background:conic-gradient(#2563eb 0.00% 42.86%,#16a34a 42.86% 85.71%,#f59e0b 85.71% 100.00%)"><div class="donut-hole">7</div></div><div class="donut-legend"><div class="donut-legend-row"><span class="donut-dot" style="background:#2563eb"></span><span class="donut-label">政府官方文件</span><span class="donut-value">3</span></div><div class="donut-legend-row"><span class="donut-dot" style="background:#16a34a"></span><span class="donut-label">媒体报道</span><span class="donut-value">3</span></div><div class="donut-legend-row"><span class="donut-dot" style="background:#f59e0b"></span><span class="donut-label">信息平台</span><span class="donut-value">1</span></div></div></div>
+
+
+</article>
+<article class="card module" data-module="evidence-index">
+<header class="module-head">
+  <div>
+    <h3>证据与原文</h3>
+  </div>
+  <span class="state state-ready">已就绪</span>
+</header>
+<p class="module-summary">重庆市发展和改革委员会发布《关于召开完善我市城市轨道交通票价机制听证会的公告》（渝发改收费〔2025〕566号），…</p>
+<div class="evidence-grid"><article class="evidence-card"><div class="evidence-source">重庆市发展和改革委员会关于召开完善我市城市轨道交通票价机制听证会的公告_通知公告_重庆市发展和改革委员会</div><div class="evidence-excerpt">渝发改收费〔2025〕566号 为积极贯彻落实交通运输部、国家发展改革委等九部门《关于推进城市公共交通健康可持续发展的若干意见》（交运发〔2023〕144号）要求，构建完善以城市轨道交通为骨干的绿色出行服务体系，助力打造“轨道上的都市区”，不断提高公众出行品质，根据《中华人民共和国价格法》《政府制定价格行为规则》《政府制定价格听证办法》等有关规定，市发展改革委拟组织召开完善我市城市轨道交通票价机制听证会。现将有关听证事项公告如下。 一、…</div><details class="item-details"><summary>展开原文</summary><p>渝发改收费〔2025〕566号 为积极贯彻落实交通运输部、国家发展改革委等九部门《关于推进城市公共交通健康可持续发展的若干意见》（交运发〔2023〕144号）要求，构建完善以城市轨道交通为骨干的绿色出行服务体系，助力打造“轨道上的都市区”，不断提高公众出行品质，根据《中华人民共和国价格法》《政府制定价格行为规则》《政府制定价格听证办法》等有关规定，市发展改革委拟组织召开完善我市城市轨道交通票价机制听证会。现将有关听证事项公告如下。 一、听证会举行的时间和地点</p></details></article><article class="evidence-card"><div class="evidence-source">重庆轨道交通票价将调整？现征求你意见！</div><div class="evidence-excerpt">重庆轨道交通票价将调整？现征求你意见！ 2025-05-16 09:57 来源: 川渝本地消息 发布于：北京市 5月14日，市发展改革委发布了《关于召开完善我市城市轨道交通票价机制听证会的公告》，同步公开了将进行听证的两套方案，征集公众意见。 完善票价机制 进一步提升服务品质 2005年6月18日，重庆开通首条城市轨道交通线路——单轨2号线。目前，重庆城市轨道交通已开通11条路线，建成了地形适应强、跨江桥梁多、穿山通道多的山地城市轨道交…</div><details class="item-details"><summary>展开原文</summary><p>重庆轨道交通票价将调整？现征求你意见！ 2025-05-16 09:57 来源: 川渝本地消息 发布于：北京市 5月14日，市发展改革委发布了《关于召开完善我市城市轨道交通票价机制听证会的公告》，同步公开了将进行听证的两套方案，征集公众意见。 完善票价机制 进一步提升服务品质 2005年6月18日，重庆开通首条城市轨道交通线路——单轨2号线。目前，重庆城市轨道交通已开通11条路线，建成了地形适应强、跨江桥梁多、穿山通道多的山地城市轨道交通运营网络，累计客流量突破百亿。 如今，城市轨道交通不仅拥有“开往春天的列车”等热门景点，也有“背篓专线”方便菜农们出行卖菜</p></details></article><article class="evidence-card"><div class="evidence-source">2025重庆轨道交通票价调整最新消息- 重庆本地宝</div><div class="evidence-excerpt">交通信息搜索 2025重庆轨道交通票价调整最新消息 【导语】：7月25日，重庆市发展改革委发布《关于完善重庆市城市轨道交通票价机制的通知》，详细最新票价信息见文章。 ✍2025年7月25日消息 以下政策2025年7月30日起执行 一、执行范围 重庆市城市轨道交通线路（包含城市轨道交通1、2、3、4、5、6、9、10、18号线，环线、国博线及后续开通的城市轨道交通线路；不含江跳线、璧铜线等市郊铁路线路）。 二、城市轨道交通票价 按乘坐里程…</div><details class="item-details"><summary>展开原文</summary><p>交通信息搜索 2025重庆轨道交通票价调整最新消息 【导语】：7月25日，重庆市发展改革委发布《关于完善重庆市城市轨道交通票价机制的通知》，详细最新票价信息见文章。 ✍2025年7月25日消息 以下政策2025年7月30日起执行 一、执行范围 重庆市城市轨道交通线路（包含城市轨道交通1、2、3、4、5、6、9、10、18号线，环线、国博线及后续开通的城市轨道交通线路；不含江跳线、璧铜线等市郊铁路线路）。 二、城市轨道交通票价 按乘坐里程计价，0—4（含）公里2元；4—8（含）公里3元；8—12（含）公里4元；12—17（含）公里5元；17—23（含）公里6元；23—30（含）公里7元</p></details></article><article class="evidence-card"><div class="evidence-source">重庆市发展和改革委员会关于完善重庆市城市轨道交通票价机制的通知_市发展改革委行政规范性文件_重庆市发展和改革委员会</div><div class="evidence-excerpt">重庆市发展和改革委员会行政规范性文件 重庆市发展和改革委员会 关于完善重庆市城市轨道交通票价机制的通知 渝发改规范〔2025〕1号 重庆城市交通开发投资（集团）有限公司、重庆轨道交通运营有限公司、重庆轨道四号线建设运营有限公司、重庆轨道十八号线建设运营有限公司： 为积极贯彻落实交通运输部、国家发展改革委等九部门《关于推进城市公共交通健康可持续发展的若干意见》（交运发〔2023〕144号）要求，构建完善以城市轨道交通为骨干的绿色出行服务体…</div><details class="item-details"><summary>展开原文</summary><p>重庆市发展和改革委员会行政规范性文件 重庆市发展和改革委员会 关于完善重庆市城市轨道交通票价机制的通知 渝发改规范〔2025〕1号 重庆城市交通开发投资（集团）有限公司、重庆轨道交通运营有限公司、重庆轨道四号线建设运营有限公司、重庆轨道十八号线建设运营有限公司： 为积极贯彻落实交通运输部、国家发展改革委等九部门《关于推进城市公共交通健康可持续发展的若干意见》（交运发〔2023〕144号）要求，构建完善以城市轨道交通为骨干的绿色出行服务体系，助力打造“轨道上的都市区”，不断提高公众出行品质，经市政府同意，现将完善重庆市</p></details></article></div>
+
+
+</article></div>
+</section></div></div>
+</main>
+<footer class="page-footer">内容契约 → 呈现方案 → 确定性渲染</footer>
+<script>
+function activateView(target){
+  document.querySelectorAll(".view-panel").forEach(function(panel){ panel.classList.remove("active"); });
+  document.querySelectorAll(".view-tab").forEach(function(tab){ tab.classList.remove("active"); });
+  var panel = document.getElementById("panel-" + target);
+  if (panel) { panel.classList.add("active"); }
+  document.querySelectorAll(".view-tab").forEach(function(tab){
+    if (tab.getAttribute("data-view-target") == target) { tab.classList.add("active"); }
+  });
+}
+document.querySelectorAll(".view-tab").forEach(function(button){
+  button.addEventListener("click", function(){
+    var target = button.getAttribute("data-view-target");
+    activateView(target);
+    if (history.replaceState) { history.replaceState(null, "", "#" + target); }
+  });
+});
+document.querySelectorAll("[data-expand-all]").forEach(function(button){
+  button.addEventListener("click", function(){
+    document.querySelectorAll("details.item-details").forEach(function(item){ item.open = true; });
+  });
+});
+document.querySelectorAll("[data-collapse-all]").forEach(function(button){
+  button.addEventListener("click", function(){
+    document.querySelectorAll("details.item-details").forEach(function(item){ item.open = false; });
+  });
+});
+if (window.location.hash.length > 1) { activateView(window.location.hash.slice(1)); }
+</script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+{
+  "schema": "opinion-report-quality-batch/1",
+  "batch_id": "2026-09-13-s3",
+  "created_at": "2026-09-13T17:48:00+08:00",
+  "git_revision_at_start": "443ebf9",
+  "workspace_dirty_at_start": true,
+  "evaluation_mode": "frozen_model_comparison",
+  "status": "BLOCKED",
+  "authorization": {
+    "basis": "User asked to continue immediately after the proposed 40-request Agent plus 2-request baseline batch.",
+    "model_request_limit": 42,
+    "brave_request_limit": 0,
+    "jina_request_limit": 0
+  },
+  "case": {
+    "case_id": "billing-dev-v1",
+    "manifest": "../2026-09-13-s1/cases/billing-dev-v1/manifest.json",
+    "preannotation": "../2026-09-13-s1/cases/billing-dev-v1/preannotation.json",
+    "human_review_status": "UNREVIEWED"
+  },
+  "configuration": {
+    "model": "deepseek-flash",
+    "gateway_kind": "openai_compatible",
+    "agent_model_request_limit": 40,
+    "agent_seconds_limit": 1200,
+    "agent_consolidate_seconds": 900,
+    "baseline_model_request_limit": 2,
+    "baseline_seconds_limit": 300,
+    "brave_requests": 0,
+    "jina_requests": 0
+  },
+  "arms": {
+    "agent": {
+      "status": "BLOCKED",
+      "root": "runs/agent/run-001/investigations"
+    },
+    "single_pass_baseline": {
+      "status": "BLOCKED",
+      "root": "runs/baseline/run-001"
+    },
+    "codex_reference": {
+      "status": "completed",
+      "quality_status": "UNREVIEWED",
+      "root": "runs/codex/run-001",
+      "citation_validation": "46 occurrences across 8 materials; structural PASS"
+    }
+  },
+  "blocked_reason": "External approval review requires explicit authorization to send the task and eight frozen public-text snapshots to the configured opencode.ai-compatible model gateway. No request was sent.",
+  "usage": {
+    "agent_model_requests": 0,
+    "baseline_model_requests": 0,
+    "total_model_requests": 0,
+    "brave_requests": 0,
+    "jina_requests": 0,
+    "tokens": null,
+    "cost": null
+  },
+  "quality_status": "UNREVIEWED",
+  "comparison": "comparison.md",
+  "validation": {
+    "investigation_suite": "142 passed",
+    "all_non_live": "743 passed, 2 deselected",
+    "codex_report_json_citations": "46 occurrences, 26 unique locations, m01-m08, structural PASS",
+    "codex_report_markdown_citations": "34 occurrences, m01-m08, structural PASS",
+    "external_model_requests": 0
+  }
+}

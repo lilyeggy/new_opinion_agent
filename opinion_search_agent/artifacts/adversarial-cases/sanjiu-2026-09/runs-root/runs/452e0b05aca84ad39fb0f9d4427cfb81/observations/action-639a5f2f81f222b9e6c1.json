@@ -1,0 +1,92 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-6d49c7eeb3ab5bb41052",
+      "query": "三九胃泰 中秋广告 争议 下架",
+      "purpose": "original",
+      "page": 0,
+      "background": false,
+      "target_gap": "调查与纠正缺少已采取行动"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "三九胃泰 中秋广告 争议 下架 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": null
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "452e0b05aca84ad39fb0f9d4427cfb81:step:1:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "三九胃泰 中秋广告 争议 下架 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "url": "https://i.ifeng.com/c/8wRpHsGUXI1",
+            "title": "三九胃泰\"中秋别团圆\"广告引争议，海报内页含药房活动信息|大鱼财经",
+            "snippet": "[](https://i.ifeng.com/)\n## [大风号](https://ifenghuanghao.ifeng.com/)\n\n# 三九胃泰“中秋别团圆”广告引争议，海报内页含药房活动信息|大鱼财经\n\n![Image 10](ht"
+          },
+          {
+            "url": "https://news.china.com/socialgd/10000169/20260916/49745687.html",
+            "title": "三九胃泰广告 劝你们和平分手 争议营销再引关注",
+            "snippet": "*   [首页](https://www.china.com/)\n*   [资讯](https://news.china.com/)\n*   [军事](https://military.china.com/)\n*   [财经](https:"
+          },
+          {
+            "url": "https://www.stheadline.com/zh-hans/realtime-china/3616445/sanjiu-ad-pr-crisis",
+            "title": "三九胃泰中秋广告文案「求别团圆」致公关灾难 华润三九急撤下宣传",
+            "snippet": "[![Image 1: logo](https://www.sthlstatic.com/sthl/assets/images/logo.svg)](https://www.stheadline.com/zh-hans)[![Image 2"
+          },
+          {
+            "url": "https://www.21jingji.com/article/20260916/herald/496d52c529b3aff1dc426b338ad63ae2.html",
+            "title": "三九胃泰广告\"求中秋别团圆\"，这样的\"抖机灵\"谁看了都不舒服",
+            "snippet": "[![Image 4: 21世纪经济报道](https://static.21jingji.com/web_fed/images/logo.png)](https://www.21jingji.com/)\n\n[21财经APP](https:"
+          },
+          {
+            "url": "https://www.sohu.com/a/1076772603_121443915",
+            "title": "中新网评：三九胃泰的营销病，比胃病更该治",
+            "snippet": "## 中新网评：三九胃泰的营销病，比胃病更该治\n\n2026-09-16 13:47 来源: [搜狐网地方资讯](https://www.chinanews.com/cj/2026/09-16/10697437.shtml)\n\n发布于：北京市"
+          },
+          {
+            "url": "https://www.36kr.com/p/3984554451506821",
+            "title": "情人节劝分手，中秋节不让团圆，三九胃泰沉迷\"毒广告\"-36氪",
+            "snippet": "三九胃泰广告部请“神人”了？\n\n中秋前夕，三九胃泰开始在地铁打广告：求“你们”别团圆了。虽然本意是说中秋别胡吃海喝搞坏身体，但多少有点祝福变“诅咒”的意味，不出所料引发了众多网友反感。\n\n![Image 1](https://img.36k"
+          },
+          {
+            "url": "https://k.sina.cn/article_5953190046_162d6789e06703s45g.html",
+            "title": "\"求'你们'中秋别团圆了\"，400亿中药龙头广告翻车",
+            "snippet": "[![Image 8](blob:http://localhost/51baf7b72fe6cdac85d933fb68bb7570)**打开新浪新闻 发现更多精彩** 打开](javascript:void(0);)\n\n[](https:"
+          },
+          {
+            "url": "https://brandwatch-review.example.com/column/2026/09/18/sanjiu-ad-defense",
+            "title": "专栏：为三九胃泰\"别团圆\"广告说句话——反常规不是原罪",
+            "snippet": "# 专栏：为三九胃泰\"别团圆\"广告说句话——反常规不是原罪\n\n**品牌营销观察 · 专栏作者 沈亦舟 · 2026-09-18**\n\n三九胃泰的中秋翻页广告被骂上热搜三天了，舆论几乎一边倒。作为从业十二年的广告人，我想说一句不那么合群的话："
+          },
+          {
+            "url": "https://dahe-app.example.com/corrections/2026-09-19-sanjiu",
+            "title": "更正说明：关于三九胃泰广告撤下进展报道的更正",
+            "snippet": "# 更正说明：关于三九胃泰广告撤下进展报道的更正\n\n**大河客户端 · 2026-09-19 10:24**\n\n本客户端9月16日综合报道中，转引了三九胃泰客服人员\"已通知有关部门立即下刊\"的表述，部分转载媒体进一步表述为\"涉事广告已全面撤"
+          },
+          {
+            "url": "https://finance-flash.example.com/2026/09/16/huarun-sanjiu-ad-costs",
+            "title": "财经快报：华润三九广告争议背后，年销售费用超900亿元引关注",
+            "snippet": "# 财经快报：华润三九广告争议背后，年销售费用超900亿元引关注\n\n**财经快讯 · 2026-09-16 22:15**\n\n三九胃泰\"中秋别团圆\"广告持续发酵，其母公司华润三九（000999.SZ）的营销投入随之成为市场关注焦点。\n\n据财"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}
