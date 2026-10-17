@@ -1,4 +1,4 @@
-.PHONY: help install lint format typecheck test test-fast demo web clean
+.PHONY: help install lint format typecheck test test-fast demo quality quality-check web clean
 
 PYTHON ?= python3
 PIP ?= $(PYTHON) -m pip
@@ -16,6 +16,8 @@ help:
 	@echo "  make test-fast  - Run unit tests quickly"
 	@echo "  make test       - Run full test suite"
 	@echo "  make demo       - Run deterministic offline demo"
+	@echo "  make quality    - Recompute the offline quality baseline (no model, no network)"
+	@echo "  make quality-check - Verify the quality baseline reproduces exactly"
 	@echo "  make web        - Launch local web workbench on port 8900"
 	@echo "  make clean      - Clean up temporary test files and caches"
 
@@ -45,6 +47,12 @@ demo:
 		--focus "Compare event facts and causal accounts" \
 		--run-id offline-demo \
 		--checkpoint .opinion_search/offline-demo.json
+
+quality:
+	cd opinion_search_agent && PYTHONPATH=src $(PYTHON) scripts/quality_gate.py
+
+quality-check:
+	cd opinion_search_agent && PYTHONPATH=src $(PYTHON) scripts/quality_gate.py --check
 
 web:
 	cd opinion_search_agent && PYTHONPATH=src $(PYTHON) -m opinion_search.web --port 8900

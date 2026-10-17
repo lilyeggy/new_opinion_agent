@@ -11,11 +11,27 @@ The model proposes exactly one `search`, `read`, `reflect`, or `finish` decision
 > via PagePlan plus targeted search) and bypassed the Runtime's reliability
 > mechanisms. See the archive README for the full decision record.
 
-## Project status (2026-09-22, archived)
+## Project status (2026-10-17, frozen)
 
 Feature-complete and frozen. The investigation workload is the verification
 vehicle; the technical substance is the Harness/Runtime and Tool/Context
 layers.
+
+**Closeout (2026-10-17).** Three things landed and the runtime was frozen:
+
+- **Deterministic replay verified against a live provider.** Two real runs
+  (Brave + Jina + `deepseek-flash` over `https://api.deepseek.com/v1`, 9 and 13
+  committed steps) replay `matched` three times each with an unchanged journal
+  md5; see `artifacts/live-run-deepseek-20261017` and
+  `artifacts/live-run-deepseek-envcheck-20261017`. Replay substitutes only the
+  model client and the action executor — context compilation, decision
+  validation, reduction and completion run exactly as in production.
+- **An offline quality gate.** `python scripts/quality_gate.py --check`
+  recomputes the published numbers from four frozen runs with zero model calls
+  and zero network requests, and exits non-zero on any drift.
+- **`record --report`** writes `report.md` and `outcome.json` through the same
+  `RunBundleWriter` the served entry point uses, so a journaled run reads
+  without a separate export step.
 
 **Verified end-to-end (live):** a real Chinese public-opinion event ran the
 full loop — 60 steps, 17 searches, 17 reads, 14 findings, 92 evidence
@@ -23,7 +39,7 @@ citations, review phase executed (6 supported / 8 partial), and the
 completion gate rejected `finish` 18 times rather than close with unanswered
 required questions (honest `partial`).
 
-**Measured quality (see `../docs/舆情agent-质量三数字-D4-2026-09-21.html`):**
+**Measured quality (see `../docs/舆情agent-质量三数字-D4-2026-09-21.html`; recomputable offline via `python scripts/quality_gate.py --check`):**
 
 - Retrieval recall 60% (6/10 human-labeled must-hit items; shortfall traced
   to aggregator-domain bias — 66% of candidates from one portal — and
@@ -41,7 +57,9 @@ and prepends domain scope as `site:` operators. `country` is not used;
 evidence excerpt selection is the recall bottleneck; the model does not
 close evidence-starved questions as `not_found`; numeric claims are
 provenance-checked but not cross-checked for conflicts. Fix directions are
-documented and deliberately deferred.
+documented and deliberately deferred. The earlier limitation "replay was only
+validated on the offline fake assembly" no longer holds — see the closeout
+block above.
 
 ## Requirements
 

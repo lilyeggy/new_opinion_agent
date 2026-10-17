@@ -15,7 +15,9 @@
 - **Dual Domain Compositions**:
   - `domain/opinion`: 4-action baseline (`search`, `read`, `reflect`, `finish`) with working memory projection for CLI/scripted evaluation.
   - `domain/investigation`: 6-action full investigation workbench (`+ retrieve`, `review`) with dynamic page planning, issue tracking, and automated source cross-verification.
-- **Battle-Tested Quality**: Over 780+ automated tests across unit, contract, integration, recovery matrices, and live event investigations.
+- **Deterministic Replay, Verified Against a Live Provider**: every committed step is journaled with a `context_hash` and a state fingerprint; replaying that journal drives the real runtime loop and reproduces the run step for step (`matched`) without calling a model or a provider. A tampered hash names the first divergent step and field instead of failing silently.
+- **Reproducible Quality Numbers**: an offline gate recomputes the published quality metrics (retrieval recall, faithfulness, adversarial probes, excerpt grounding) from four frozen runs in one command — zero model calls, zero network requests, and a non-zero exit on any drift.
+- **Battle-Tested Quality**: Over 820 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
 
 ---
 
@@ -125,7 +127,20 @@ python -m opinion_search offline \
   --checkpoint .opinion_search/offline-demo.json
 ```
 
-### 5. Launch Investigation Web Workbench
+### 5. Reproduce the Quality Numbers (Offline)
+
+不需要任何 API Key，也不发网络请求；四个冻结运行已经在仓库里：
+
+```bash
+make quality        # 等价于 python scripts/quality_gate.py
+make quality-check  # 只校验，任何数字漂移 → 非零退出
+```
+
+输出检索召回、忠实性、对抗埋点、摘录可核四个口径，写入
+`opinion_search_agent/artifacts/report-quality/quality-gate/baseline.{json,md}`。
+口径与边界见 `opinion_search_agent/evaluation/README.md`。
+
+### 6. Launch Investigation Web Workbench
 
 启动内建轻量化 Web 服务器（默认端口 `8900`）：
 

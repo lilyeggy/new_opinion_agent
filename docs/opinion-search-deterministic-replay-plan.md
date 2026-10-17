@@ -127,4 +127,5 @@
 - S5：`runtime/replay.py`（只替换 model 与 executor，缺失记录报错）。
 - 验收对应：1 → `test_recorded_run_replays_to_match`；2 → `test_crash_between_journal_and_checkpoint_resumes_consistently`；3 → `test_context_hash_tamper_reports_first_divergence`；4 → `test_missing_recorded_call_is_an_error_not_a_live_call`；5 → `test_replay_is_repeatable`；6 → 同一 resume 测试（resume 段与父段衔接并回放一致）；7 → 全量 822 passed。
 - 额外验证：跨 `PYTHONHASHSEED` 的录制与回放，journal 字节级一致。
-- 已知限制：ruff 未安装，未运行 lint；仅覆盖离线 fake 装配，未在 live 录制上验证。
+- 已知限制：ruff 未安装，未运行 lint；验收 1–6 的自动化用例仍跑在离线 fake 装配上（最快、最稳的回归层）。
+- **live 录制已补验（2026-10-17）**：真实 Brave + Jina + `deepseek-flash` 的两条运行（9 步 / 13 步）各回放 3 次 `matched`，journal md5 回放前后不变；产物见 `opinion_search_agent/artifacts/live-run-deepseek-20261017`、`...-envcheck-20261017`。全量 `828 passed, 2 skipped`。
