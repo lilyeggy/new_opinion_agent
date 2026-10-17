@@ -788,6 +788,8 @@ def reduce_state(state: State, delta: Delta):
         changes["sources"] = merge(state.sources, additions, "version_id")
     if o.check is not None:
         changes["checks"] = (*state.checks, o.check)
+    if o.numeric:
+        changes["numeric_ledger"] = merge(state.numeric_ledger, o.numeric, "observation_id")
     if o.evidence:
         merged_evidence = merge(state.evidence, o.evidence, "evidence_id")
         changes["evidence"] = merged_evidence

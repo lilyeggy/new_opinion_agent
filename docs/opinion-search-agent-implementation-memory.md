@@ -61,11 +61,11 @@
 
 ### 已知限制（面试主动讲）
 
-候选 66% 来自 news.qq.com 聚合站、原发媒体站零覆盖；qq/sohu 反爬 6/17 读取失败；证据摘录召回是单点（4 条 partial 全是引语在原文但摘录未摘到；反方稿已读已摘未引用）；模型不会把长期无证据问题显式从 open 转 not_found（gate 拒 finish 18 次的直接原因）；数字护栏只验出处不验可信度（真实 316.03 亿与埋点 3160.3 亿静默并存）。
+候选 66% 来自 news.qq.com 聚合站、原发媒体站零覆盖；qq/sohu 反爬 6/17 读取失败；证据摘录召回是单点（4 条 partial 全是引语在原文但摘录未摘到；反方稿已读已摘未引用）；模型不会把长期无证据问题显式从 open 转 not_found（gate 拒 finish 18 次的直接原因）；数字护栏只验出处不验可信度（真实 316.03 亿与埋点 3160.3 亿静默并存；2026-10-17 起读取时会建数值台账、报告里多一节「数据口径存疑」，但只在跨文档整十次幂时触发，且只列分歧、不裁决谁对）。
 
 ### 对下一节点的约束
 
-秋招前封存，不改运行时代码。秋招后若重启，优先级：① TaskFrame 约束传导到 Brave 参数（freshness/search_lang/域名）；② 结构化 QueryPlan + 第二引擎破聚合站偏向；③ 事件内 FTS5/BM25 二次检索命中「摘录未摘到」「已读未引用」两个失败模式；④ 数字矛盾检测；⑤ open→not_found 显式收口动作；⑥ 必中清单+对抗埋点回归套件化。
+秋招前封存，不改运行时代码。秋招后若重启，优先级：① TaskFrame 约束传导到 Brave 参数（freshness/search_lang/域名）；② 结构化 QueryPlan + 第二引擎破聚合站偏向；③ 事件内 FTS5/BM25 二次检索命中「摘录未摘到」「已读未引用」两个失败模式；④ 数字矛盾检测（已完成：机制层 + 运行时台账 + 报告显性化）；⑤ open→not_found 显式收口动作；⑥ 必中清单+对抗埋点回归套件化。
 
 ## 归档节点：最终结论的可恢复提交（2026-08-23）
 
@@ -4038,6 +4038,7 @@ tests/integration/test_decision_replay.py: 6 passed
 - 门禁复算结果与历史人工统计一致：检索召回发现层 7/10、已读层 6/10（历史 6/10）、忠实性 10/14、系统自评 6/14、对抗点 2/3；人机一致率 9/10，唯一分歧是必中清单第 7 项（大河网「河声」评论：候选池确有 `news.qq.com` 转载，历史人工判定为未覆盖）。分歧照实打印，不把规则调成「刚好等于历史数字」。
 - 门禁把「对抗 2/3」里丢的那一分显式化：反方稿被读、被摘 5 条证据，但 0 条进入判断层；被放大 10 倍的数字没有进判断层，却以原始摘录留在报告末尾的证据附录里——通过是「这一轮没轮到综合」，不是「有数字校验收拦截」，附录中出现这两个数字也被记进基线。
 - **数字矛盾检测（机制层）**：`src/opinion_search/domain/numeric.py` 只做一件事——同一钱指标是否在两个文档里相差一个数量级。取数字前 18 字窗口当指标名，去掉年份与「高达/达/为/约/超」词尾，按最长公共后缀（至少 3 字）聚类（`公司销售费用` 与 `年销售费用` 因此归到同一组），只在跨文档、且比值四舍五入到整十次幂（容差 0.02）时报告。喂 10 篇冻结对抗材料报出 5 条冲突、覆盖 4 个指标（营业收入 316.03 vs 3160.3、销售费用 90.89 vs 900、归母净利润 34.21 vs 342.1、推广费 50 vs 501.9），两轮真实运行的证据集零误报。门禁把它记为第四条 `layer: mechanism` 检查，与报告层三条分开统计（报告层仍 2/3，机制层 3/4）。
+- **数值台账进运行时（报告层显性化）**：`State.numeric_ledger` 在每次 `read` 时由 `service._read_material` 用 `extract_quantities` 落库（对抗材料十篇共 52 条），`reduce_state` 按 `observation_id` 幂等合并（重复读同一版本不会翻倍）；`numeric_audit.conflicts(state)` 复用同一套后缀聚类，`describe()` 生成「指标 / 两个值 / 两个来源」的行，`build_report(..., numeric_conflicts=...)` 把它写进 `report.json` 的 `numeric_conflicts`，`markdown()` 在「来源与证据」之前渲染「## 数据口径存疑」。报告只说「相差 10 倍，请核实」，不判断哪一方正确、不改写、不删稿。边界：冻结的 2026-09 对抗运行早于该字段，它的历史报告仍是 2/3；重跑会自动带上这一节。
 - **`record --report`**：复用 `build_search_outcome` + `RunBundleWriter`，与 served 入口同一条路径，在 checkpoint 旁写出 `report.md` 与 `outcome.json`。
 - **`.env.example`** 落地环境变量的完整清单与 `NO_PROXY` 的坑；CI 追加 `quality_gate.py --check` 与 `pytest tests/quality`。
 
@@ -4047,6 +4048,7 @@ tests/integration/test_decision_replay.py: 6 passed
 python scripts/quality_gate.py --check   # quality gate: baseline reproduced exactly
 pytest tests/quality -q                  # 6 passed
 pytest tests/unit/domain/test_numeric.py -q  # 8 passed
+pytest tests/investigation/test_numeric_audit.py -q  # 5 passed（冻结对抗材料 → 台账 → 报告节）
 ```
 
 ### 已知限制

@@ -9,10 +9,11 @@ from pathlib import Path
 
 from opinion_search.domain.investigation.engine import CompletionEvaluator, Processor, Resolver, Validator, allowed_url, reduce_state
 from opinion_search.domain.investigation.models import (
-    Action, Decision, FinishDecision, Observation, ReadDecision, ReflectDecision,
+    Action, Decision, FinishDecision, NumericObservation, Observation, ReadDecision, ReflectDecision,
     RetrieveDecision, ReviewDecision, ReviewRecord, ReviewResult, SourceCheck,
     SourceVersion, State, accepted_review, finding_hash, uid, utcnow,
 )
+from opinion_search.domain.numeric import extract_quantities
 from opinion_search.investigation.context import Compiler, structured_context
 from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus, atomic_json, read_json, verify_evidence
 from opinion_search.models.fake import DeterministicIdFactory
@@ -303,7 +304,21 @@ class Executor:
             evidence = await self.corpus.retrieve((source,), decision.focus)
         for item in evidence:
             verify_evidence(item, content)
-        return Observation(action="read", outcome=outcome, sources=() if existing else (source,), evidence=evidence, check=check)
+        # Keep every currency value of the document, not only the excerpts that
+        # were selected: a figure that is dropped here can never be compared.
+        numeric = tuple(
+            NumericObservation(
+                observation_id=uid("numeric", source.version_id, str(item.span[0]), str(item.span[1])),
+                version_id=source.version_id,
+                metric=item.metric,
+                value=str(item.value),
+                literal=item.literal,
+                start=item.span[0],
+                end=item.span[1],
+            )
+            for item in extract_quantities(source.version_id, content)
+        )
+        return Observation(action="read", outcome=outcome, sources=() if existing else (source,), evidence=evidence, numeric=numeric, check=check)
 
 
 def build_loop(run_root: Path, case_root: Path, mode, budget, hook, signal, config=None, update=False,

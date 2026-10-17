@@ -17,7 +17,7 @@ Feature-complete and frozen. The investigation workload is the verification
 vehicle; the technical substance is the Harness/Runtime and Tool/Context
 layers.
 
-**Closeout (2026-10-17).** Three things landed and the runtime was frozen:
+**Closeout (2026-10-17).** Four things landed and the runtime was frozen:
 
 - **Deterministic replay verified against a live provider.** Two real runs
   (Brave + Jina + `deepseek-flash` over `https://api.deepseek.com/v1`, 9 and 13
@@ -32,12 +32,17 @@ layers.
 - **`record --report`** writes `report.md` and `outcome.json` through the same
   `RunBundleWriter` the served entry point uses, so a journaled run reads
   without a separate export step.
-- **A numeric conflict detector (mechanism layer).**
+- **Numeric disagreements are surfaced, not just detected.**
   `src/opinion_search/domain/numeric.py` flags the same money metric stated a
-  power of ten apart in two documents: 5 conflicts over 4 metrics across the
-  frozen adversarial corpus, zero false positives on two live evidence sets.
-  It is offline evidence only — not yet wired into the investigation loop — so
-  the report-level adversarial score stays 2/3 while the mechanism check is 3/4.
+  power of ten apart in two documents. The reader records every currency value
+  it passes into `State.numeric_ledger`, and the published report lists each
+  disagreement under `## 数据口径存疑` — both values, both documents, no verdict,
+  nothing deleted. On the frozen adversarial corpus the audit finds four
+  disagreements (营业收入 316.03 亿 vs 3160.3 亿, 销售费用 90.89 亿 vs 900 亿,
+  归母净利润 34.21 亿 vs 342.1 亿, 推广费 50 亿 vs 501.9 亿) with zero false
+  positives on two live evidence sets. The frozen 2026-09 run predates the
+  ledger, so its published report still scores 2/3 — a rerun picks the section
+  up automatically.
 
 **Verified end-to-end (live):** a real Chinese public-opinion event ran the
 full loop — 60 steps, 17 searches, 17 reads, 14 findings, 92 evidence

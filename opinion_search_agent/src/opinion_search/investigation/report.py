@@ -60,7 +60,8 @@ def diff_reports(current, base):
 
 
 def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None,
-                 mode="live", budget=None, scope_notes=(), runtime=None, checkpoint_boundary=None):
+                 mode="live", budget=None, scope_notes=(), runtime=None, checkpoint_boundary=None,
+                 numeric_conflicts=()):
     findings = []
     for finding in state.findings:
         if not finding.active:
@@ -151,6 +152,7 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "source_relation_counts": relation_counts,
         "relations": [relation.model_dump(mode="json") for relation in state.relations],
         "evidence": [e.model_dump(mode="json") for e in state.evidence],
+        "numeric_conflicts": [dict(item) for item in numeric_conflicts],
         "searches": [s.model_dump(mode="json") for s in state.searches], "read_errors": state.read_errors,
         "checks": [c.model_dump(mode="json") for c in state.checks],
         "search_failures": sum(s.outcome == "error" for s in state.searches),
@@ -199,6 +201,13 @@ def markdown(report):
     if report["changes"]:
         lines += ["", "## 版本变化", ""]
         lines += [f"- {esc(c['question'])}：{LABELS[c['kind']]}" for c in report["changes"]]
+    if report.get("numeric_conflicts"):
+        lines += ["", "## 数据口径存疑", "",
+                  "同一指标在不同来源中的金额相差一个数量级。报告不判断哪一方正确，只列出分歧供核实。", ""]
+        for item in report["numeric_conflicts"]:
+            lower, higher = item["lower"], item["higher"]
+            lines.append(f"- **{esc(item['metric'])}**：{esc(lower['value'])}（{esc(lower['title'])}）与 "
+                         f"{esc(higher['value'])}（{esc(higher['title'])}）相差 {item['factor']} 倍")
     lines += ["", "## 来源与证据", ""]
     if report.get("checks"):
         lines += ["### 本轮来源复查记录", ""]

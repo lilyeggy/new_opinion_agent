@@ -25,6 +25,7 @@ from opinion_search.investigation.presentation import confirmed_profile
 from opinion_search.investigation.report import build_report, diff_reports, markdown
 from opinion_search.investigation.workbench import build_workbench
 from opinion_search.investigation.service import PLAN_INSTRUCTIONS, PROFILE, PROCEED_ON_ASSUMPTION_INSTRUCTIONS, InvestigationRun, build_loop, live_model
+from opinion_search.investigation import numeric_audit
 from opinion_search.investigation.storage import Budget, CaseBusy, CaseLock, Corpus, atomic_json, atomic_text, read_json, verify_evidence
 from opinion_search.runtime.cancellation import EventCancellationSignal
 from opinion_search.runtime.checkpoint import JsonCheckpointStore
@@ -63,6 +64,12 @@ def _cn_day_count(text: str) -> int | None:
             return None
         return tens * 10 + ones
     return _CN_DIGITS.get(text)
+
+
+def _numeric_rows(state) -> list[dict]:
+    """Report rows naming both documents of a ten-fold numeric disagreement."""
+
+    return numeric_audit.describe(state, numeric_audit.conflicts(state))
 
 
 def _assumption_note(data: dict) -> tuple[str, ...]:
@@ -452,7 +459,7 @@ class Manager:
             report = build_report(state, "running", "调查进行中的阶段投影，内容待审查。",
                 case_id=data["case_id"], run_id=identifier, mode=data["mode"],
                 budget=budget, scope_notes=_assumption_note(data), runtime=runtime,
-                checkpoint_boundary=checkpoint_boundary)
+                checkpoint_boundary=checkpoint_boundary, numeric_conflicts=_numeric_rows(state))
             report["generated_at"] = utcnow().isoformat()
             report["started_at"] = data.get("created_at")
             report["lookup_cutoff"] = report["cutoff"]
@@ -803,7 +810,8 @@ class Manager:
                 budget = read_json(run_root / "budget.json")
                 report = build_report(run_state.domain_state, "failed", "调查中断，已保存的材料与判断仍然保留，报告不完整。",
                     case_id=data["case_id"], run_id=identifier, parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
-                    scope_notes=_assumption_note(data), runtime=run_state)
+                    scope_notes=_assumption_note(data), runtime=run_state,
+                    numeric_conflicts=_numeric_rows(run_state.domain_state))
                 atomic_json(run_root / "report.json", report)
                 atomic_text(run_root / "report.md", markdown(report))
         except (OSError, ValueError):
@@ -824,7 +832,8 @@ class Manager:
             state = InvestigationRun.model_validate(raw["state"]).domain_state
             report = build_report(state, "cancelled", note, case_id=data["case_id"], run_id=identifier,
                                   parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
-                                  scope_notes=_assumption_note(data), runtime=InvestigationRun.model_validate(raw["state"]))
+                                  scope_notes=_assumption_note(data), runtime=InvestigationRun.model_validate(raw["state"]),
+                                  numeric_conflicts=_numeric_rows(state))
         else:
             plan = data.get("plan") or {}
             report = {
@@ -1017,7 +1026,7 @@ class Manager:
         status = result.status.value
         raw = read_json(run_root / "run.json")
         runtime = InvestigationRun.model_validate(raw["state"]) if raw and "state" in raw else None
-        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data), runtime=runtime, checkpoint_boundary="published")
+        report = build_report(result.domain_state, status, result.stop_reason, case_id=data["case_id"], run_id=identifier, parent_id=data["parent_id"], parent=parent, mode=data["mode"], budget=budget.snapshot(), scope_notes=_assumption_note(data), runtime=runtime, checkpoint_boundary="published", numeric_conflicts=_numeric_rows(result.domain_state))
         report["generated_at"] = utcnow().isoformat()
         report["started_at"] = data.get("created_at")
         report["lookup_cutoff"] = report["cutoff"]

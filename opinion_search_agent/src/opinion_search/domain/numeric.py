@@ -177,11 +177,24 @@ def _magnitude(lower: Decimal, higher: Decimal) -> int | None:
 def find_conflicts(documents: Sequence[tuple[str, str]]) -> tuple[NumericConflict, ...]:
     """Report metrics whose value differs by a power of ten across documents."""
 
-    quantities = [
-        quantity
-        for document_id, text in documents
-        for quantity in extract_quantities(document_id, text)
-    ]
+    return conflicts_from_quantities(
+        [
+            quantity
+            for document_id, text in documents
+            for quantity in extract_quantities(document_id, text)
+        ]
+    )
+
+
+def conflicts_from_quantities(
+    quantities: Sequence[Quantity],
+) -> tuple[NumericConflict, ...]:
+    """Same clustering and threshold, applied to quantities that were already extracted.
+
+    The investigation runtime records a numeric ledger while it reads, so the
+    audit does not have to re-read (or even keep) the source text.
+    """
+
     if not quantities:
         return ()
 

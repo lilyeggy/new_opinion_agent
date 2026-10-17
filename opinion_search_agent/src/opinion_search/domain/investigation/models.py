@@ -123,6 +123,25 @@ class Evidence(Record):
     locator: Text
 
 
+class NumericObservation(Record):
+    """One money value seen while reading one source document.
+
+    Evidence stores only the excerpts that were selected for a finding, so a
+    figure that the reader passed over leaves no trace.  The ledger keeps every
+    currency value of a document - metric phrase, magnitude and offset - so the
+    report can compare sources against each other instead of trusting whichever
+    value happened to be excerpted.
+    """
+
+    observation_id: Text
+    version_id: Text
+    metric: Text
+    value: Text
+    literal: Text
+    start: int = Field(ge=0)
+    end: int = Field(gt=0)
+
+
 MODULE_FACET_FIELDS: dict[str, dict[str, str]] = {
     "rule-comparison": {
         "old_value": "旧值",
@@ -401,6 +420,7 @@ class State(Record):
     candidates: tuple[dict, ...] = ()
     sources: tuple[SourceVersion, ...] = ()
     evidence: tuple[Evidence, ...] = ()
+    numeric_ledger: tuple[NumericObservation, ...] = ()
     findings: tuple[Finding, ...] = ()
     retired: tuple[RetiredFinding, ...] = ()
     checks: tuple[SourceCheck, ...] = ()
@@ -427,6 +447,8 @@ class State(Record):
         findings = {x.finding_id for x in self.findings}
         if any(x.version_id not in sources or x.end - x.start != len(x.excerpt) for x in self.evidence):
             raise ValueError("evidence identity or locator mismatch")
+        if any(x.version_id not in sources for x in self.numeric_ledger):
+            raise ValueError("numeric ledger references unknown source")
         for x in self.findings:
             if x.issue_id not in issues or not set(x.evidence_ids + x.contradicting_ids) <= evidence:
                 raise ValueError("finding references unknown issue or evidence")
@@ -478,6 +500,7 @@ class Observation(Record):
     outcome: ToolOutcome | None = None
     sources: tuple[SourceVersion, ...] = ()
     evidence: tuple[Evidence, ...] = ()
+    numeric: tuple[NumericObservation, ...] = ()
     reviews: tuple[ReviewRecord, ...] = ()
     check: SourceCheck | None = None
     verdict: CompletionVerdict | None = None
