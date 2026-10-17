@@ -4037,6 +4037,7 @@ tests/integration/test_decision_replay.py: 6 passed
 - **离线质量门禁**：`src/opinion_search/evaluation/{bundle,metrics,gate,__main__}.py` + `evaluation/corpus.json` + `evaluation/annotations/*.json`，入口 `python scripts/quality_gate.py [--check]`。四个冻结案例（对抗 s5-b 运行、埋点对抗运行、两次 OpinionSearch 真实轻路径运行），不调用模型、不访问网络。
 - 门禁复算结果与历史人工统计一致：检索召回发现层 7/10、已读层 6/10（历史 6/10）、忠实性 10/14、系统自评 6/14、对抗点 2/3；人机一致率 9/10，唯一分歧是必中清单第 7 项（大河网「河声」评论：候选池确有 `news.qq.com` 转载，历史人工判定为未覆盖）。分歧照实打印，不把规则调成「刚好等于历史数字」。
 - 门禁把「对抗 2/3」里丢的那一分显式化：反方稿被读、被摘 5 条证据，但 0 条进入判断层；被放大 10 倍的数字没有进判断层，却以原始摘录留在报告末尾的证据附录里——通过是「这一轮没轮到综合」，不是「有数字校验收拦截」，附录中出现这两个数字也被记进基线。
+- **数字矛盾检测（机制层）**：`src/opinion_search/domain/numeric.py` 只做一件事——同一钱指标是否在两个文档里相差一个数量级。取数字前 18 字窗口当指标名，去掉年份与「高达/达/为/约/超」词尾，按最长公共后缀（至少 3 字）聚类（`公司销售费用` 与 `年销售费用` 因此归到同一组），只在跨文档、且比值四舍五入到整十次幂（容差 0.02）时报告。喂 10 篇冻结对抗材料报出 5 条冲突、覆盖 4 个指标（营业收入 316.03 vs 3160.3、销售费用 90.89 vs 900、归母净利润 34.21 vs 342.1、推广费 50 vs 501.9），两轮真实运行的证据集零误报。门禁把它记为第四条 `layer: mechanism` 检查，与报告层三条分开统计（报告层仍 2/3，机制层 3/4）。
 - **`record --report`**：复用 `build_search_outcome` + `RunBundleWriter`，与 served 入口同一条路径，在 checkpoint 旁写出 `report.md` 与 `outcome.json`。
 - **`.env.example`** 落地环境变量的完整清单与 `NO_PROXY` 的坑；CI 追加 `quality_gate.py --check` 与 `pytest tests/quality`。
 
@@ -4045,6 +4046,7 @@ tests/integration/test_decision_replay.py: 6 passed
 ```
 python scripts/quality_gate.py --check   # quality gate: baseline reproduced exactly
 pytest tests/quality -q                  # 6 passed
+pytest tests/unit/domain/test_numeric.py -q  # 8 passed
 ```
 
 ### 已知限制
@@ -4052,9 +4054,10 @@ pytest tests/quality -q                  # 6 passed
 - 门禁保证的是「给定这些冻结运行，数字可重算、可回归」，不保证标注本身正确，也不证明换模型或换搜索引擎后仍然成立。
 - s5-b 的 11 个已读来源里有 4 个没有冻结快照，它们的 25 条证据标记为「不可核」，不计入引用可核率的分母。
 - 两条 `OpinionSearch` 案例只覆盖 opinion 域（没有 findings / review 层），只作为当日真实运行的回归指纹。
+- 数字矛盾检测目前只是**离线机制证据**，未接进 `investigation` 运行时，不改变任何一次真实运行的行为；覆盖面也窄：只抓「同一指标 × 跨文档 × 整十次幂」，同文档自相矛盾、同义不同词、非整十次幂的放大都抓不到。
 
 ### 对下一节点的影响
 
 - 结构化 QueryPlan + 第二引擎（破 `news.qq.com` 66% 聚合站偏向）仍是最有价值的下一步。
-- 数字矛盾检测：现在只有「摘录未摘到」「已读未引用」的量化证据，缺机制。
+- 数字矛盾检测的下一步是接进 `investigation` 的综合前校验：发现冲突就写进 finding 的 `contradicting_ids` 或报告的缺口说明，并补同文档矛盾与非整十次幂的用例。
 - 对抗埋点可以按 `evaluation/annotations/sanjiu-adversarial.json` 的模式扩到多案例，形成真正的回归套件。

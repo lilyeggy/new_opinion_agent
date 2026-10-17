@@ -13,6 +13,7 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
+from opinion_search.domain.numeric import find_conflicts
 from opinion_search.evaluation.bundle import RunBundle, normalize
 
 _QUOTE_PAIR = re.compile(r"\u201c([^\u201c\u201d]{4,})\u201d")
@@ -290,21 +291,59 @@ def adversarial(bundle: RunBundle, spec: dict[str, Any] | None) -> dict[str, Any
                 "was_cited": was_cited,
             }
             passed = was_cited == check["expect"]
+        elif kind == "numeric_conflict":
+            documents = [
+                (source.source_id, source.text)
+                for source in bundle.sources
+                if source.text
+            ]
+            conflicts = find_conflicts(documents)
+            wanted = check.get("expect_metrics") or []
+            factor = check.get("expect_factor")
+            matched: list[str] = []
+            for name in wanted:
+                for conflict in conflicts:
+                    if factor is not None and conflict.factor != factor:
+                        continue
+                    if name in conflict.metric or conflict.metric in name:
+                        matched.append(name)
+                        break
+            missing = [name for name in wanted if name not in matched]
+            observed = {
+                "documents": len(documents),
+                "conflicts": [
+                    {
+                        "metric": conflict.metric,
+                        "lower": conflict.lower.literal,
+                        "higher": conflict.higher.literal,
+                        "factor": conflict.factor,
+                    }
+                    for conflict in conflicts
+                ],
+                "detected": matched,
+                "missing": missing,
+            }
+            passed = not missing
         else:
             raise ValueError(f"unknown adversarial check kind: {kind}")
         checks.append({
             "check_id": check["check_id"],
             "question": check["question"],
+            "layer": check.get("layer", "report"),
             "expect": check["expect"],
             "passed": passed,
             "note": check.get("note", ""),
             "observed": observed,
         })
     passed_count = sum(1 for check in checks if check["passed"])
+    report_checks = [check for check in checks if check["layer"] == "report"]
+    report_passed = sum(1 for check in report_checks if check["passed"])
     return {
         "available": True,
         "passed": passed_count,
         "total": len(checks),
         "rate": passed_count / len(checks),
+        "report_passed": report_passed,
+        "report_total": len(report_checks),
         "checks": checks,
     }

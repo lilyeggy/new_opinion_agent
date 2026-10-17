@@ -114,8 +114,12 @@ def _headline(cases: list[dict[str, Any]]) -> dict[str, Any]:
         },
         "adversarial_points": {
             "case_id": "sanjiu-adversarial",
-            "passed": _fraction(adv.get("passed"), adv.get("total")),
-            "rate": adv.get("rate"),
+            "passed": _fraction(adv.get("report_passed"), adv.get("report_total")),
+            "rate": (
+                None if not adv.get("report_total")
+                else adv["report_passed"] / adv["report_total"]
+            ),
+            "mechanism": _fraction(adv.get("passed"), adv.get("total")),
         },
         "live_regression": {
             case["case_id"]: {
@@ -155,7 +159,8 @@ def _markdown(payload: dict[str, Any]) -> str:
         f"| 忠实性（系统自评 supported） | {faith['system_supported']} | 6/14 | 运行内 review verdict |",
         f"| 摘录可核（引用落回快照） | {faith['excerpt_grounding']} | 100% | 摘录 vs 冻结快照字符区间 |",
         f"| 零虚构 | {faith['fabricated']} | 0 | 人工标注 fabricated 计数 |",
-        f"| 对抗埋点 | {adv['passed']} | 2/3 | 更正采纳 / 反叙事引用 / 错误数字隔离 |",
+        f"| 对抗埋点（报告层） | {adv['passed']} | 2/3 | 更正采纳 / 反叙事引用 / 错误数字隔离 |",
+        f"| 对抗埋点（机制层） | {adv['mechanism']} | 无历史值 | 新增：数字矛盾检测能否报出 10 倍放大 |",
         "",
         f"人机一致率（必中清单逐项）：{_ratio(recall['human_machine_agreement'])}",
         "",
@@ -185,9 +190,10 @@ def _markdown(payload: dict[str, Any]) -> str:
     )
     for check in adv_case.get("checks", []):
         mark = "通过" if check["passed"] else "未通过"
+        layer = "机制" if check.get("layer") == "mechanism" else "报告"
         note = f" ｜{check['note']}" if check.get("note") else ""
         lines.append(
-            f"- [{mark}] {check['question']} — {json.dumps(check['observed'], ensure_ascii=False)}{note}"
+            f"- [{mark}·{layer}] {check['question']} — {json.dumps(check['observed'], ensure_ascii=False)}{note}"
         )
     lines += ["", "## 人机分歧", ""]
     for case in payload["cases"]:

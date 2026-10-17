@@ -32,6 +32,12 @@ layers.
 - **`record --report`** writes `report.md` and `outcome.json` through the same
   `RunBundleWriter` the served entry point uses, so a journaled run reads
   without a separate export step.
+- **A numeric conflict detector (mechanism layer).**
+  `src/opinion_search/domain/numeric.py` flags the same money metric stated a
+  power of ten apart in two documents: 5 conflicts over 4 metrics across the
+  frozen adversarial corpus, zero false positives on two live evidence sets.
+  It is offline evidence only — not yet wired into the investigation loop — so
+  the report-level adversarial score stays 2/3 while the mechanism check is 3/4.
 
 **Verified end-to-end (live):** a real Chinese public-opinion event ran the
 full loop — 60 steps, 17 searches, 17 reads, 14 findings, 92 evidence

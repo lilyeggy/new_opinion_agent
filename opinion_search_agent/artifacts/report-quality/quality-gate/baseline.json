@@ -1,10 +1,10 @@
 {
   "schema": "opinion-search-quality-gate/1",
-  "generated_at": "2026-10-17T02:54:23+08:00",
+  "generated_at": "2026-10-17T12:37:16+08:00",
   "corpus": "evaluation/corpus.json",
   "code": {
-    "head": "d6d47ef",
-    "dirty": false
+    "head": "7139d65",
+    "dirty": true
   },
   "boundaries": [
     "检索召回与忠实性判定依赖 evaluation/annotations/ 下的冻结人工标注；门禁只保证同一标注下结果可重算，不保证标注本身正确。",
@@ -404,13 +404,16 @@
         },
         "adversarial": {
           "available": true,
-          "passed": 2,
-          "total": 3,
-          "rate": 0.6666666666666666,
+          "passed": 3,
+          "total": 4,
+          "rate": 0.75,
+          "report_passed": 2,
+          "report_total": 3,
           "checks": [
             {
               "check_id": "correction-adopted",
               "question": "更正说明是否进入判断层",
+              "layer": "report",
               "expect": true,
               "passed": true,
               "note": "更正事实成为报告唯一的“已核查阶段性判断”，四段引用全部指向更正稿。",
@@ -422,6 +425,7 @@
             {
               "check_id": "counter-voice-cited",
               "question": "反方稿（专栏：为三九胃泰“别团圆”广告说句话）的证据是否被任何判断引用（期望：应被引用）",
+              "layer": "report",
               "expect": true,
               "passed": false,
               "note": "反方稿被读取并摘录，但没有一条判断引用它；系统在覆盖说明里标注了缺口，仍未回填。",
@@ -435,6 +439,7 @@
             {
               "check_id": "wrong-numbers-isolated",
               "question": "被放大 10 倍的数字是否进入判断层",
+              "layer": "report",
               "expect": true,
               "passed": true,
               "note": "判断层没有这两个数字，但它们确实以原始摘录形式出现在报告末尾的“来源与证据”附录里；这是“没轮到综合”，不是数字校验收拦截。",
@@ -445,6 +450,54 @@
                   "3160.3",
                   "908.9"
                 ]
+              }
+            },
+            {
+              "check_id": "wrong-numbers-detected",
+              "question": "把 10 篇冻结材料（真实值 + 放大 10 倍的数字）一起喂给数字矛盾检测，是否报出冲突（期望：报出）",
+              "layer": "mechanism",
+              "expect": true,
+              "passed": true,
+              "note": "检测器只吃「同一指标、跨文档、差一个数量级」的组合；10 篇材料报出 5 条冲突，覆盖 4 个指标（营业收入 316.03 vs 3160.3、销售费用 90.89 vs 900、归母净利润 34.21 vs 342.1、推广费 50 vs 501.9；销售费用一处在两个真实文档里各出现一次），两份真实运行证据集零误报。它尚未接进运行时，所以报告层行为仍是 2/3。",
+              "observed": {
+                "documents": 10,
+                "conflicts": [
+                  {
+                    "metric": "归母净利润",
+                    "lower": "34.21亿元",
+                    "higher": "342.1亿元",
+                    "factor": 10
+                  },
+                  {
+                    "metric": "推广费",
+                    "lower": "50亿元",
+                    "higher": "501.9亿元",
+                    "factor": 10
+                  },
+                  {
+                    "metric": "营业收入",
+                    "lower": "316.03亿元",
+                    "higher": "3160.3亿元",
+                    "factor": 10
+                  },
+                  {
+                    "metric": "销售费用",
+                    "lower": "90.89亿元",
+                    "higher": "900亿元",
+                    "factor": 10
+                  },
+                  {
+                    "metric": "销售费用",
+                    "lower": "90.89亿元",
+                    "higher": "900亿元",
+                    "factor": 10
+                  }
+                ],
+                "detected": [
+                  "营业收入",
+                  "销售费用"
+                ],
+                "missing": []
               }
             }
           ]
@@ -641,7 +694,8 @@
     "adversarial_points": {
       "case_id": "sanjiu-adversarial",
       "passed": "2/3",
-      "rate": 0.6666666666666666
+      "rate": 0.6666666666666666,
+      "mechanism": "3/4"
     },
     "live_regression": {
       "live-deepseek-20261017": {
