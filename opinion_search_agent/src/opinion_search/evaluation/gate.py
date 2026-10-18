@@ -92,6 +92,7 @@ def _headline(cases: list[dict[str, Any]]) -> dict[str, Any]:
     system = faith.get("system", {})
     adv = adversarial.get("metrics", {}).get("adversarial", {})
     quotes = by_id.get("sanjiu-s5b", {}).get("metrics", {}).get("quote_support", {})
+    second = by_id.get("icecream-cb39", {}).get("metrics", {}).get("retrieval_recall", {})
     return {
         "retrieval_recall": {
             "case_id": "sanjiu-s5b",
@@ -122,6 +123,11 @@ def _headline(cases: list[dict[str, Any]]) -> dict[str, Any]:
                 else adv["report_passed"] / adv["report_total"]
             ),
             "mechanism": _fraction(adv.get("passed"), adv.get("total")),
+        },
+        "retrieval_recall_second": {
+            "case": "icecream-cb39",
+            "discovery": _fraction(second.get("discovery_hits"), second.get("total")),
+            "read": _fraction(second.get("read_hits"), second.get("total")),
         },
         "quote_support": {
             "case_id": "sanjiu-s5b",
@@ -174,8 +180,10 @@ def _markdown(payload: dict[str, Any]) -> str:
         f"| 零虚构 | {faith['fabricated']} | 0 | 人工标注 fabricated 计数 |",
         f"| 对抗埋点（报告层） | {adv['passed']} | 2/3 | 更正采纳 / 反叙事引用 / 错误数字隔离 |",
         f"| 对抗埋点（机制层） | {adv['mechanism']} | 无历史值 | 新增：数字矛盾检测能否报出 10 倍放大 |",
+        f"| 检索召回·第二事件（发现层） | {headline['retrieval_recall_second']['discovery']} | 无历史值 | 12 项必中清单 × 同一套机械规则 |",
+        f"| 检索召回·第二事件（已读层） | {headline['retrieval_recall_second']['read']} | 无历史值 | 同上 |",
         f"| 引语落在引用摘录内 | {_fraction(q['in_excerpt'], q['quotes'])} | 无历史值 | 带引语判断的引号片段 vs 其绑定摘录 |",
-        f"| 引语可修复（原文有、摘录没摘） | {q['recoverable']} 条 | 无历史值 | 确定性回填的上限，不需模型 |",
+        f"| 引语可修复（原文有、摘录没摘） | {q['recoverable']} 条 | 无历史值 | 逐条用运行时定位器实测，不需模型 |",
         "",
         f"人机一致率（必中清单逐项）：{_ratio(recall['human_machine_agreement'])}",
         "",

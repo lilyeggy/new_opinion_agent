@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from opinion_search.domain.numeric import find_conflicts
+from opinion_search.investigation.quotes import locate as _locate
 from opinion_search.evaluation.bundle import RunBundle, normalize
 
 # A quoted span in a finding. Corner brackets are included because the corpus
@@ -242,8 +243,19 @@ def quote_support(bundle: RunBundle) -> dict[str, Any]:
                 counts["doc_unavailable"] += 1
                 misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "doc_unavailable"})
             elif needle and needle in documents:
+                # Confirm with the locator the runtime actually uses, so this is a
+                # measurement of the repair path rather than a lookalike check.
+                span = _locate(quote, [
+                    (item.source_id, by_source[item.source_id].text or "")
+                    for item in cited if item.source_id in by_source
+                ])
+                if span is None:
+                    counts["absent_from_doc"] += 1
+                    misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "locator_miss"})
+                    continue
                 counts["recoverable"] += 1
-                misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "not_selected_into_excerpt"})
+                misses.append({"claim_id": claim.claim_id, "quote": quote,
+                               "reason": "not_selected_into_excerpt", "span": f"{span[1]}:{span[2]}"})
             else:
                 counts["absent_from_doc"] += 1
                 misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "absent_from_document"})

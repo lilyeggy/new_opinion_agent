@@ -46,3 +46,11 @@ def test_locate_tolerates_wrapped_lines_and_returns_the_exact_span():
 
 def test_locate_returns_none_when_no_document_contains_the_quote():
     assert locate("从未出现的一句话", [("v1", "无关正文")]) is None
+
+
+def test_locate_bridges_the_other_bracket_style() -> None:
+    document = [("v1", "品牌本想成为\u201c\u5634\u66ff\u201d\uff0c\u5374\u4e0d\u5c0f\u5fc3\u6210\u4e86\u201c\u6760\u7cbe\u201d\u3002")]
+    found = locate("\u54c1\u724c\u672c\u60f3\u6210\u4e3a\u2018\u5634\u66ff\u2019\uff0c\u5374\u4e0d\u5c0f\u5fc3\u6210\u4e86\u2018\u6760\u7cbe\u2019", document)
+    assert found is not None
+    version_id, start, end, span = found
+    assert (version_id, end - start) == ("v1", len(span))

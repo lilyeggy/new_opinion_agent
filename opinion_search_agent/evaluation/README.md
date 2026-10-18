@@ -78,7 +78,7 @@ python scripts/quality_gate.py --check
 
 | 路径 | 作用 |
 | --- | --- |
-| `corpus.json` | 6 个冻结运行的清单（三九胃泰 ×3、罗永浩吐槽野人先生 ×1、两次 OpinionSearch 轻路径），覆盖 2 个事件 |
+| `corpus.json` | 6 个冻结运行的清单（三九胃泰 ×3、罗永浩吐槽野人先生 ×1、两次 OpinionSearch 轻路径），覆盖 2 个事件 |（三九胃泰 ×3、罗永浩吐槽野人先生 ×1、两次 OpinionSearch 轻路径），覆盖 2 个事件 |
 | `annotations/*.json` | 全部人工判定与机械匹配规则 |
 | `../src/opinion_search/evaluation/` | `bundle`（归一化）/ `metrics`（指标）/ `gate`（汇编与校验） |
 | `../artifacts/report-quality/quality-gate/baseline.json` | 提交进仓库的基线，`--check` 的比较对象 |
