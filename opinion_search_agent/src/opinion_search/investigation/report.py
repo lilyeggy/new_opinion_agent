@@ -59,6 +59,30 @@ def diff_reports(current, base):
     return changes
 
 
+def _unresolved(state) -> dict[str, object] | None:
+    """Questions still open when the report was written, and what the run tried.
+
+    The runtime blocks a not_found answer until the scoped searches finish, but
+    nothing forces an issue to close before the step budget runs out. Rather
+    than let the report imply coverage it does not have, the unfilled questions
+    are listed with the effort spent on them.
+    """
+
+    rows = [
+        {"issue_id": issue.issue_id, "question": issue.question}
+        for issue in state.issues
+        if issue.status == "open"
+    ]
+    if not rows:
+        return None
+    return {
+        "issues": rows,
+        "searches": len(state.searches),
+        "reads": len(state.sources),
+        "read_failures": len(state.read_errors),
+    }
+
+
 def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None,
                  mode="live", budget=None, scope_notes=(), runtime=None, checkpoint_boundary=None,
                  numeric_conflicts=()):
@@ -161,6 +185,7 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
         "diagnostics": build_chain_diagnostics(state, runtime=runtime, budget=budget,
                                                 publication_status=status,
                                                 checkpoint_boundary=checkpoint_boundary),
+        "unresolved": _unresolved(state),
         "scope_limitation": " ".join(("仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。", *scope_notes)),
     }
     return report
@@ -198,6 +223,14 @@ def markdown(report):
                         coverage += f"（{esc(f['coverage_reason'])}）"
                     response += " " + coverage
                 lines.append(f"- {esc(f['text'])} [{LABELS[f['support']]}{response}] {refs(f['evidence_ids'])}")
+    unresolved = report.get("unresolved")
+    if unresolved:
+        lines += ["", "## 未收口的问题", "",
+                  f"以下 {len(unresolved['issues'])} 个问题在报告生成时仍未收口。本轮共检索 "
+                  f"{unresolved['searches']} 次、读取 {unresolved['reads']} 个来源（失败 "
+                  f"{unresolved['read_failures']} 次）。这表示这一轮没有查到可以引用的材料，"
+                  "不表示问题不存在。", ""]
+        lines += [f"- {esc(issue['question'])}" for issue in unresolved["issues"]]
     if report["changes"]:
         lines += ["", "## 版本变化", ""]
         lines += [f"- {esc(c['question'])}：{LABELS[c['kind']]}" for c in report["changes"]]
