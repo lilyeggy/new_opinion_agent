@@ -16,7 +16,9 @@ from urllib.parse import urlparse
 from opinion_search.domain.numeric import find_conflicts
 from opinion_search.evaluation.bundle import RunBundle, normalize
 
-_QUOTE_PAIR = re.compile(r"\u201c([^\u201c\u201d]{4,})\u201d")
+# A quoted span in a finding. Corner brackets are included because the corpus
+# mixes both styles, and the floor of five characters skips one-word scare quotes.
+_QUOTE_PAIR = re.compile(r"[\u201c\u300c]([^\u201c\u201d\u300c\u300d]{5,})[\u201d\u300d]")
 
 
 def provenance_closure(bundle: RunBundle) -> dict[str, Any]:
@@ -201,6 +203,61 @@ def _quote_coverage(claim_text: str, excerpts: list[str]) -> float | None:
         return None
     joined = normalize("".join(excerpts))
     return sum(1 for quote in quotes if normalize(quote) in joined) / len(quotes)
+
+
+def quote_support(bundle: RunBundle) -> dict[str, Any]:
+    """Where the quoted spans of a finding can actually be found.
+
+    Three outcomes matter differently. The quote is inside the excerpt the
+    finding cites (it can be checked at a glance). The quote is in the source
+    document but was not selected into the excerpt (a deterministic retrieval
+    miss that can be repaired without another model call). Or the quote is in no
+    frozen document at all, which means the finding attributes words it cannot
+    show.
+    """
+
+    by_evidence = {item.evidence_id: item for item in bundle.evidence}
+    by_source = {source.source_id: source for source in bundle.sources}
+    counts = {"in_excerpt": 0, "recoverable": 0, "absent_from_doc": 0, "doc_unavailable": 0}
+    misses: list[dict[str, str]] = []
+    findings = 0
+    for claim in bundle.claims:
+        quotes = _QUOTE_PAIR.findall(claim.text)
+        if not quotes:
+            continue
+        findings += 1
+        cited = [by_evidence[item] for item in claim.support_ids if item in by_evidence]
+        excerpts = normalize("".join(item.excerpt for item in cited))
+        documents = normalize("".join(
+            by_source[item.source_id].text for item in cited
+            if item.source_id in by_source and by_source[item.source_id].text
+        ))
+        for quote in quotes:
+            # Twelve characters are specific enough to identify a span while
+            # tolerating an excerpt that stops mid-sentence.
+            needle = normalize(quote)[:12]
+            if needle and needle in excerpts:
+                counts["in_excerpt"] += 1
+            elif not documents:
+                counts["doc_unavailable"] += 1
+                misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "doc_unavailable"})
+            elif needle and needle in documents:
+                counts["recoverable"] += 1
+                misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "not_selected_into_excerpt"})
+            else:
+                counts["absent_from_doc"] += 1
+                misses.append({"claim_id": claim.claim_id, "quote": quote, "reason": "absent_from_document"})
+    total = sum(counts.values())
+    return {
+        "findings_with_quotes": findings,
+        "quotes": total,
+        **counts,
+        "coverage": None if not total else counts["in_excerpt"] / total,
+        "repairable_coverage": (
+            None if not total else (counts["in_excerpt"] + counts["recoverable"]) / total
+        ),
+        "misses": misses,
+    }
 
 
 def faithfulness(bundle: RunBundle, spec: dict[str, Any] | None) -> dict[str, Any]:

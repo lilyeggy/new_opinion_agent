@@ -15,6 +15,7 @@ from opinion_search.domain.investigation.models import (
 )
 from opinion_search.domain.numeric import extract_quantities
 from opinion_search.investigation.context import Compiler, structured_context
+from opinion_search.investigation.quotes import unbacked_quotes
 from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus, atomic_json, read_json, verify_evidence
 from opinion_search.models.fake import DeterministicIdFactory
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient, HttpxModelTransport
@@ -258,16 +259,21 @@ class Executor:
                 if {x.finding_id for x in reviewed.items} != set(decision.finding_ids) or len(reviewed.items) != len(decision.finding_ids):
                     raise ValueError("review result did not account for all requested findings")
                 findings = {f.finding_id: f for f in state.findings}
+                documents = await self._documents(state)
                 records = []
                 for result in reviewed.items:
                     finding = findings[result.finding_id]
                     supported_by = [item for item in state.evidence if item.evidence_id in finding.evidence_ids]
-                    missing = unbacked_specifics(finding, supported_by)
+                    missing = list(unbacked_specifics(finding, supported_by))
+                    versions = {item.version_id for item in supported_by}
+                    if versions and versions <= set(documents):
+                        for quote in unbacked_quotes(finding.text, [documents[v] for v in versions]):
+                            missing.append(f"引语「{quote}」")
                     if result.verdict == "supported" and missing:
                         result = result.model_copy(update={
                             "verdict": "partial",
-                            "reason": (result.reason + "；程序核验：" + "、".join(missing)
-                                       + " 未在支持摘录中出现，已降级为部分支持。").strip("；"),
+                            "reason": (result.reason + "；程序核验：" + "、".join(dict.fromkeys(missing))
+                                       + " 未在支持摘录或已读原文中出现，已降级为部分支持。").strip("；"),
                         })
                     records.append(ReviewRecord(**result.model_dump(),
                                                 finding_hash=finding_hash(finding),
@@ -279,6 +285,16 @@ class Executor:
             observation = Observation(action="finish", verdict=action.verdict)
         atomic_json(path, {"action": action.model_dump(mode="json"), "observation": observation.model_dump(mode="json")})
         return observation
+
+    async def _documents(self, state):
+        """Saved reader text per source version, for checks the excerpts cannot do."""
+        documents = {}
+        for source in state.sources:
+            try:
+                documents[source.version_id] = await self.corpus.artifacts.get_text(source.artifact_ref)
+            except (OSError, ValueError):
+                continue
+        return documents
 
     async def _read_material(self, request, decision, outcome, state):
         payload = outcome.payload

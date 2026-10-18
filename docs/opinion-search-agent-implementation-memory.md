@@ -4063,3 +4063,32 @@ pytest tests/investigation/test_numeric_audit.py -q  # 5 passed（冻结对抗�
 - 结构化 QueryPlan + 第二引擎（破 `news.qq.com` 66% 聚合站偏向）仍是最有价值的下一步。
 - 数字矛盾检测的下一步是接进 `investigation` 的综合前校验：发现冲突就写进 finding 的 `contradicting_ids` 或报告的缺口说明，并补同文档矛盾与非整十次幂的用例。
 - 对抗埋点可以按 `evaluation/annotations/sanjiu-adversarial.json` 的模式扩到多案例，形成真正的回归套件。
+
+## 质量层专项：引语溯源与确定性护栏（2026-10-18）
+
+### 解决的问题
+
+D4 的忠实性数字（人工 10/14、系统 6/14）指向的失败模式是"摘"不是"编"，但此前没有任何可重算的证据。对冻结 s5-b 的 26 个引号片段做三分类后确认：16 条在绑定摘录内、8 条原文有但没被摘、1 条在所有已读原文里都找不到、1 条来源无快照。**引语这一层此前既没被度量、也没被守。**
+
+### 已实现的语义
+
+- `src/opinion_search/evaluation/metrics.py: quote_support(bundle)`：把引语分为 `in_excerpt` / `recoverable` / `absent_from_doc` / `doc_unavailable` 四类并进基线，同时给出"确定性回填上限"（61.5% → 92.3%）。
+- `src/opinion_search/investigation/quotes.py`：`quoted_spans` / `missing_from_excerpts` / `unbacked_quotes` / `locate`，纯字符串比较，无模型、无网络。
+- `src/opinion_search/investigation/service.py` review 分支：`Executor._documents(state)` 取回该判断所引用版本的全部原文；`unbacked_quotes` 命中的引语由程序追加进降级理由（"引语「…」未在支持摘录或已读原文中出现"），与既有的 `unbacked_specifics`（数字/日期/百分比）共用同一条降级通道。
+- 只在"该判断引用的所有版本都能取到原文"时才判定，避免把"取不到"误判成"编造"。
+
+### 测试与验证
+
+- `tests/unit/test_quotes.py`：6 个用例（两种引号、去重、短引号忽略、present/absent 分离、摘录与原文结论相反、跨行定位返回精确区间）。
+- `pytest tests/unit tests/quality tests/investigation` → 670 passed；`tests/contract tests/integration tests/security` → 134 passed；`scripts/quality_gate.py --check` → baseline reproduced exactly；ruff All checks passed。
+
+### 已知限制
+
+- 护栏只抓"原文里根本没有"的引语（本轮 26 条里 1 条），占大头的"原文有、摘录没摘"（8 条）仍只是被度量、没被回填；回填需要给 Observation 增加一条补证据的通道，属于协议改动。
+- 引语识别是正则（成对引号、至少 5 字）；跨段引语、书名号、转述不在此列。
+- 护栏挂在 review 阶段，若该次运行的 review 被预算截断，护栏不会生效。
+
+### 对下一节点的影响
+
+- 下一步是"引语回填"：在 reflect/review 阶段把 `locate` 到的原文片段写成 Evidence 并挂进 finding 的 `evidence_ids`，把覆盖率从 61.5% 推到 92.3%，并做成回归用例。
+- 其后才是 open→not_found 收口与必中清单从 10 项扩到 30 项（样本量 1 是当前质量数字最大的短板）。

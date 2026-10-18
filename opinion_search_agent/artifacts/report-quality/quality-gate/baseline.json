@@ -1,9 +1,9 @@
 {
   "schema": "opinion-search-quality-gate/1",
-  "generated_at": "2026-10-17T12:37:16+08:00",
+  "generated_at": "2026-10-18T22:00:46+08:00",
   "corpus": "evaluation/corpus.json",
   "code": {
-    "head": "7139d65",
+    "head": "e0d3124",
     "dirty": true
   },
   "boundaries": [
@@ -305,10 +305,72 @@
               "finding-1ffd5e75b7ce435fb737": 0.0,
               "finding-4cb970691bae3a1d94b9": 0.0,
               "finding-b78265f75f290659f20b": 1.0,
-              "finding-3eed15e0fe47e42c685b": 0.8,
+              "finding-3eed15e0fe47e42c685b": 0.6666666666666666,
               "finding-006bb06bd5c313b85dcd": 0.5
             }
           }
+        },
+        "quote_support": {
+          "findings_with_quotes": 12,
+          "quotes": 26,
+          "in_excerpt": 16,
+          "recoverable": 8,
+          "absent_from_doc": 1,
+          "doc_unavailable": 1,
+          "coverage": 0.6153846153846154,
+          "repairable_coverage": 0.9230769230769231,
+          "misses": [
+            {
+              "claim_id": "finding-e8b3a4e0090c4f05bafe",
+              "quote": "月饼和冷饮不要在胃里‘团圆’了",
+              "reason": "absent_from_document"
+            },
+            {
+              "claim_id": "finding-361712fd5d3c98cb83a5",
+              "quote": "七夕劝分手，中秋高喊别团圆，三九胃泰也沉迷在‘毒广告’里了",
+              "reason": "doc_unavailable"
+            },
+            {
+              "claim_id": "finding-69e9e953868416e6752a",
+              "quote": "求‘你们’中秋别团圆了",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-1ffd5e75b7ce435fb737",
+              "quote": "超聚焦foci",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-1ffd5e75b7ce435fb737",
+              "quote": "团圆里那些伤胃的动作",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-1ffd5e75b7ce435fb737",
+              "quote": "可以反节日套路，不能反文化共识，品牌本想成为‘嘴替’，却不小心成了‘杠精’",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-1ffd5e75b7ce435fb737",
+              "quote": "反常规就会从记忆点变成冒犯点",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-4cb970691bae3a1d94b9",
+              "quote": "守护单身狗的胃",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-4cb970691bae3a1d94b9",
+              "quote": "劝你们‘和平’分手",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-4cb970691bae3a1d94b9",
+              "quote": "养胃饺饺者",
+              "reason": "not_selected_into_excerpt"
+            }
+          ]
         },
         "adversarial": {
           "available": false
@@ -401,6 +463,28 @@
           "human": {
             "available": false
           }
+        },
+        "quote_support": {
+          "findings_with_quotes": 3,
+          "quotes": 7,
+          "in_excerpt": 5,
+          "recoverable": 1,
+          "absent_from_doc": 1,
+          "doc_unavailable": 0,
+          "coverage": 0.7142857142857143,
+          "repairable_coverage": 0.8571428571428571,
+          "misses": [
+            {
+              "claim_id": "finding-6dfe7ae29687cdcf4f06",
+              "quote": "中秋别团圆",
+              "reason": "not_selected_into_excerpt"
+            },
+            {
+              "claim_id": "finding-6dfe7ae29687cdcf4f06",
+              "quote": "求你们中秋别团圆了",
+              "reason": "absent_from_document"
+            }
+          ]
         },
         "adversarial": {
           "available": true,
@@ -582,6 +666,17 @@
             "available": false
           }
         },
+        "quote_support": {
+          "findings_with_quotes": 0,
+          "quotes": 0,
+          "in_excerpt": 0,
+          "recoverable": 0,
+          "absent_from_doc": 0,
+          "doc_unavailable": 0,
+          "coverage": null,
+          "repairable_coverage": null,
+          "misses": []
+        },
         "adversarial": {
           "available": false
         }
@@ -667,6 +762,17 @@
             "available": false
           }
         },
+        "quote_support": {
+          "findings_with_quotes": 0,
+          "quotes": 0,
+          "in_excerpt": 0,
+          "recoverable": 0,
+          "absent_from_doc": 0,
+          "doc_unavailable": 0,
+          "coverage": null,
+          "repairable_coverage": null,
+          "misses": []
+        },
         "adversarial": {
           "available": false
         }
@@ -696,6 +802,16 @@
       "passed": "2/3",
       "rate": 0.6666666666666666,
       "mechanism": "3/4"
+    },
+    "quote_support": {
+      "case_id": "sanjiu-s5b",
+      "quotes": 26,
+      "in_excerpt": 16,
+      "recoverable": 8,
+      "absent_from_doc": 1,
+      "doc_unavailable": 1,
+      "coverage": 0.6153846153846154,
+      "repairable_coverage": 0.9230769230769231
     },
     "live_regression": {
       "live-deepseek-20261017": {

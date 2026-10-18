@@ -70,6 +70,7 @@ def evaluate_case(case: dict[str, Any], root: Path) -> dict[str, Any]:
             "source_diversity": metrics.source_diversity(bundle),
             "retrieval_recall": metrics.retrieval_recall(bundle, specs.get("retrieval_recall")),
             "faithfulness": metrics.faithfulness(bundle, specs.get("faithfulness")),
+            "quote_support": metrics.quote_support(bundle),
             "adversarial": metrics.adversarial(bundle, specs.get("adversarial")),
         },
     }
@@ -90,6 +91,7 @@ def _headline(cases: list[dict[str, Any]]) -> dict[str, Any]:
     human = faith.get("human", {})
     system = faith.get("system", {})
     adv = adversarial.get("metrics", {}).get("adversarial", {})
+    quotes = by_id.get("sanjiu-s5b", {}).get("metrics", {}).get("quote_support", {})
     return {
         "retrieval_recall": {
             "case_id": "sanjiu-s5b",
@@ -121,6 +123,16 @@ def _headline(cases: list[dict[str, Any]]) -> dict[str, Any]:
             ),
             "mechanism": _fraction(adv.get("passed"), adv.get("total")),
         },
+        "quote_support": {
+            "case_id": "sanjiu-s5b",
+            "quotes": quotes.get("quotes"),
+            "in_excerpt": quotes.get("in_excerpt"),
+            "recoverable": quotes.get("recoverable"),
+            "absent_from_doc": quotes.get("absent_from_doc"),
+            "doc_unavailable": quotes.get("doc_unavailable"),
+            "coverage": quotes.get("coverage"),
+            "repairable_coverage": quotes.get("repairable_coverage"),
+        },
         "live_regression": {
             case["case_id"]: {
                 "claims": case["counts"]["claims"],
@@ -140,6 +152,7 @@ def _markdown(payload: dict[str, Any]) -> str:
     recall = headline["retrieval_recall"]
     faith = headline["faithfulness"]
     adv = headline["adversarial_points"]
+    q = headline["quote_support"]
     lines = [
         "# OpinionSearch 质量门禁基线",
         "",
@@ -161,6 +174,8 @@ def _markdown(payload: dict[str, Any]) -> str:
         f"| 零虚构 | {faith['fabricated']} | 0 | 人工标注 fabricated 计数 |",
         f"| 对抗埋点（报告层） | {adv['passed']} | 2/3 | 更正采纳 / 反叙事引用 / 错误数字隔离 |",
         f"| 对抗埋点（机制层） | {adv['mechanism']} | 无历史值 | 新增：数字矛盾检测能否报出 10 倍放大 |",
+        f"| 引语落在引用摘录内 | {_fraction(q['in_excerpt'], q['quotes'])} | 无历史值 | 带引语判断的引号片段 vs 其绑定摘录 |",
+        f"| 引语可修复（原文有、摘录没摘） | {q['recoverable']} 条 | 无历史值 | 确定性回填的上限，不需模型 |",
         "",
         f"人机一致率（必中清单逐项）：{_ratio(recall['human_machine_agreement'])}",
         "",
@@ -206,6 +221,20 @@ def _markdown(payload: dict[str, Any]) -> str:
                     f"- {case['case_id']} 必中第 {item['item_id']} 项（{item['content']}）："
                     f"机械判定 discovered={item['discovered']}，历史记录={item['published_discovery']}"
                 )
+    lines += ["", "## 引语溯源", ""]
+    lines.append(
+        f"- {q['quotes']} 个引号片段：{q['in_excerpt']} 落在引用摘录内、{q['recoverable']} 在原文但未被摘、"
+        f"{q['absent_from_doc']} 在冻结原文里找不到、{q['doc_unavailable']} 无快照可核"
+    )
+    lines.append(
+        f"- 覆盖率 {_ratio(q['coverage'])}，确定性回填后可到 {_ratio(q['repairable_coverage'])}"
+        " （回填只补证据，不改判断文本）"
+    )
+    for case in payload["cases"]:
+        quote_metric = case["metrics"].get("quote_support") or {}
+        for miss in quote_metric.get("misses", []):
+            if miss["reason"] == "not_selected_into_excerpt" and case["case_id"] == q["case_id"]:
+                lines.append(f"- 未摘但原文有：{miss['claim_id']} 「{miss['quote']}」")
     lines += ["", "## 已知边界", ""]
     for line in payload.get("boundaries", []):
         lines.append(f"- {line}")
