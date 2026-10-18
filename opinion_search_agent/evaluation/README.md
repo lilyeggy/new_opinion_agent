@@ -65,10 +65,10 @@ python scripts/quality_gate.py --check
 | --- | --- | --- |
 | `in_excerpt` | 16 | 引语就在绑定摘录里，逐字可核 |
 | `recoverable` | 8 | 原文有、摘录没摘，确定性回填就能补上（不需要模型） |
-| `absent_from_doc` | 1 | 已读原文里根本没有这句话 |
-| `doc_unavailable` | 1 | 来源没有冻结快照，无法核 |
+| `absent_from_doc` | 2 | 已读原文里根本没有这句话 |
+| `doc_unavailable` | 0 | 来源没有冻结快照，无法核 |
 
-26 个引号片段的覆盖率是 61.5%，回填上限 92.3%。这条指标把 D4 的结论"失败模式是摘不是编"变成可重算的数字：8 条漏摘全部落在 `partial` 判定上，而唯一"原文里找不到"的引语出现在 `supported` 判定里。
+26 个引号片段的覆盖率是 61.5%，回填上限 92.3%。这条指标把 D4 的结论"失败模式是摘不是编"变成可重算的数字：8 条漏摘全部落在 `partial` 判定上，而 2 条"原文里找不到"的引语里有一条出现在 `supported` 判定里。
 
 运行时侧是 `src/opinion_search/investigation/quotes.py` 的确定性护栏：review 阶段若一句引语在该判断引用的来源原文里都找不到，程序直接把它降级为 `partial` 并写明原因，不依赖评审模型的自律。
 
@@ -78,7 +78,7 @@ python scripts/quality_gate.py --check
 
 | 路径 | 作用 |
 | --- | --- |
-| `corpus.json` | 4 个冻结运行的清单（s5-b、对抗案例、两次 OpinionSearch 轻路径真实运行） |
+| `corpus.json` | 6 个冻结运行的清单（三九胃泰 ×3、罗永浩吐槽野人先生 ×1、两次 OpinionSearch 轻路径），覆盖 2 个事件 |
 | `annotations/*.json` | 全部人工判定与机械匹配规则 |
 | `../src/opinion_search/evaluation/` | `bundle`（归一化）/ `metrics`（指标）/ `gate`（汇编与校验） |
 | `../artifacts/report-quality/quality-gate/baseline.json` | 提交进仓库的基线，`--check` 的比较对象 |
