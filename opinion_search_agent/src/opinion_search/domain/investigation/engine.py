@@ -5,7 +5,7 @@ import json
 import re
 
 from opinion_search.domain.investigation.models import (
-    Action, Delta, Evidence, FACET_MODULE_TYPES, Finding, FinishDecision, Issue,
+    Action, Delta, Evidence, FACET_MODULE_TYPES, Finding, FinishDecision, Issue, finding_identifier,
     QuestionComponent, ReadDecision, ReflectDecision, RetiredFinding, RetrieveDecision, ReviewDecision,
     SearchAttempt, SearchDecision, SourceRelation, State, accepted_review, uid, utcnow,
 )
@@ -803,9 +803,19 @@ def reduce_state(state: State, delta: Delta):
         retired_ids = {x.finding_id for x in d.retirements}
         findings = [f.model_copy(update={"active": False}) if f.finding_id in retired_ids else f for f in state.findings]
         for proposal in d.findings:
-            identifier = uid("finding", proposal.issue_id, proposal.model_dump_json())
+            identifier = finding_identifier(proposal)
             item = Finding(**proposal.model_dump(), finding_id=identifier)
             findings = [f for f in findings if f.finding_id != identifier] + [item]
+        repairs = {link.finding_id: link.evidence_ids for link in o.finding_evidence}
+        if repairs:
+            repaired = []
+            for finding in findings:
+                extra = repairs.get(finding.finding_id)
+                if extra:
+                    finding = finding.model_copy(update={
+                        "evidence_ids": tuple(dict.fromkeys((*finding.evidence_ids, *extra)))})
+                repaired.append(finding)
+            findings = repaired
         issues = {x.issue_id: x for x in state.issues}
         for item in d.assessments:
             current = issues[item.issue_id]

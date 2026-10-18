@@ -9,13 +9,13 @@ from pathlib import Path
 
 from opinion_search.domain.investigation.engine import CompletionEvaluator, Processor, Resolver, Validator, allowed_url, reduce_state
 from opinion_search.domain.investigation.models import (
-    Action, Decision, FinishDecision, NumericObservation, Observation, ReadDecision, ReflectDecision,
-    RetrieveDecision, ReviewDecision, ReviewRecord, ReviewResult, SourceCheck,
-    SourceVersion, State, accepted_review, finding_hash, uid, utcnow,
+    Action, Decision, Evidence, FindingEvidence, FinishDecision, NumericObservation, Observation,
+    ReadDecision, ReflectDecision, RetrieveDecision, ReviewDecision, ReviewRecord, ReviewResult,
+    SourceCheck, SourceVersion, State, accepted_review, finding_hash, finding_identifier, uid, utcnow,
 )
 from opinion_search.domain.numeric import extract_quantities
 from opinion_search.investigation.context import Compiler, structured_context
-from opinion_search.investigation.quotes import unbacked_quotes
+from opinion_search.investigation.quotes import locate, missing_from_excerpts, unbacked_quotes
 from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus, atomic_json, read_json, verify_evidence
 from opinion_search.models.fake import DeterministicIdFactory
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient, HttpxModelTransport
@@ -242,6 +242,8 @@ class Executor:
                         observation = await self._read_material(request, decision, outcome, state)
                     except (ValueError, ContextOverflowError):
                         observation = Observation(action="read", outcome=ToolError(action_id=request.action_id, tool_name="read.web", kind=ToolErrorKind.UNKNOWN_PROVIDER_ERROR, message="The fetched page could not be verified against its saved text.", attempts=1, retryable=False))
+        elif isinstance(decision, ReflectDecision):
+            observation = await self._record_findings(decision, state)
         elif isinstance(decision, RetrieveDecision):
             try:
                 evidence = await self.corpus.retrieve(state.sources, decision.query, decision.version_id)
@@ -285,6 +287,45 @@ class Executor:
             observation = Observation(action="finish", verdict=action.verdict)
         atomic_json(path, {"action": action.model_dump(mode="json"), "observation": observation.model_dump(mode="json")})
         return observation
+
+    async def _record_findings(self, decision, state):
+        """Bind the exact source span behind any quote the excerpts failed to carry.
+
+        Findings may quote a sentence the reader kept but the excerpt selector
+        dropped. The document is still in the case store, so the span can be
+        recovered verbatim instead of asking the reviewer to trust the wording.
+        """
+        documents = await self._documents(state)
+        excerpts = {item.evidence_id: item.excerpt for item in state.evidence}
+        added = []
+        links = []
+        for proposal in decision.findings:
+            bound = "".join(excerpts[item] for item in proposal.evidence_ids if item in excerpts)
+            missing = missing_from_excerpts(proposal.text, [bound])
+            if not missing:
+                continue
+            versions = {state_evidence.version_id for state_evidence in state.evidence
+                        if state_evidence.evidence_id in proposal.evidence_ids}
+            pool = [(version_id, text) for version_id, text in documents.items()
+                    if not versions or version_id in versions]
+            identifiers = []
+            for quote in missing:
+                hit = locate(quote, pool)
+                if hit is None:
+                    continue
+                version_id, start, end, excerpt = hit
+                item = Evidence(
+                    evidence_id=uid("evidence", version_id, str(start), str(end)),
+                    version_id=version_id, excerpt=excerpt, start=start, end=end,
+                    locator=f"Reader text chars {start}:{end}")
+                if item.evidence_id not in excerpts:
+                    added.append(item)
+                    excerpts[item.evidence_id] = excerpt
+                identifiers.append(item.evidence_id)
+            if identifiers:
+                links.append(FindingEvidence(finding_id=finding_identifier(proposal),
+                                             evidence_ids=tuple(dict.fromkeys(identifiers))))
+        return Observation(action="reflect", evidence=tuple(added), finding_evidence=tuple(links))
 
     async def _documents(self, state):
         """Saved reader text per source version, for checks the excerpts cannot do."""

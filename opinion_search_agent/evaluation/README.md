@@ -72,6 +72,8 @@ python scripts/quality_gate.py --check
 
 运行时侧是 `src/opinion_search/investigation/quotes.py` 的确定性护栏：review 阶段若一句引语在该判断引用的来源原文里都找不到，程序直接把它降级为 `partial` 并写明原因，不依赖评审模型的自律。
 
+同一套定位逻辑也用来**回填**：reflect 阶段 `Executor._record_findings` 把「原文有、摘录没摘」的引语定位出精确字符区间，写成 `Evidence`，再通过 `FindingEvidence` 绑回该判断的 `evidence_ids`。因此 92.3% 是运行时可达的上限，不只是纸面数字；只有「原文里根本没有」的那一类无法回填，会被护栏降级。这个上限尚未在真实运行上复测——复测需要重跑模型。
+
 ## 文件
 
 | 路径 | 作用 |

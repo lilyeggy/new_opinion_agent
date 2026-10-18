@@ -255,6 +255,11 @@ class ComponentAssessment(Record):
     note: str = ""
 
 
+def finding_identifier(proposal: FindingProposal) -> str:
+    """The identity the reducer will give this proposal, so callers can name it."""
+    return uid("finding", proposal.issue_id, proposal.model_dump_json())
+
+
 class IssueAssessment(Record):
     issue_id: Text
     status: Literal["open", "answered", "disputed", "not_found", "unavailable"]
@@ -495,11 +500,19 @@ class Action(Record):
     verdict: CompletionVerdict | None = None
 
 
+class FindingEvidence(Record):
+    """Evidence discovered after a finding was written, bound back onto it."""
+
+    finding_id: str
+    evidence_ids: tuple[Text, ...] = ()
+
+
 class Observation(Record):
     action: str
     outcome: ToolOutcome | None = None
     sources: tuple[SourceVersion, ...] = ()
     evidence: tuple[Evidence, ...] = ()
+    finding_evidence: tuple[FindingEvidence, ...] = ()
     numeric: tuple[NumericObservation, ...] = ()
     reviews: tuple[ReviewRecord, ...] = ()
     check: SourceCheck | None = None
