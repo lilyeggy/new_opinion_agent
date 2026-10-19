@@ -1,0 +1,7 @@
+Baidu Security Verification
+
+Verification failed, please try again
+
+Drag the slider to match the curve
+
+Refresh[Feedback](https://seccaptcha.baidu.com/v1/webapi/verint/pc_feedback.html)

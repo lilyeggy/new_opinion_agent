@@ -1,0 +1,80 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-83cf39a34de55e6eea7f",
+      "url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html",
+      "focus": "黄斌公开炮轰罗永浩的具体内容、发布时间、他与罗永浩的旧日合作关系，以及该发声与野人先生冰淇淋吐槽事件的牵连关系",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "5b8c20ff5c6c4b3e96a989f435510624:step:16:attempt:1:action",
+      "tool_name": "read.web",
+      "payload": {
+        "url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html",
+        "title": "该文章已不存在_手机新浪网",
+        "content": "该文章已不存在\n\n### 热门新闻\n\n*   山东一“仙人跳”团伙被诉：女局长被敲诈19万，三受害人曾被采取刑事措施\n*   央视曝光后，江苏丹阳连夜通报：立案调查\n*   人民日报评“患者送1.9元汽水后举报医务人员收礼”：不能惯着“钓鱼式举报”\n*   法国、意大利、葡萄牙、比利时……集中爆发\n*   羽毛球国手陆光祖宣布退出国家队\n\n查看更多",
+        "publication_time_status": "unavailable"
+      },
+      "artifact_refs": [
+        "artifact://sha256/74e1ec2b9d203a93a9c24cfb835d91c7ac921ba1b3ba6d9df5d2b00c5347ea09"
+      ],
+      "attempts": 2
+    },
+    "sources": [
+      {
+        "version_id": "source-eac718ca19dd90e083e6",
+        "url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html",
+        "final_url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html",
+        "title": "该文章已不存在_手机新浪网",
+        "fetched_at": "2026-10-19T08:54:51.429336Z",
+        "published_at": null,
+        "updated_at": null,
+        "artifact_ref": "artifact://sha256/74e1ec2b9d203a93a9c24cfb835d91c7ac921ba1b3ba6d9df5d2b00c5347ea09",
+        "content_hash": "74e1ec2b9d203a93a9c24cfb835d91c7ac921ba1b3ba6d9df5d2b00c5347ea09",
+        "role": "reporting",
+        "duplicate_of": null,
+        "origin_url": null
+      }
+    ],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [
+      {
+        "observation_id": "numeric-d5ecf054e13beb66e92e",
+        "version_id": "source-eac718ca19dd90e083e6",
+        "metric": "女局长被敲诈",
+        "value": "190000",
+        "literal": "19万",
+        "start": 42,
+        "end": 45
+      },
+      {
+        "observation_id": "numeric-96e26d4ed14fdb04922f",
+        "version_id": "source-eac718ca19dd90e083e6",
+        "metric": "人民日报评“患者送",
+        "value": "1.9",
+        "literal": "1.9元",
+        "start": 96,
+        "end": 100
+      }
+    ],
+    "reviews": [],
+    "check": {
+      "url": "http://k.sina.com.cn/article_1402994162_m539ffdf203301yon0.html",
+      "version_id": "source-eac718ca19dd90e083e6",
+      "checked_at": "2026-10-19T08:54:51.429367Z",
+      "changed": false
+    },
+    "verdict": null
+  }
+}

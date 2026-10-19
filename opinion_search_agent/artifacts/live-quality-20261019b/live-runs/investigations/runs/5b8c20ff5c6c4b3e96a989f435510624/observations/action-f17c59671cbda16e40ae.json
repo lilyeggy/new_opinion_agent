@@ -1,0 +1,66 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-58fefe187591bcbed702",
+      "query": "野人先生官方客服对媒体问询的具体回应表述、品牌是否公开回应及冷处理说法",
+      "version_id": "source-4bcee12e8db69004e5d3"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-ba209143370d480cce84",
+        "version_id": "source-4bcee12e8db69004e5d3",
+        "excerpt": "作为国内Gelato赛道最大玩家，野人先生极力避免被卷入舆论拉扯，即便面对媒体问询，品牌官方客服也只是表示会将相关问题记录并向领导反馈，除此之外再无更多公开表态。",
+        "start": 612,
+        "end": 693,
+        "locator": "Reader text chars 612:693"
+      },
+      {
+        "evidence_id": "evidence-5bc5ec8f07202efcb293",
+        "version_id": "source-4bcee12e8db69004e5d3",
+        "excerpt": "**冷处理“不要回答”**",
+        "start": 357,
+        "end": 370,
+        "locator": "Reader text chars 357:370"
+      },
+      {
+        "evidence_id": "evidence-c6be37fbf42a492a3bbd",
+        "version_id": "source-4bcee12e8db69004e5d3",
+        "excerpt": "罗永浩突然公开吐槽，给意式冰淇淋品牌野人先生出了一道考题，是主动回应，还是保持沉默？",
+        "start": 9,
+        "end": 51,
+        "locator": "Reader text chars 9:51"
+      },
+      {
+        "evidence_id": "evidence-5ae06e5818b8195a1d34",
+        "version_id": "source-4bcee12e8db69004e5d3",
+        "excerpt": "看来，野人先生始终密切关注这次突如其来的舆情风波。不少网友涌入野人先生Gelato官方微博置顶博文的评论区，模仿三体文明1379号监听员的口吻，连续刷屏3句“不要回答”，形成了另一个舆论场。",
+        "start": 695,
+        "end": 790,
+        "locator": "Reader text chars 695:790"
+      },
+      {
+        "evidence_id": "evidence-5e06cade4d19e904abfb",
+        "version_id": "source-4bcee12e8db69004e5d3",
+        "excerpt": "公开数据显示，截至今年6月，野人先生门店总数突破1600家，规模仅次于DQ。",
+        "start": 1739,
+        "end": 1777,
+        "locator": "Reader text chars 1739:1777"
+      }
+    ],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

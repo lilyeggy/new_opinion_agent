@@ -1,0 +1,35 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-88257b0b6bb95cd6abfb",
+      "url": "https://baike.baidu.com/item/9%C2%B712%E7%BD%97%E6%B0%B8%E6%B5%A9%E5%90%90%E6%A7%BD%E9%87%8E%E4%BA%BA%E5%85%88%E7%94%9F%E4%BA%8B%E4%BB%B6/69039759",
+      "focus": "该条目所汇总的9月16日官方账号发声之后是否还有进一步回应、澄清或处理动作；9月23日丰收节等活动是否实际落地；除钟薛高、西贝之外是否还有其他品牌或个人被牵连点名",
+      "role": "commentary"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://baike.baidu.com/item/9%C2%B712%E7%BD%97%E6%B0%B8%E6%B5%A9%E5%90%90%E6%A7%BD%E9%87%8E%E4%BA%BA%E5%85%88%E7%94%9F%E4%BA%8B%E4%BB%B6/69039759"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "4dbd16d8e49545e79453250ad47e3f85:step:28:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unreadable_content",
+      "message": "Jina Reader returned no readable page content.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

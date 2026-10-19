@@ -1,0 +1,66 @@
+{
+  "action": {
+    "decision": {
+      "action": "retrieve",
+      "issue_id": "issue-58fefe187591bcbed702",
+      "query": "界面新闻9月16日报道中野人先生官方发文的具体表述（“感谢大家长期以来对‘野人先生’的关心和支持”“对于广大顾客的意见和建议，我们都会用心聆听，努力做得更好，把更美味的东方Gelato带给消费者”）及官宣冰淇淋丰收节；同时定位：9月13日视频账号单日涨粉近3万、近30天累计涨粉超40万、总粉丝突破439万；“野人先生 冷处理”冲上热搜第一；截至2026年6月门店突破1400家、人均消费约27元；品牌沿革与创始人1月受访的定价表述",
+      "version_id": "source-361cda13bfb41fa352cb"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "retrieve",
+    "outcome": null,
+    "sources": [],
+    "evidence": [
+      {
+        "evidence_id": "evidence-5cc035a92ab635e85152",
+        "version_id": "source-361cda13bfb41fa352cb",
+        "excerpt": "野人先生表示，感谢大家长期以来对“野人先生”的关心和支持。对于广大顾客的意见和建议都会用心聆听，努力做得更好，把更美味的东方Gelato 带给消费者。此外，野人先生还官宣了冰淇淋丰收节将启幕。",
+        "start": 7888,
+        "end": 7984,
+        "locator": "Reader text chars 7888:7984"
+      },
+      {
+        "evidence_id": "evidence-25f92372ecf9306e8133",
+        "version_id": "source-361cda13bfb41fa352cb",
+        "excerpt": "野人先生表示，感谢大家长期以来对“野人先生”的关心和支持。对于广大顾客的意见和建议都会用心聆听，努力做得更好，把更美味的东方Gelato 带给消费者。此外，野人先生还官宣了冰淇淋丰收节将启幕。",
+        "start": 13910,
+        "end": 14006,
+        "locator": "Reader text chars 13910:14006"
+      },
+      {
+        "evidence_id": "evidence-604dc2bfc2164f21e6a9",
+        "version_id": "source-361cda13bfb41fa352cb",
+        "excerpt": "[江怡曼JYM](https://a.jiemian.com/index.php?m=user&a=center&id=116236814)_·_ 2026年09月16日 09:22 来源：界面新闻",
+        "start": 7584,
+        "end": 7683,
+        "locator": "Reader text chars 7584:7683"
+      },
+      {
+        "evidence_id": "evidence-8029d54123bdd7eaa3df",
+        "version_id": "source-361cda13bfb41fa352cb",
+        "excerpt": "此后，“野人先生 冷处理”冲上了热搜第一，迅速发展成为全网热门话题。舆情的发酵，意外为野人先生的短视频账号带来流量增长。第三方数据显示，9月13日野人先生视频账号单日涨粉近3万，近30天该账号累计涨粉超40万，总粉丝量已突破439万。",
+        "start": 8474,
+        "end": 8591,
+        "locator": "Reader text chars 8474:8591"
+      },
+      {
+        "evidence_id": "evidence-8e3f7422d52a2d9a5766",
+        "version_id": "source-361cda13bfb41fa352cb",
+        "excerpt": "此后，“野人先生 冷处理”冲上了热搜第一，迅速发展成为全网热门话题。舆情的发酵，意外为野人先生的短视频账号带来流量增长。第三方数据显示，9月13日野人先生视频账号单日涨粉近3万，近30天该账号累计涨粉超40万，总粉丝量已突破439万。",
+        "start": 14497,
+        "end": 14614,
+        "locator": "Reader text chars 14497:14614"
+      }
+    ],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

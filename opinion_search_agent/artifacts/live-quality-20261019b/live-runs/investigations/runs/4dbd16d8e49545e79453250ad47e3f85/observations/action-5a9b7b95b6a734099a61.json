@@ -1,0 +1,94 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-88257b0b6bb95cd6abfb",
+      "query": "36氪 “野人先生还是回应了” 28元一份的Gelato到底贵不贵",
+      "purpose": "followup",
+      "page": 0,
+      "background": false,
+      "target_gap": "9月16日官方账号首度发声之后，品牌是否还有进一步回应或新一轮媒体报道"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "36氪 “野人先生还是回应了” 28元一份的Gelato到底贵不贵 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": null
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "4dbd16d8e49545e79453250ad47e3f85:step:35:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "36氪 “野人先生还是回应了” 28元一份的Gelato到底贵不贵 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "野人先生回应了 28元一份的Gelato到底贵不贵？",
+            "url": "https://eu.36kr.com/zh/p/3986767294724865",
+            "snippet": "答案或许不在营销，也不在口味，而在于野人先生赶上了两件事：中国消费者愿意为“更好一点的东西”多付钱，以及中国品牌终于有能力把一门外来手艺，做成连锁生意。 · 至于那支冰淇淋到底贵不贵，让市场继续吵，但答案，从来不在微博上。 · 本文来自微信公众号“咖门”（ID：KamenClub），作者：国君，36氪..."
+          },
+          {
+            "title": "野人先生沉默四天终于发声，成本不到10块卖28块的Gelato到底贵在哪了[晕] ​|野人先生|gelato|28块|成本不到10块|钟薛高_新浪新闻",
+            "url": "https://www.sina.cn/news/detail/5344524966824519.html",
+            "snippet": "野人先生沉默四天终于发声，成本不到10块卖28块的Gelato到底贵在哪了[晕] ​ · 报告报告 今天买花 吃gelato 吃糟粕醋米粉 ​"
+          },
+          {
+            "title": "28元一份的野人先生Gelato，你觉得贵吗？业内专家：冰淇淋向情绪价值延伸_凤凰网",
+            "url": "https://news.ifeng.com/c/8qJY7Cmt6X9",
+            "snippet": "“以每克重的价格来讲，野人是大幅度地把意式冰淇淋的价格打下来。”近日，野人先生创始人崔渐为在节目访谈中，回应了外界对品牌定价过高的质疑。他表示，在野人之前，行业普遍是一个球80克卖三四十块钱，而野人一份冰淇淋130克卖28元。"
+          },
+          {
+            "title": "28元一份的野人先生Gelato，你觉得贵吗？业内专家：冰淇淋向情绪价值延伸_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260129A06RJM00",
+            "snippet": "“以每克重的价格来讲，野人是大幅度地把意式冰淇淋的价格打下来。”近日，野人先生创始人崔渐为在节目访谈中，回应了外界对品牌定价过高的质疑。他表示，在野人之前，行业普遍是一个球80克卖三四十块钱，而野人一份冰淇淋130克卖28元。"
+          },
+          {
+            "title": "野人先生创始人回应太贵：“是我们把 Gelato 行业价格打下来了”",
+            "url": "https://www.msn.com/zh-cn/%E9%80%9A%E7%94%A8/%E9%80%9A%E7%94%A8/%E9%87%8E%E4%BA%BA%E5%85%88%E7%94%9F%E5%88%9B%E5%A7%8B%E4%BA%BA%E5%9B%9E%E5%BA%94%E5%A4%AA%E8%B4%B5-%E6%98%AF%E6%88%91%E4%BB%AC%E6%8A%8A-gelato-%E8%A1%8C%E4%B8%9A%E4%BB%B7%E6%A0%BC%E6%89%93%E4%B8%8B%E6%9D%A5%E4%BA%86/ar-AA2ceKeb",
+            "snippet": "他表示品牌其实压低了Gelato （意大利手工冰淇淋） 行业价格，核心依据是单份产品克重。市面传统意式冰淇淋单球约 80 克，售价普遍 30 至 40 元，而野人先生 130 克的单球仅售 28 元，按每克单价计算更划算。"
+          },
+          {
+            "title": "野人先生创始人曾回应“太贵”争议，是我们把Gelato价格打下来了！|硬刚|罗永浩|实战派|gelato_网易订阅",
+            "url": "https://www.163.com/dy/article/L6UO15QE0556OEI4.html",
+            "snippet": "事实上，关于野人先生“贵不贵”的争议并非始于此次事件。早在今年1月，野人先生创始人崔渐为就在节目《实战派》中正面回应了外界对品牌定价过高的质疑。他的回应方式颇为特别，不是解释为何卖得贵，而是主张野人先生实际上把Gelato的价格“打下来了”。 · 崔渐为给出的计算逻辑是，在野人先生进入市场之前，传统Gelato行业普遍以80克为一个球，售价在三四十元左右;而野人先生一份冰淇淋为130克，售价28元。按每克单价换算，野人先生的定价确实低于行业传统水平。他还表示，在商业竞争充分的中国市场，长期维持暴利并不现实。"
+          },
+          {
+            "title": "野人先生定价太高？创始人曾回应：“是野人先生把gelato价格打下来了”_生鲜食品_什么值得买",
+            "url": "https://post.smzdm.com/p/a6z0204o/",
+            "snippet": "如果你就是想在商场里坐下来吃一份Gelato，野人先生28块的基础款可以买。开心果38块确实偏贵，经典口味28块在同类连锁里算中等。晚间买一送一、双拼36块这些活动，也给了你“非原价购买”的理由。"
+          },
+          {
+            "title": "野人先生回应“太贵”，都叫冰淇淋，Gelato为啥贵好几倍？_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260920A03ITY00",
+            "snippet": "Ice Cream已经成为世界各地都能买到的日常甜品，而Gelato则重新找到了自己的位置——让很多人愿意专门去店里花更多钱吃上一小杯。 · 说到Gelato普遍要更贵的原因，其中一个是原料。"
+          },
+          {
+            "title": "一份28元的冰淇淋，到底贵不贵？_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0A27600",
+            "snippet": "超级网红罗永浩评价野人先生“考虑到价格，甚至可以说难吃”，引发争议。野人先生曾解释，相比传统Gelato约80克卖30元至40元，自己130克卖28元，已经把价格“打下来了”。 ..."
+          },
+          {
+            "title": "野人先生创始人称“把价格打下来了”，罗永浩却嫌贵，28元一球的冰淇淋，真的贵吗？_新浪财经_新浪网",
+            "url": "https://finance.sina.com.cn/jjxw/2026-09-14/doc-inirveaw4463774.shtml",
+            "snippet": "截至发稿前，野人先生官方尚未公开回应。而其近日发文的评论区里，网友齐刷刷地刷着四个字：“不要回答。”去年西贝的“教训”让大家明白：跟罗永浩正面硬刚，代价可能远大于一句吐槽。 ... 不过，值得注意的是，野人先生的价格确实已经不属于大众冰淇淋：单球Gelato起售价28元，高阶口味甚至达到38元，蛋糕冰淇淋最高已经卖到328元。而当消费者还在讨论“38元一份的冰淇淋贵不贵”时，野人先生却已经悄悄把门店开到了1700多家。"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

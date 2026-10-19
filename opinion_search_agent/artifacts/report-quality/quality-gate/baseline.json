@@ -1,15 +1,15 @@
 {
   "schema": "opinion-search-quality-gate/1",
-  "generated_at": "2026-10-19T12:38:10+08:00",
+  "generated_at": "2026-10-19T21:40:10+08:00",
   "corpus": "evaluation/corpus.json",
   "code": {
-    "head": "4fabed9",
+    "head": "8438205",
     "dirty": true
   },
   "boundaries": [
     "检索召回与忠实性判定依赖 evaluation/annotations/ 下的冻结人工标注；门禁只保证同一标注下结果可重算，不保证标注本身正确。",
     "每条证据都对照运行时的 case store（artifacts/live-runs/investigations/cases/<id>/artifacts/）逐个校验：s5-b 的 64 条证据 64 条精确命中、0 条不符。早前记录的「4 个来源没有快照、25 条不可核」是把 materials_dir 指向对抗材料目录造成的误判，已修正。",
-    "语料含 7 次真实运行 / 2 个事件（三九胃泰 4 次、罗永浩吐槽野人先生 3 次）。检索召回已覆盖 2 个事件（三九胃泰 6/10、罗永浩吐槽野人先生 7/12 与 5/12），忠实性人工标注仍只有三九胃泰一份，因此忠实性不能跨事件比较。",
+    "语料含 8 次真实运行 / 2 个事件。检索召回覆盖 2 个事件：三九胃泰 6/10；罗永浩吐槽野人先生 12/12、7/12、11/12 三次运行；忠实性人工标注仍只有三九胃泰一份，跨事件只能比较机械指标。",
     "对抗案例的错误数字在判断层（时间线 / 已核查判断 / 争议与回应）不存在，但在报告末“来源与证据”附录中作为原始摘录出现；该通过项只代表这一轮没有把它写进判断，不代表系统具备数字可信度拦截。",
     "两条 OpinionSearch 轻路径案例只覆盖 opinion 域（无 findings / review 层），主要作用是冻结当日两次真实运行的回归指纹。",
     "门禁不调用模型、不访问网络，因此它证明的是“给定这些冻结运行，数字可重算且可回归”，不证明“换一个模型或搜索引擎仍然成立”。"
@@ -1335,6 +1335,224 @@
           "available": false
         }
       }
+    },
+    {
+      "case_id": "icecream-live-20261019",
+      "domain": "investigation",
+      "label": "罗永浩吐槽野人先生冰淇淋 · 2026-10-19 真实运行（OpenCode Go inference 端点，41 步跑到 review）",
+      "run_dir": "artifacts/live-quality-20261019b/live-runs/investigations/runs/4dbd16d8e49545e79453250ad47e3f85",
+      "fingerprint": "745bd35c298302f6",
+      "counts": {
+        "sources": 9,
+        "evidence": 33,
+        "claims": 25,
+        "candidates": 63,
+        "read": 12
+      },
+      "metrics": {
+        "provenance_closure": {
+          "checked": 87,
+          "resolved": 87,
+          "dangling": [],
+          "closure_rate": 1.0
+        },
+        "excerpt_grounding": {
+          "verified": 33,
+          "mismatch": 0,
+          "unverifiable": 0,
+          "checkable": 33,
+          "grounding_rate": 1.0,
+          "unverifiable_sources": [],
+          "failures": []
+        },
+        "claim_grounding": {
+          "grounded": 25,
+          "ungrounded": 0,
+          "total": 25,
+          "grounding_rate": 1.0,
+          "ungrounded_ids": []
+        },
+        "source_diversity": {
+          "read": {
+            "urls": 9,
+            "domains": 7,
+            "top_domain": "www.sina.cn",
+            "top_domain_share": 0.3333333333333333,
+            "domain_counts": {
+              "www.sina.cn": 3,
+              "m.thepaper.cn": 1,
+              "m.mp.oeeee.com": 1,
+              "www.sohu.com": 1,
+              "www.worldjournal.com": 1,
+              "news.qq.com": 1,
+              "post.smzdm.com": 1
+            }
+          },
+          "discovered": {
+            "urls": 63,
+            "domains": 26,
+            "top_domain": "news.qq.com",
+            "top_domain_share": 0.25396825396825395,
+            "domain_counts": {
+              "news.qq.com": 16,
+              "www.sina.cn": 11,
+              "www.sohu.com": 4,
+              "k.sina.cn": 4,
+              "post.smzdm.com": 3,
+              "www.163.com": 3,
+              "www.huxiu.com": 3,
+              "baike.baidu.com": 1
+            }
+          }
+        },
+        "retrieval_recall": {
+          "available": true,
+          "total": 12,
+          "discovery_hits": 11,
+          "discovery_rate": 0.9166666666666666,
+          "read_hits": 9,
+          "read_rate": 0.75,
+          "reported_discovery_hits": 0,
+          "reported_read_hits": 0,
+          "agreement": {
+            "comparable": 0,
+            "agree": 0,
+            "rate": null
+          },
+          "items": [
+            {
+              "item_id": 1,
+              "content": "罗永浩 9·12 原微博措辞（“很一般，考虑到价格甚至可以说难吃”），并对比钟薛高",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 2,
+              "content": "品牌的“冷处理”策略，以及“野人先生 冷处理”登上热搜第一",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 3,
+              "content": "门店一线的现场回应：客流未受影响，有店员称不知道罗永浩是谁",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 4,
+              "content": "沉默数日后品牌首度公开回应（感谢支持、用心聆听、努力做得更好）",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 5,
+              "content": "创始人崔渐对定价的回应：“正是我们拉低了价格门槛，售价仅为传统意式冰淇淋的一半”",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 6,
+              "content": "价格锚点：130 克单球 28 元、蛋糕冰淇淋 328 元",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 7,
+              "content": "成本争议：知情人称毛利不低于 60%，单球食材成本 4–10 元",
+              "discovered": true,
+              "read": false,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 8,
+              "content": "流量反转：事件后品牌近 30 天涨粉约 40 万",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 9,
+              "content": "人民网评介入：批评是一种权利，谨防成为“流量权力”",
+              "discovered": true,
+              "read": false,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 10,
+              "content": "被牵连品牌之一：钟薛高被拿来对比，同期复出并把价格降到 6.9 元",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 11,
+              "content": "被牵连品牌之二：西贝与罗永浩的旧怨（倒闭传言、起诉将开庭）",
+              "discovered": false,
+              "read": false,
+              "published_discovery": null,
+              "published_read": null
+            },
+            {
+              "item_id": 12,
+              "content": "品牌后续动作：宣布 9 月 23 日开启“冰淇淋丰收节”",
+              "discovered": true,
+              "read": true,
+              "published_discovery": null,
+              "published_read": null
+            }
+          ]
+        },
+        "faithfulness": {
+          "system": {
+            "total": 25,
+            "reviewed": 25,
+            "verdicts": {
+              "supported": 24,
+              "partial": 1
+            },
+            "supported_rate": 0.96
+          },
+          "human": {
+            "available": false
+          }
+        },
+        "quote_support": {
+          "findings_with_quotes": 18,
+          "quotes": 33,
+          "in_excerpt": 32,
+          "recoverable": 0,
+          "absent_from_doc": 1,
+          "doc_unavailable": 0,
+          "coverage": 0.9696969696969697,
+          "repairable_coverage": 0.9696969696969697,
+          "misses": [
+            {
+              "claim_id": "finding-49a00e41b965049fa89b",
+              "quote": "荔湾领展广场负一层中庭……野人先生丰收节快闪活动……10月13日至10月18日",
+              "reason": "absent_from_document"
+            }
+          ]
+        },
+        "adversarial": {
+          "available": false
+        }
+      }
     }
   ],
   "headline": {
@@ -1352,7 +1570,7 @@
       "human_rate": 0.7142857142857143,
       "fabricated": 0,
       "system_supported": "6/14",
-      "excerpt_grounding": "223/223",
+      "excerpt_grounding": "256/256",
       "excerpt_grounding_rate": 1.0
     },
     "adversarial_points": {

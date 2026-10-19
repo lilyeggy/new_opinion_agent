@@ -1,0 +1,94 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-eddfdafdc45deeb6f2f0",
+      "query": "野人先生 毛利 成本 定价 说明 罗永浩 吐槽 争议 品牌 回应",
+      "purpose": "event_response",
+      "page": 0,
+      "background": false,
+      "target_gap": "品牌方是否就“毛利不低于60%”爆料与“价格贵”争议发布成本或定价说明，或作出更正"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "野人先生 毛利 成本 定价 说明 罗永浩 吐槽 争议 品牌 回应 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": null
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "4dbd16d8e49545e79453250ad47e3f85:step:31:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "野人先生 毛利 成本 定价 说明 罗永浩 吐槽 争议 品牌 回应 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "罗永浩吐槽野人先生难吃，成本曝光：单球食材仅四至十元|冰淇淋|开心果|鲜奶|门店|定价_新浪新闻",
+            "url": "https://k.sina.cn/article_7096020433_1a6f4add106801oa6o.html",
+            "snippet": "成本构成曝光。官方招商口径称品牌毛利不低于60%，单球食材成本约4至10元，剩下的钱主要花在了高额的商场租金、人工和加盟体系上。"
+          },
+          {
+            "title": "罗永浩吐槽野人先生冰淇淋难吃|罗永浩|野人先生|崔渐为_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343682443085171.html",
+            "snippet": "罗永浩发文称野人先生冰淇淋难吃且价格贵，引发热议。记者探访线下门店发现品牌方未回应，店员表示降温后销量受影响。报道还披露了该品牌毛利率不低于 60% 及回本周期等信息，并展示了记者试吃及消费者反馈。"
+          },
+          {
+            "title": "罗永浩吐槽野人先生贵还难吃 知情人：毛利率不低于60% 12个月可回本_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A06RLQ00",
+            "snippet": "超高毛利的背后，是极低的食材成本。有资深意式冰淇淋经销商向《每日经济新闻》揭秘了行业成本：主打天然原料的Gelato，看似用料高端，实则食材成本并不高。"
+          },
+          {
+            "title": "价格遭罗永浩吐槽后，野人先生成本上热搜！毛利不低于60%？北京门店：9点后买一送一_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0CAHV00?id=20260916A0CAHV00&path=a&app=news&suid=&redirect_pc=1",
+            "snippet": "罗永浩对野人先生冰淇凌难吃、价格贵的吐槽连日来持续发酵，野人先生一方至今未做出回应，采取冷处理的方式应对这次舆情。9月16日，#野人先生成本#冲上热搜。"
+          },
+          {
+            "title": "罗永浩吐槽野人先生难吃 冰淇淋品牌回应预制争议与定价逻辑",
+            "url": "https://www.huxiu.com/article/4891742.html",
+            "snippet": "**罗永浩批评野人先生“难吃又贵”引爆争议，但该品牌仍以1712家门店成为冰淇淋行业第二；其“当天现做”实际使用冷冻奶浆的争议未阻扩张，低价优惠与购物中心场景让消费者接受溢价。** **要点** **1. 罗永浩吐槽引爆争议，野人先生仍高速扩张** 截至2025年9月，野人先生全国门店达1712家，仅次于DQ，仅前5个月新开超280家；人均消费约26.84元，远超93.1%消费者20元以下的心理价位。 **2. “当天现做”宣传与冷冻奶浆原料形成认知落差** 野人先生工厂预"
+          },
+          {
+            "title": "知情人称野人先生毛利不低于60% 创始人曾回应太贵 _ 游民星空 GamerSky.com",
+            "url": "https://www.gamersky.com/news/202609/2210511.shtml",
+            "snippet": "近日，在罗永浩吐槽“又贵又难吃”让野人先生陷入舆论漩涡后，关于它的成本争议被推上风口浪尖，起因是品牌招商人员向媒体透露其毛利率不低于60%。"
+          },
+          {
+            "title": "野人先生创始人曾回应 38 元一个冰淇淋太贵，称自己的品牌把行业价格打下来了，客观来看这个定价合理吗？ - 知乎",
+            "url": "https://www.zhihu.com/question/2083215665414895312",
+            "snippet": "野人先生创始人称“把价格打下来了”，罗永浩却嫌贵，#野人先生28元1球冰淇淋贵吗#？】9月12日，罗永浩在社交媒体上发文称，在机场试了“暴得大名”的野…显示全部 ​"
+          },
+          {
+            "title": "罗永浩吐槽难吃后野人先生意外走红|罗永浩_新浪新闻",
+            "url": "https://www.sina.cn/a/article/nishrap3027794.html",
+            "snippet": "实际售价：官方小程序显示，单款冰淇淋普遍在28至38元，蛋糕冰淇淋二三百元；但艾媒咨询数据显示，93.1%的消费者只能接受20元以下的冰淇淋，其定价确实属于大众消费品的“高位区”。 · 成本拆解：有经销商透露意式冰淇淋单球食材成本约4元，业内人士称毛利率普遍在70%以上；野人先生招商人员则称毛利不低于60%、回本约12个月，与蜜雪冰城相当。"
+          },
+          {
+            "title": "知情人称野人先生毛利不低于60% 创始人曾回应太贵_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260916A0A2NU00",
+            "snippet": "近日，在罗永浩吐槽“又贵又难吃”让野人先生陷入舆论漩涡后，关于它的成本争议被推上风口浪尖，起因是品牌招商人员向媒体透露其毛利率不低于60%。"
+          },
+          {
+            "title": "罗永浩或许不知道，野人先生21点后半价_腾讯新闻",
+            "url": "https://news.qq.com/rain/a/20260920A06SSV00",
+            "snippet": "罗永浩的一句评论，只是导火索。真正让品牌目前没有正面回应的，是三个问题。"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

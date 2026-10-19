@@ -1,0 +1,35 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-02528932827621320dea",
+      "url": "https://worldjournal.com/wj/story/121617/9754948?zh-cn=",
+      "focus": "黄斌为何批评罗永浩、具体指责内容，事件如何从冰淇淋口味争议延烧到二十年前创业恩怨，是否牵涉其他品牌或人物",
+      "role": "reporting"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://worldjournal.com/wj/story/121617/9754948?zh-cn="
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "4dbd16d8e49545e79453250ad47e3f85:step:12:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unknown_provider_error",
+      "message": "The fetched page could not be verified against its saved text.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}
