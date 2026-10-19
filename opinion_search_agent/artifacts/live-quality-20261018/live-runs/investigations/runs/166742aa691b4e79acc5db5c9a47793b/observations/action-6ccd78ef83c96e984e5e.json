@@ -1,0 +1,94 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "query": "罗永浩 吐槽 野人先生 冰淇淋",
+      "purpose": "original",
+      "page": 0,
+      "background": false,
+      "target_gap": "事件最初报道与罗永浩言论出处"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "罗永浩 吐槽 野人先生 冰淇淋 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": null
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "166742aa691b4e79acc5db5c9a47793b:step:1:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "罗永浩 吐槽 野人先生 冰淇淋 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "罗永浩吐槽野人先生|罗永浩|野人先生|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/news/detail/5342948281024907.html",
+            "snippet": "#罗永浩吐槽野人先生后特意提示# 给没跟上的捋一下整件事。 9月12日下午，罗永浩发博说在机场尝了最近爆火的冰淇淋品牌野人先生，&quot;很一般，考虑到价格甚至可以说难吃，它是怎么火起来的&quot;，还补刀&quot;比钟薛高难吃多了，怀念钟薛高&quot;。他特意在文末标注：这只是消费者的正常评价，&quot;请千万不要惹我&quot;。 13日 ​"
+          },
+          {
+            "title": "罗永浩吐槽野人先生冰淇淋，门店回应客流正常|罗永浩|野人先生门店|野人先生|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/news/detail/5343051583063673.html",
+            "snippet": "#野人先生门店称客流未受影响#【#野人先生门店回应罗永浩吐槽#：客流正常】9月12日，@罗永浩的十字路口 在个人账号分享消费体验，称自己在机场尝试了近期走红的野人先生冰淇淋，“很一般啊，考虑到价格，甚至可以..."
+          },
+          {
+            "title": "罗永浩直言难吃，创始人却称把价格打下来了|罗永浩|崔渐|野人先生|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5347265343389776.html",
+            "snippet": "罗永浩直言“野人先生”...格门槛——售价仅为传统意式冰淇淋的一半！” #冰淇淋# #野人先生# #罗永浩# http://t.cn/AXWwSabK ​ ... 罗永浩彻底不敢再胡乱吐槽了！上面明显已经盯上他了，..."
+          },
+          {
+            "title": "罗永浩吐槽野人先生冰淇淋难吃|罗永浩|野人先生|崔渐|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343682510193564.html",
+            "snippet": "#野人先生成本#【#知情人称野人先生毛利不低于60%# 】 罗永浩对野人先生冰淇凌难吃、价格贵的吐槽连日来持续发酵，野人先生一方至今未做出回应，采取冷处理的方式应对这次舆情。#野人先生至今未回应# 9月15日，“野..."
+          },
+          {
+            "title": "遭罗永浩吐槽冰淇淋难吃 野人先生近30天涨粉41万 _ 游民星空 GamerSky.com",
+            "url": "https://www.gamersky.com/news/202609/2209050.shtml",
+            "snippet": "近日，罗永浩发文吐槽冰淇淋品牌野人先生，相关话题持续发酵，意外带动该品牌账号流量大涨。"
+          },
+          {
+            "title": "罗永浩没打疼野人先生_新浪新闻",
+            "url": "https://news.sina.com.cn/c/2026-09-16/doc-iniryzmc4912042.shtml",
+            "snippet": "罗永浩发微博吐槽野人先生贵，难吃，野人先生闷声不接招，罗永浩这次没有打疼野人先生。 · 爆火的野人先生，早已接了哈根达斯的班，其背后的冰淇淋赛道越来越拥挤了。"
+          },
+          {
+            "title": "羅永浩轟冰淇淋品牌「野人先生」難吃 被罵「攻擊性人格」 | 編輯精選 | 生活 | 世界新聞網",
+            "url": "https://www.worldjournal.com/wj/story/121617/9754948",
+            "snippet": "微博大V羅永浩又因「毒舌」掀議，這次從西貝風波轉戰近期竄紅的冰淇淋品牌「野人先生」。他12日在社群平台直指野人先生「很一般」，考量價格甚至「難吃」，還稱口感不如已破產拍賣的鍾薛高。他的消費心得不只引..."
+          },
+          {
+            "title": "罗永浩试吃野人先生冰淇淋直言“难吃”，不如钟薛高 质疑其高溢价与品牌爆火原因|先生|冰淇淋|罗永浩|野人|钟薛高_手机网易网",
+            "url": "https://m.163.com/dy/article/L6NDR3VH0519DFFO.html?clickfrom=subscribe&spss=adap_pc",
+            "snippet": "北京商报讯（记者 张天元）9月13日，&quot;罗永浩说野人先生比钟薛高难吃多了&quot;相关话题登上热搜。罗永浩通过社交平台发文，称自己在机场试吃了冰淇淋品牌野人先生，直言产品口味很一般，结合定价来看甚至可以说&quot;难吃&quot;，并对该品牌的爆火原因提出疑问。"
+          },
+          {
+            "title": "名场面再现！罗永浩吐槽野人先生太难吃，网友喊话官方：不要回答 - 知乎",
+            "url": "https://zhuanlan.zhihu.com/p/2082513104450209133",
+            "snippet": "名场面再现！罗永浩吐槽野人先生太难吃，网友喊话官方：不要回答 · 切换模式 · 雷科技​ · 已认证机构号 · 17 人赞同了该文章 · 9月13日消息，今天小雷哔哔（id：xiaoleibbb）在微博上看到，罗永浩又「开炮」了。 · 这次他对准的是餐饮类品牌野人先生。 · 日前，罗永浩发了一条微博表示在机场试了最近爆火的野人先生冰淇淋，直接给出评价：很一般啊，考虑到价格，甚至可以说难吃。它是怎么火起来的？感觉比钟薛高难吃多了，怀念钟薛高。 ·"
+          },
+          {
+            "title": "“野人先生 冷处理”热搜第一，野人先生冰淇淋被罗永浩吐槽难吃后涨粉数万，至今品牌方仍未回应|硬刚|钟薛高|鲜奶油_网易订阅",
+            "url": "https://www.163.com/dy/article/L6Q0NGJV0530RMGL.html",
+            "snippet": "9月14日，“野人先生 冷处理”冲上热搜第一。近日，罗永浩在其个人微博上公开发帖称，吃了“野人先生”冰淇淋之后感觉很一般，甚至可以说是难吃，相关言论引发网友热议。部分网友提醒野人先生“不要回答”，次日其视频账号涨粉近3万。截至发稿，野人先生仍未回应。"
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}

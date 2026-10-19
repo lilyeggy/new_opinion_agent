@@ -51,12 +51,22 @@
       "annotations": {
         "retrieval_recall": "evaluation/annotations/icecream-must-hit.json"
       }
+    },
+    {
+      "case_id": "icecream-live-20261018",
+      "domain": "investigation",
+      "label": "罗永浩吐槽野人先生冰淇淋 · 2026-10-18 真实运行（DeepSeek 官方 API + Brave + Jina）",
+      "run_dir": "artifacts/live-quality-20261018/live-runs/investigations/runs/166742aa691b4e79acc5db5c9a47793b",
+      "materials_dir": "artifacts/live-quality-20261018/live-runs/investigations/cases/6bad2157dec346b792c4f9194701333d/artifacts",
+      "annotations": {
+        "retrieval_recall": "evaluation/annotations/icecream-must-hit.json"
+      }
     }
   ],
   "boundaries": [
     "检索召回与忠实性判定依赖 evaluation/annotations/ 下的冻结人工标注；门禁只保证同一标注下结果可重算，不保证标注本身正确。",
     "每条证据都对照运行时的 case store（artifacts/live-runs/investigations/cases/<id>/artifacts/）逐个校验：s5-b 的 64 条证据 64 条精确命中、0 条不符。早前记录的「4 个来源没有快照、25 条不可核」是把 materials_dir 指向对抗材料目录造成的误判，已修正。",
-    "检索召回已覆盖 2 个事件（三九胃泰 6/10、罗永浩吐槽野人先生 7/12），忠实性人工标注仍只有三九胃泰一份；跨事件只能比较机械指标（引用闭合、摘录可核、判断有据、来源分散、引语溯源、召回），不能比较忠实性。",
+    "语料含 7 次真实运行 / 2 个事件（三九胃泰 4 次、罗永浩吐槽野人先生 3 次）。检索召回已覆盖 2 个事件（三九胃泰 6/10、罗永浩吐槽野人先生 7/12 与 5/12），忠实性人工标注仍只有三九胃泰一份，因此忠实性不能跨事件比较。",
     "对抗案例的错误数字在判断层（时间线 / 已核查判断 / 争议与回应）不存在，但在报告末“来源与证据”附录中作为原始摘录出现；该通过项只代表这一轮没有把它写进判断，不代表系统具备数字可信度拦截。",
     "两条 OpinionSearch 轻路径案例只覆盖 opinion 域（无 findings / review 层），主要作用是冻结当日两次真实运行的回归指纹。",
     "门禁不调用模型、不访问网络，因此它证明的是“给定这些冻结运行，数字可重算且可回归”，不证明“换一个模型或搜索引擎仍然成立”。"

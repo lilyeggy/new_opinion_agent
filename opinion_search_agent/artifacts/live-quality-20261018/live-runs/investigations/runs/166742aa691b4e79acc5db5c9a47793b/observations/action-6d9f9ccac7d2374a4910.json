@@ -1,0 +1,94 @@
+{
+  "action": {
+    "decision": {
+      "action": "search",
+      "issue_id": "issue-37b0296b5503da2323e6",
+      "query": "野人先生 创始人 崔渐 回应 罗永浩 价格 打下来",
+      "purpose": "official_response",
+      "page": 0,
+      "background": false,
+      "target_gap": "野人先生官方/创始人层面的正式表态内容与渠道"
+    },
+    "tool_name": "search.web",
+    "arguments": {
+      "query": "野人先生 创始人 崔渐 回应 罗永浩 价格 打下来 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+      "max_results": 10,
+      "offset": 0,
+      "search_lang": "zh-hans",
+      "freshness": null
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "search",
+    "outcome": {
+      "action_id": "166742aa691b4e79acc5db5c9a47793b:step:4:attempt:1:action",
+      "tool_name": "search.web",
+      "payload": {
+        "query": "野人先生 创始人 崔渐 回应 罗永浩 价格 打下来 -site:weibo.com -site:weibo.cn -site:douyin.com -site:xiaohongshu.com -site:xhslink.com -site:tiktok.com",
+        "items": [
+          {
+            "title": "罗永浩直言难吃，创始人却称把价格打下来了|罗永浩|崔渐|野人先生|冰淇淋_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5347265343389776.html",
+            "snippet": "罗永浩直言“野人先生”口感欠佳，创始人此前就定价问题作出说明；崔渐回应称：“正是我们拉低了价格门槛——售价仅为传统意式冰淇淋的一半！” #冰淇淋# #野人先生# #罗永浩# ..."
+          },
+          {
+            "title": "#野人先生创始人回应太贵#野人先生创始人崔渐为曾称按克重算自家是把意式冰淇淋价格“打下来了”，但这其实是今年1月的旧采访，并非针对罗永浩近日吐槽的新回应，品牌至今仍保持冷处理。一、创始人按克重算账的逻辑行业对比：传统Gelato（意式冰淇淋）行业，一个球约80克卖30‑40元，野人先生一份130 ​|野人先生|崔渐为|罗永浩|冷处理_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343468459134156.html",
+            "snippet": "#野人先生创始人回应太贵#野人先生创始人崔渐为曾称按克重算自家是把意式冰淇淋价格“打下来了”，但这其实是今年1月的旧采访，并非针对罗永浩近日吐槽的新回应，品牌至今仍保持冷处理..."
+          },
+          {
+            "title": "罗永浩称野人先生难吃，记者探访门店|罗永浩|野人先生|崔渐_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343467920165961.html",
+            "snippet": "【#野人先生创始人回应...淋最高已经卖到328元。此前，面对“价格贵”的质疑时，野人先生创始人崔渐则称：“是我们把行业价格打下来了。”他的计算方式是：传统Gelato行业里，一个球通常约80克，售价30..."
+          },
+          {
+            "title": "罗永浩吐槽野人先生冰淇淋难吃|罗永浩|野人先生|崔渐为_新浪新闻",
+            "url": "https://www.sina.cn/weibo/detail/5343682443085171.html",
+            "snippet": "#野人先生成本#【#知情人...回应是发生在今年1月，当时野人先生创始人崔渐为在节目《实战派》中，回应外界对品牌定价过高的质疑。 他表示，是野人把Gelato价格打下来了。在野人之前，这个行业普遍的是一个..."
+          },
+          {
+            "title": "罗永浩吐槽难吃后野人先生意外走红|罗永浩_新浪新闻",
+            "url": "https://www.sina.cn/a/article/nishrap3027794.html",
+            "snippet": "一、价格争议：是“打下来”还是“不便宜” · 创始人说法：野人先生创始人崔渐为曾回应，品牌把Gelato价格“打下来”了，一份130克卖28元，行业普遍是80克卖三四十元，平均到每克价格大幅降低。"
+          },
+          {
+            "title": "野人先生创始人回应“价格贵”|冰淇淋|罗永浩|钟薛高|售价|单球_新浪新闻",
+            "url": "https://k.sina.cn/article_5953466437_162dab0450670bcihk.html",
+            "snippet": "而此前，面对“价格贵”的质疑时，野人先生创始人崔渐则称：“是我们把行业价格打下来了。”他的计算方式是：传统Gelato行业里，一个球通常约80克，售价30元~40元；野人先生一份约130克，售价28元。也就是说，不能只..."
+          },
+          {
+            "title": "罗永浩说野人先生“结合价格甚至可以说难吃”：这份28元的现制冰淇淋值不值得吃，先算三笔账_甜品_什么值得买",
+            "url": "https://post.smzdm.com/p/avgx4d44/",
+            "snippet": "按行业标准流程，Gelato本...现制；崔渐为本人也说过&quot;是野人把Gelato的价格打下来的&quot;（同业一个球80克三四十元，它130克28元）。 · 但如果你理解的是&quot;从鲜奶到店当天从头做出来&quot;，那它就不是——创始人已经亲口..."
+          },
+          {
+            "title": "野人先生创始人回应太贵，28元1个冰淇淋球，是我们把行业价格打下来了 - 今日头条",
+            "url": "https://www.toutiao.com/article/7685692677739840050/",
+            "snippet": "创始人崔渐为之前回应过&quot;价格贵&quot;的质疑，原话是：&quot;是我们把行业价格打下来了。&quot;"
+          },
+          {
+            "title": "人均26元被罗永浩吐槽太难吃！野人先生创始人曾称：我们已经把价格打了下来--快科技--科技改变未来",
+            "url": "https://news.mydrivers.com/1/1151/1151324.htm",
+            "snippet": "在今年1月播出的《实战派》节目中，野人先生创始人崔渐为在面对“价格贵”的质疑时曾表示：“是我们把行业价格打下来了。”"
+          },
+          {
+            "title": "野人先生创始人曾回应“太贵”争议，是我们把Gelato价格打下来了！|硬刚|罗永浩|实战派|gelato_网易订阅",
+            "url": "https://www.163.com/dy/article/L6UO15QE0556OEI4.html",
+            "snippet": "事实上，关于野人先生“...创始人崔渐为就在节目《实战派》中正面回应了外界对品牌定价过高的质疑。他的回应方式颇为特别，不是解释为何卖得贵，而是主张野人先生实际上把Gelato的价格“打下来了”..."
+          }
+        ]
+      },
+      "artifact_refs": [],
+      "attempts": 1
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}
