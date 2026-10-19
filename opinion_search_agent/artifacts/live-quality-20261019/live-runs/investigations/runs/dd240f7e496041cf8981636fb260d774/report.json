@@ -1,0 +1,1002 @@
+{
+  "schema_version": 2,
+  "case_id": "bb1ec6e237c348cbb0f762c8a5b6589d",
+  "run_id": "dd240f7e496041cf8981636fb260d774",
+  "parent_id": null,
+  "mode": "live",
+  "subject": "罗永浩吐槽野人先生冰淇淋事件",
+  "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么？罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？",
+  "status": "partial",
+  "stop_reason": "Decision recovery was exhausted: The model provider could not be reached.",
+  "cutoff": "2026-10-19T06:16:00.544185+00:00",
+  "lookup_cutoff": "2026-10-19T06:16:00.544185+00:00",
+  "generated_at": "2026-10-19T06:24:05.822788+00:00",
+  "started_at": "2026-10-19T06:15:41.415423+00:00",
+  "state_revision": 6,
+  "profile": null,
+  "required_questions": [
+    "罗永浩吐槽野人先生冰淇淋事件的始末是什么",
+    "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展"
+  ],
+  "issues": [
+    {
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么？",
+      "required": true,
+      "status": "open",
+      "note": "已确证事件起点（9月12日下午罗永浩发微博吐槽'难吃'并质疑其走红）与品牌'冷处理'取向，但品牌完整回应、热搜发酵节点与后续发展尚缺一手材料，故保持开放。",
+      "evidence_ids": [
+        "evidence-f3c65cd71d9d93a60a08",
+        "evidence-c6be37fbf42a492a3bbd"
+      ],
+      "origin_questions": [
+        "罗永浩吐槽野人先生冰淇淋事件的始末是什么"
+      ],
+      "components": []
+    },
+    {
+      "issue_id": "issue-9e7d99c671cc8f095a3e",
+      "question": "罗永浩具体说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？",
+      "required": true,
+      "status": "open",
+      "note": "四个组成部分仅'罗永浩说了什么'已有报道转述支撑；品牌回应、被牵连品牌范围、后续发展均未取得足够独立或一手材料。",
+      "evidence_ids": [
+        "evidence-f3c65cd71d9d93a60a08",
+        "evidence-e452e38a68e2d4f91ead",
+        "evidence-9bc8fed6304ac597e19d"
+      ],
+      "origin_questions": [
+        "罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展"
+      ],
+      "components": [
+        {
+          "text": "罗永浩说了什么",
+          "status": "answered",
+          "evidence_ids": [
+            "evidence-f3c65cd71d9d93a60a08"
+          ],
+          "note": "报道转述：直言'难吃'、质疑'是怎么火起来的'、怀念钟薛高，并提示属消费者正常评价。仍缺微博原文。"
+        },
+        {
+          "text": "野人先生如何回应",
+          "status": "open",
+          "evidence_ids": [
+            "evidence-e452e38a68e2d4f91ead"
+          ],
+          "note": "现有材料仅显示品牌沉默/冷处理，未取得品牌方正式声明原文；候选结果中的门店与客服回应尚未保存核实。"
+        },
+        {
+          "text": "事件还牵连了哪些品牌",
+          "status": "open",
+          "evidence_ids": [
+            "evidence-e7505d8b10565890a4c7",
+            "evidence-9bc8fed6304ac597e19d"
+          ],
+          "note": "已确证西贝被作为对照牵连；钟薛高、黄斌等线索仅见于候选摘要，待核实。"
+        },
+        {
+          "text": "后续发展",
+          "status": "open",
+          "evidence_ids": [],
+          "note": "尚无关于产品/宣传调整、监管介入、销量与口碑变化的已保存材料。"
+        }
+      ]
+    },
+    {
+      "issue_id": "issue-b3a64210f818d2147455",
+      "question": "罗永浩相关言论的原始出处是什么，包括发布平台、发布时间与具体原话措辞，是否存在直播、视频或截图等一手材料？",
+      "required": true,
+      "status": "open",
+      "note": "",
+      "evidence_ids": [],
+      "origin_questions": [],
+      "components": [
+        {
+          "text": "罗永浩相关言论的原始出处是什么，包括发布平台",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "发布时间与具体原话措辞，是否存在直播",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "视频或截图等一手材料",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "issue_id": "issue-fd77abe5d349e392b26a",
+      "question": "野人先生品牌方（含门店、关联公司）的公开回应在什么时间、通过什么渠道发布，措辞与解释的具体内容是什么？",
+      "required": true,
+      "status": "open",
+      "note": "",
+      "evidence_ids": [],
+      "origin_questions": [],
+      "components": [
+        {
+          "text": "野人先生品牌方（含门店",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "关联公司）的公开回应在什么时间",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "通过什么渠道发布，措辞与解释的具体内容是什么",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "issue_id": "issue-8300cd0abe7f702dc263",
+      "question": "该事件还牵连到哪些品牌、企业或公众人物，牵连的具体方式和原因是什么？",
+      "required": true,
+      "status": "open",
+      "note": "",
+      "evidence_ids": [],
+      "origin_questions": [],
+      "components": [
+        {
+          "text": "该事件还牵连到哪些品牌",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "企业或公众人物，牵连的具体方式和原因是什么",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "issue_id": "issue-f64de0c6812a1fb4234d",
+      "question": "事件后续发展如何，包括品牌是否调整产品或宣传、监管部门是否介入、销量与舆论口碑有何变化？",
+      "required": true,
+      "status": "open",
+      "note": "",
+      "evidence_ids": [],
+      "origin_questions": [],
+      "components": [
+        {
+          "text": "事件后续发展如何，包括品牌是否调整产品或宣传",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "监管部门是否介入",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        },
+        {
+          "text": "销量与舆论口碑有何变化",
+          "status": "open",
+          "evidence_ids": [],
+          "note": ""
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "text": "据澎湃新闻系'斑马消费'报道，本轮舆论始于2026年9月12日下午：罗永浩在机场尝试野人先生产品后发布微博，直言该品牌冰淇淋'难吃'、质疑其'是怎么火起来的'，并表达对钟薛高的怀念，同时特意说明这是消费者的正常评价和疑问、请品牌不要说他下黑手。",
+      "kind": "fact",
+      "stakeholder": "罗永浩",
+      "stance": "oppose",
+      "stance_target": "野人先生冰淇淋",
+      "evidence_ids": [
+        "evidence-f3c65cd71d9d93a60a08"
+      ],
+      "contradicting_ids": [],
+      "event_time": "2026-09-12",
+      "response": "partial",
+      "response_target": "罗永浩吐槽野人先生事件（起因与经过）",
+      "covered": [
+        "吐槽发生时间（9月12日下午）",
+        "吐槽发布形式（个人微博）",
+        "吐槽核心措辞（'难吃'、质疑是怎么火起来的、怀念钟薛高）"
+      ],
+      "uncovered": [
+        "罗永浩微博原文完整措辞与发布平台截图等一手材料",
+        "品牌回应与后续发展"
+      ],
+      "coverage_reason": "报道直接交代了事件起点的时间、渠道与核心措辞，但属媒体转述，未提供微博原文或截图，故只算部分覆盖。",
+      "module_fields": [],
+      "finding_id": "finding-77ab9d2840625d0072eb",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "text": "同一报道把这起吐槽定性为给野人先生出的'考题'：是主动回应还是保持沉默，并称野人先生选择了后者、不愿当第二个叶文洁。",
+      "kind": "interpretation",
+      "stakeholder": "斑马消费（媒体）",
+      "stance": "unclear",
+      "stance_target": "野人先生的舆情应对策略",
+      "evidence_ids": [
+        "evidence-c6be37fbf42a492a3bbd"
+      ],
+      "contradicting_ids": [],
+      "event_time": null,
+      "response": "partial",
+      "response_target": "野人先生的应对方式",
+      "covered": [
+        "品牌被指向的应对取向（沉默）"
+      ],
+      "uncovered": [
+        "品牌是否有任何公开表态及其具体措辞"
+      ],
+      "coverage_reason": "该表述为报道方对品牌选择的解读，仅覆盖'冷处理'取向，不能替代品牌方正式声明。",
+      "module_fields": [],
+      "finding_id": "finding-e1787cc6bfe09210bbc7",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-9e7d99c671cc8f095a3e",
+      "text": "报道称，在罗永浩吐槽野人先生产品的事件中，野人先生选择沉默、未公开正面回应，品牌方并未给出解释性表态。",
+      "kind": "attributed",
+      "stakeholder": "野人先生",
+      "stance": "unclear",
+      "stance_target": "罗永浩的吐槽",
+      "evidence_ids": [
+        "evidence-e452e38a68e2d4f91ead"
+      ],
+      "contradicting_ids": [],
+      "event_time": null,
+      "response": "non_substantive",
+      "response_target": "野人先生品牌方对罗永浩吐槽的回应",
+      "covered": [],
+      "uncovered": [],
+      "coverage_reason": "截至该报道，品牌方未发布实质性公开回应，报道仅记录其沉默策略；'是否回应'有覆盖，'回应内容'无内容可覆盖。",
+      "module_fields": [],
+      "finding_id": "finding-98facd9ebd15d91def9a",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-9e7d99c671cc8f095a3e",
+      "text": "报道将本次事件与2025年9月罗永浩吐槽西贝相类比，指出上一轮风波对西贝冲击巨大：西贝近1年内关店200余家、预计亏损6亿元以上，10多天前还因拖欠离职员工补偿金争议再次成为舆论焦点。",
+      "kind": "fact",
+      "stakeholder": "西贝",
+      "stance": "unclear",
+      "stance_target": "罗永浩此前的公开批评",
+      "evidence_ids": [
+        "evidence-e7505d8b10565890a4c7",
+        "evidence-9bc8fed6304ac597e19d"
+      ],
+      "contradicting_ids": [],
+      "event_time": "2025-09",
+      "response": "partial",
+      "response_target": "事件牵连的第三方品牌",
+      "covered": [
+        "被牵连品牌：西贝",
+        "牵连方式：被媒体作为罗永浩历次吐槽案例对照"
+      ],
+      "uncovered": [
+        "西贝方对本次类比的回应",
+        "其他被牵连品牌（如钟薛高、黄斌相关言论）的一手/独立材料"
+      ],
+      "coverage_reason": "报道提供了西贝的经营后果数字作为对照，但这是媒体对照叙事，未取得西贝方本轮的公开表态。",
+      "module_fields": [],
+      "finding_id": "finding-d1154788e711d1e2f39c",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-fd77abe5d349e392b26a",
+      "text": "据九派新闻2026年9月14日报道，记者以消费者身份询问两家野人先生门店，工作人员均表示店内客流正常、未受到罗永浩相关言论影响，并介绍热销大米冰淇淋售价28元、门店售价由公司统一制定；有店员表示不知道罗永浩是谁。",
+      "kind": "attributed",
+      "stakeholder": "野人先生门店工作人员",
+      "stance": "unclear",
+      "stance_target": "罗永浩的吐槽言论",
+      "evidence_ids": [
+        "evidence-5b8b5f614bee5a070dfc"
+      ],
+      "contradicting_ids": [],
+      "event_time": "2026-09-14",
+      "response": "partial",
+      "response_target": "罗永浩对野人先生口味与价格的吐槽",
+      "covered": [
+        "门店层面确认客流未受影响",
+        "门店售价由公司统一制定"
+      ],
+      "uncovered": [
+        "品牌总部或创始人对『难吃』评价本身的正式回应",
+        "品牌层面公开声明的发布时间与渠道"
+      ],
+      "coverage_reason": "门店一线人员在媒体暗访中作出经营状况说明，属终端层面的非正式回应，回答了『是否受冲击』，但未对口味与定价质疑作品牌层面解释，故仅覆盖部分。",
+      "module_fields": [],
+      "finding_id": "finding-170f2ec2eceb3b205c05",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-b3a64210f818d2147455",
+      "text": "九派新闻转引称，罗永浩9月12日在个人账号（@罗永浩的十字路口，即微博）分享消费体验，称自己在机场尝试了近期走红的野人先生冰淇淋，原话为『很一般啊，考虑到价格，甚至可以说难吃』。",
+      "kind": "attributed",
+      "stakeholder": "罗永浩",
+      "stance": "oppose",
+      "stance_target": "野人先生冰淇淋",
+      "evidence_ids": [
+        "evidence-5b8b5f614bee5a070dfc"
+      ],
+      "contradicting_ids": [],
+      "event_time": "2026-09-12",
+      "response": "partial",
+      "response_target": "罗永浩言论的原始出处（平台、时间、措辞）",
+      "covered": [
+        "发布平台（个人微博账号）",
+        "发布日期（9月12日）",
+        "被转引的具体措辞"
+      ],
+      "uncovered": [
+        "微博原文/截图、是否另有直播或视频发言等一手材料"
+      ],
+      "coverage_reason": "该出处信息由九派新闻转引，已确定平台、日期与措辞，但仍是二手转述，未取得罗永浩微博原帖或截图。",
+      "module_fields": [],
+      "finding_id": "finding-98a59ebf3e29849c781a",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    },
+    {
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "text": "数值口径辨误：被系统并列比较的『6亿元』是西贝2025年9月遭罗永浩吐槽后的预计亏损额，而『28元』『26.84元』分别是野人先生大米冰淇淋门店售价与第三方平台显示的人均消费，二者指向不同企业、不同指标，不构成同一事实的数值矛盾。",
+      "kind": "interpretation",
+      "stakeholder": "调查方（本调查）",
+      "stance": "unclear",
+      "stance_target": "数值冲突提示本身",
+      "evidence_ids": [
+        "evidence-9bc8fed6304ac597e19d",
+        "evidence-5b8b5f614bee5a070dfc"
+      ],
+      "contradicting_ids": [],
+      "event_time": null,
+      "response": null,
+      "response_target": "",
+      "covered": [],
+      "uncovered": [],
+      "coverage_reason": "两条数值分别来自澎湃/斑马消费报道（西贝亏损）与九派新闻转引（野人先生售价与人均消费），主体与量纲不同，故并列不等于冲突。",
+      "module_fields": [],
+      "finding_id": "finding-7b6e8d5dec028463b15a",
+      "active": true,
+      "review": null,
+      "support": "unreviewed"
+    }
+  ],
+  "retired": [],
+  "conclusions": [],
+  "interim_findings": [],
+  "sources": [
+    {
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "url": "https://m.thepaper.cn/newsDetail_forward_34072442",
+      "final_url": "https://m.thepaper.cn/newsDetail_forward_34072442",
+      "title": "回答罗永浩：野人先生是这么火起来的",
+      "fetched_at": "2026-10-19T06:16:20.607844Z",
+      "published_at": "2026-09-15T05:55:45.014000Z",
+      "updated_at": null,
+      "artifact_ref": "artifact://sha256/b660d3ad656a0969d98d44cbb4a529fd43448eb5d41fd3d36a294cf5d7feabc6",
+      "content_hash": "b660d3ad656a0969d98d44cbb4a529fd43448eb5d41fd3d36a294cf5d7feabc6",
+      "role": "reporting",
+      "duplicate_of": null,
+      "origin_url": null,
+      "discovery": "initial",
+      "relation": "unverified",
+      "relation_status": "unverified",
+      "relation_evidence_ids": [],
+      "relation_explanation": "",
+      "independent": true
+    },
+    {
+      "version_id": "source-ae8bc8c7456f376947fc",
+      "url": "https://www.sina.cn/news/detail/5343051583063673.html",
+      "final_url": "https://www.sina.cn/news/detail/5343051583063673.html",
+      "title": "罗永浩吐槽野人先生冰淇淋，门店回应客流正常",
+      "fetched_at": "2026-10-19T06:21:54.387724Z",
+      "published_at": "2026-09-14T14:10:00",
+      "updated_at": null,
+      "artifact_ref": "artifact://sha256/1ef039b9618a0a9d553d690932ac48c93ed05be031a5176b0c3ee0cda7194c05",
+      "content_hash": "1ef039b9618a0a9d553d690932ac48c93ed05be031a5176b0c3ee0cda7194c05",
+      "role": "reporting",
+      "duplicate_of": null,
+      "origin_url": null,
+      "discovery": "initial",
+      "relation": "unverified",
+      "relation_status": "unverified",
+      "relation_evidence_ids": [],
+      "relation_explanation": "",
+      "independent": true
+    }
+  ],
+  "independent_source_count": 2,
+  "source_relation_counts": {
+    "document_count": 2,
+    "version_count": 2,
+    "identified_duplicate_count": 0,
+    "unverified_relation_count": 2,
+    "repost_count": 0,
+    "excerpt_count": 0,
+    "followup_count": 0,
+    "model_relation_count": 0
+  },
+  "relations": [],
+  "evidence": [
+    {
+      "evidence_id": "evidence-e452e38a68e2d4f91ead",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "excerpt": "日前，在罗永浩吐槽野人先生产品的事件中，野人先生显然不愿当第二个叶文洁，选择了沉默。",
+      "start": 417,
+      "end": 459,
+      "locator": "Reader text chars 417:459"
+    },
+    {
+      "evidence_id": "evidence-e7505d8b10565890a4c7",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "excerpt": "罗永浩吐槽餐饮品牌已经不是首次。",
+      "start": 461,
+      "end": 477,
+      "locator": "Reader text chars 461:477"
+    },
+    {
+      "evidence_id": "evidence-9bc8fed6304ac597e19d",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "excerpt": "2025年9月，西贝遭罗永浩吐槽，迅速发酵成全网关注的舆论事件，之后便风波不断，对自身经营影响巨大——近1年内关店200余家、预计亏损6亿元以上；10多天前，西贝还因拖欠离职员工补偿金争议再次成为舆论焦点。",
+      "start": 479,
+      "end": 582,
+      "locator": "Reader text chars 479:582"
+    },
+    {
+      "evidence_id": "evidence-c6be37fbf42a492a3bbd",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "excerpt": "罗永浩突然公开吐槽，给意式冰淇淋品牌野人先生出了一道考题，是主动回应，还是保持沉默？",
+      "start": 9,
+      "end": 51,
+      "locator": "Reader text chars 9:51"
+    },
+    {
+      "evidence_id": "evidence-f3c65cd71d9d93a60a08",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "excerpt": "此次舆论始于9月12日下午。罗永浩在机场尝试了一下野人先生产品后，顺手发了一条微博，直言野人先生冰淇淋“难吃”，质疑“是怎么火起来的”，并表达对钟薛高的怀念。同时，他还特意提示这是一个消费者的正常评价和疑问，请品牌不要说他下黑手。",
+      "start": 792,
+      "end": 907,
+      "locator": "Reader text chars 792:907"
+    },
+    {
+      "evidence_id": "evidence-5b8b5f614bee5a070dfc",
+      "version_id": "source-ae8bc8c7456f376947fc",
+      "excerpt": "#野人先生门店称客流未受影响#【#野人先生门店回应罗永浩吐槽#：客流正常】9月12日，@罗永浩的十字路口 在个人账号分享消费体验，称自己在机场尝试了近期走红的野人先生冰淇淋，“很一般啊，考虑到价格，甚至可以说难吃”。9月14日，@九派新闻 记者以消费者身份询问两家野人先生门店。工作人员均表示，目前店内客流正常，未受到相关言论影响。工作人员介绍，店内热销的大米冰淇淋售价28元，一般会推荐消费者购买团购套餐，价格会更便宜。冰淇淋均为当天现做，不会隔夜，门店售价由公司统一制定。第三方平台显示，目前野人先生在营门店数超过1700家，人均消费约26.84元。#野人先生店员称不知道罗永浩是谁# http://t.cn/AXO4DXLr",
+      "start": 595,
+      "end": 910,
+      "locator": "Reader text chars 595:910"
+    }
+  ],
+  "numeric_conflicts": [],
+  "searches": [
+    {
+      "issue_id": "issue-2223248b43147a78c5cb",
+      "query": "罗永浩 野人先生 冰淇淋 吐槽 事件",
+      "purpose": "original",
+      "page": 0,
+      "outcome": "candidates",
+      "count": 10,
+      "task_id": "search-task-255cb096fa19c4239f9a",
+      "target_gap": "事件是否存在、发生时间与基本经过的原始材料缺失",
+      "discovery_mode": "targeted"
+    }
+  ],
+  "read_errors": [
+    "https://www.sina.cn/news/detail/5342948281024907.html"
+  ],
+  "checks": [
+    {
+      "url": "https://m.thepaper.cn/newsDetail_forward_34072442",
+      "version_id": "source-4bcee12e8db69004e5d3",
+      "checked_at": "2026-10-19T06:16:20.607865Z",
+      "changed": false
+    },
+    {
+      "url": "https://www.sina.cn/news/detail/5343051583063673.html",
+      "version_id": "source-ae8bc8c7456f376947fc",
+      "checked_at": "2026-10-19T06:21:54.387742Z",
+      "changed": false
+    }
+  ],
+  "search_failures": 0,
+  "read_failures": 1,
+  "changes": [],
+  "no_material_change": false,
+  "budget": {
+    "started_at": "2026-10-19T06:15:41.418195+00:00",
+    "accumulated_seconds": 0.0,
+    "search": 1,
+    "read": 4,
+    "model": 22,
+    "limits": {
+      "search": 20,
+      "read": 24,
+      "model": 120,
+      "seconds": 2400,
+      "consolidate_seconds": 900
+    },
+    "elapsed_seconds": 504.404112
+  },
+  "diagnostics": {
+    "format": "opinion-investigation-diagnostics/1",
+    "summary": {
+      "status": "blocked",
+      "critical": 3,
+      "warnings": 6,
+      "informational": 2,
+      "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+    },
+    "stages": [
+      {
+        "id": "scope",
+        "label": "事件与问题",
+        "status": "blocked",
+        "metrics": {
+          "issues": 6,
+          "required": 6,
+          "unresolved_required": 6,
+          "unresolved_components": 14
+        },
+        "signal_codes": [
+          "required_issues_unresolved",
+          "required_components_unresolved"
+        ]
+      },
+      {
+        "id": "discovery",
+        "label": "搜索与召回",
+        "status": "observed",
+        "metrics": {
+          "attempts": 1,
+          "outcomes": {
+            "candidates": 1
+          },
+          "purposes": {
+            "original": 1
+          },
+          "candidate_urls": 10
+        },
+        "signal_codes": [
+          "search_directions_unattempted"
+        ]
+      },
+      {
+        "id": "acquisition",
+        "label": "正文获取",
+        "status": "attention",
+        "metrics": {
+          "read_attempts": 3,
+          "saved_versions": 2,
+          "read_errors": 1,
+          "unread_candidates": 7
+        },
+        "signal_codes": [
+          "reader_errors",
+          "unread_candidates"
+        ]
+      },
+      {
+        "id": "sources",
+        "label": "来源结构",
+        "status": "attention",
+        "metrics": {
+          "documents": 2,
+          "versions": 2,
+          "domains": {
+            "m.thepaper.cn": 1,
+            "www.sina.cn": 1
+          },
+          "roles": {
+            "reporting": 2
+          },
+          "hash_duplicates": 0,
+          "relations_recorded": 0,
+          "relations_unverified": 2,
+          "unknown_publication_dates": 0
+        },
+        "signal_codes": [
+          "single_source_role",
+          "source_independence_unverified"
+        ]
+      },
+      {
+        "id": "evidence",
+        "label": "证据定位",
+        "status": "observed",
+        "metrics": {
+          "items": 6,
+          "cited_items": 6,
+          "sources_with_cited_evidence": 2,
+          "uncited_source_versions": 0
+        },
+        "signal_codes": []
+      },
+      {
+        "id": "analysis",
+        "label": "争议与回应分析",
+        "status": "observed",
+        "metrics": {
+          "active_findings": 7,
+          "finding_kinds": {
+            "attributed": 3,
+            "fact": 2,
+            "interpretation": 2
+          },
+          "stakeholders": [
+            "斑马消费（媒体）",
+            "罗永浩",
+            "西贝",
+            "调查方（本调查）",
+            "野人先生",
+            "野人先生门店工作人员"
+          ],
+          "response_classes": {
+            "non_substantive": 1,
+            "not_assessed": 1,
+            "partial": 5
+          },
+          "required_module_gaps": 0,
+          "stance_distribution_eligible": false,
+          "stance_distribution_reason": "材料集没有代表性抽样框，来源关系也未全部核实；只能展示材料内主张构成，不能解释为公众观点占比。"
+        },
+        "signal_codes": []
+      },
+      {
+        "id": "review",
+        "label": "关键结论审查",
+        "status": "blocked",
+        "metrics": {
+          "active_findings": 7,
+          "supported": 0,
+          "unreviewed": 7,
+          "not_supported": 0,
+          "review_models": {}
+        },
+        "signal_codes": [
+          "active_findings_unreviewed"
+        ]
+      },
+      {
+        "id": "completion",
+        "label": "结束判断",
+        "status": "attention",
+        "metrics": {
+          "publication_status": "partial",
+          "policy_disposition": "reject_and_continue",
+          "policy_reason": "Required investigation questions remain open.\n- issue-2223248b43147a78c5cb (罗永浩吐槽野人先生冰淇淋事件的始末是什么？):\n  7 discovered candidates remain unread (e.g. https://www.sina.cn/weibo/detail/5347265343389776.html). Read one before another search.\n- issue-9e7d99c671cc8f095a3e (罗永浩具体说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-b3a64210f818d2147455 (罗永浩相关言论的原始出处是什么，包括发布平台、发布时间与具体原话措辞，是否存在直播、视频或截图等一手材料？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-fd77abe5d349e392b26a (野人先生品牌方（含门店、关联公司）的公开回应在什么时间、通过什么渠道发布，措辞与解释的具体内容是什么？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-8300cd0abe7f702dc263 (该事件还牵连到哪些品牌、企业或公众人物，牵连的具体方式和原因是什么？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-f64de0c6812a1fb4234d (事件后续发展如何，包括品牌是否调整产品或宣传、监管部门是否介入、销量与舆论口碑有何变化？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).",
+          "conclusions": 0
+        },
+        "signal_codes": [
+          "terminal_with_limitations"
+        ]
+      },
+      {
+        "id": "runtime",
+        "label": "运行与预算",
+        "status": "attention",
+        "metrics": {
+          "available": true,
+          "status": "partial",
+          "checkpoint_boundary": "published",
+          "active_step_phase": null,
+          "committed_steps": 6,
+          "decision_retries": 2,
+          "failure_kinds": {
+            "model_malformed_response": 2
+          },
+          "actions": {
+            "read": 3,
+            "reflect": 2,
+            "search": 1
+          },
+          "step_timing_available": false,
+          "token_usage_available": false,
+          "budget": {
+            "available": true,
+            "resources": {
+              "search": {
+                "used": 1,
+                "limit": 20,
+                "ratio": 0.05
+              },
+              "read": {
+                "used": 4,
+                "limit": 24,
+                "ratio": 0.1667
+              },
+              "model": {
+                "used": 22,
+                "limit": 120,
+                "ratio": 0.1833
+              },
+              "seconds": {
+                "used": 504.404,
+                "limit": 2400,
+                "ratio": 0.2102
+              }
+            }
+          }
+        },
+        "signal_codes": [
+          "decision_retries",
+          "fine_grained_cost_latency_unavailable"
+        ]
+      }
+    ],
+    "signals": [
+      {
+        "code": "required_components_unresolved",
+        "stage": "scope",
+        "severity": "critical",
+        "message": "14 个必答子项仍未解决。",
+        "action": "逐项处置复合问题，避免父问题状态掩盖缺口。",
+        "details": {
+          "components": [
+            {
+              "issue_id": "issue-9e7d99c671cc8f095a3e",
+              "text": "野人先生如何回应",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-9e7d99c671cc8f095a3e",
+              "text": "事件还牵连了哪些品牌",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-9e7d99c671cc8f095a3e",
+              "text": "后续发展",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-b3a64210f818d2147455",
+              "text": "罗永浩相关言论的原始出处是什么，包括发布平台",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-b3a64210f818d2147455",
+              "text": "发布时间与具体原话措辞，是否存在直播",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-b3a64210f818d2147455",
+              "text": "视频或截图等一手材料",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-fd77abe5d349e392b26a",
+              "text": "野人先生品牌方（含门店",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-fd77abe5d349e392b26a",
+              "text": "关联公司）的公开回应在什么时间",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-fd77abe5d349e392b26a",
+              "text": "通过什么渠道发布，措辞与解释的具体内容是什么",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-8300cd0abe7f702dc263",
+              "text": "该事件还牵连到哪些品牌",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-8300cd0abe7f702dc263",
+              "text": "企业或公众人物，牵连的具体方式和原因是什么",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-f64de0c6812a1fb4234d",
+              "text": "事件后续发展如何，包括品牌是否调整产品或宣传",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-f64de0c6812a1fb4234d",
+              "text": "监管部门是否介入",
+              "status": "open"
+            },
+            {
+              "issue_id": "issue-f64de0c6812a1fb4234d",
+              "text": "销量与舆论口碑有何变化",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      {
+        "code": "required_issues_unresolved",
+        "stage": "scope",
+        "severity": "critical",
+        "message": "6 个必答问题仍未得到可用处置。",
+        "action": "继续取证，或明确标为范围内未发现/无法判断。",
+        "details": {
+          "issue_ids": [
+            "issue-2223248b43147a78c5cb",
+            "issue-9e7d99c671cc8f095a3e",
+            "issue-b3a64210f818d2147455",
+            "issue-fd77abe5d349e392b26a",
+            "issue-8300cd0abe7f702dc263",
+            "issue-f64de0c6812a1fb4234d"
+          ]
+        }
+      },
+      {
+        "code": "active_findings_unreviewed",
+        "stage": "review",
+        "severity": "critical",
+        "message": "7 条当前判断没有与其当前文本匹配的审查记录。",
+        "action": "完成独立审查，或从对外核心判断中移除。",
+        "details": {
+          "finding_ids": [
+            "finding-77ab9d2840625d0072eb",
+            "finding-e1787cc6bfe09210bbc7",
+            "finding-98facd9ebd15d91def9a",
+            "finding-d1154788e711d1e2f39c",
+            "finding-170f2ec2eceb3b205c05",
+            "finding-98a59ebf3e29849c781a",
+            "finding-7b6e8d5dec028463b15a"
+          ]
+        }
+      },
+      {
+        "code": "reader_errors",
+        "stage": "acquisition",
+        "severity": "warning",
+        "message": "有 1 个页面读取失败。",
+        "action": "重试、寻找原始出处或将对应结论降级为无法判断。",
+        "details": {
+          "urls": [
+            "https://www.sina.cn/news/detail/5342948281024907.html"
+          ]
+        }
+      },
+      {
+        "code": "unread_candidates",
+        "stage": "acquisition",
+        "severity": "warning",
+        "message": "仍有 7 个已发现候选页未读取。",
+        "action": "确认它们无关或重复，或继续读取后再结束。",
+        "details": {
+          "urls": [
+            "https://news.sina.com.cn/c/2026-09-16/doc-iniryzmc4912042.shtml",
+            "https://worldjournal.com/wj/story/121617/9754948?zh-cn=",
+            "https://www.sina.cn/weibo/detail/5343682510193564.html",
+            "https://www.sina.cn/weibo/detail/5344559216987255.html",
+            "https://www.sina.cn/weibo/detail/5344664548804913.html",
+            "https://www.sina.cn/weibo/detail/5347265343389776.html",
+            "https://www.worldjournal.com/wj/story/121617/9754948"
+          ]
+        }
+      },
+      {
+        "code": "single_source_role",
+        "stage": "sources",
+        "severity": "warning",
+        "message": "全部材料属于同一来源角色。",
+        "action": "补充与任务相关的其他来源角色。",
+        "details": {
+          "roles": {
+            "reporting": 2
+          }
+        }
+      },
+      {
+        "code": "source_independence_unverified",
+        "stage": "sources",
+        "severity": "warning",
+        "message": "2 个正文版本的来源关系尚未核实，不能据此声称独立验证。",
+        "action": "识别原始出处、转载、摘录和后续跟进关系。",
+        "details": {
+          "count": 2
+        }
+      },
+      {
+        "code": "terminal_with_limitations",
+        "stage": "completion",
+        "severity": "warning",
+        "message": "本轮以 partial 结束，不能当作完整调查。",
+        "action": "在页面对应位置展示未完成原因。",
+        "details": {
+          "reason": "Required investigation questions remain open.\n- issue-2223248b43147a78c5cb (罗永浩吐槽野人先生冰淇淋事件的始末是什么？):\n  7 discovered candidates remain unread (e.g. https://www.sina.cn/weibo/detail/5347265343389776.html). Read one before another search.\n- issue-9e7d99c671cc8f095a3e (罗永浩具体说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-b3a64210f818d2147455 (罗永浩相关言论的原始出处是什么，包括发布平台、发布时间与具体原话措辞，是否存在直播、视频或截图等一手材料？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-fd77abe5d349e392b26a (野人先生品牌方（含门店、关联公司）的公开回应在什么时间、通过什么渠道发布，措辞与解释的具体内容是什么？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-8300cd0abe7f702dc263 (该事件还牵连到哪些品牌、企业或公众人物，牵连的具体方式和原因是什么？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable).\n- issue-f64de0c6812a1fb4234d (事件后续发展如何，包括品牌是否调整产品或宣传、监管部门是否介入、销量与舆论口碑有何变化？):\n  No saved evidence and no unread candidates address it. Search a different direction (new alias, origin, or material type), or reflect to close it honestly (not_found only after the scoped response searches complete, otherwise unavailable)."
+        }
+      },
+      {
+        "code": "decision_retries",
+        "stage": "runtime",
+        "severity": "warning",
+        "message": "模型决策共发生 2 次重试。",
+        "action": "按失败种类检查提示词、输出契约或模型稳定性。",
+        "details": {
+          "failure_kinds": {
+            "model_malformed_response": 2
+          }
+        }
+      },
+      {
+        "code": "search_directions_unattempted",
+        "stage": "discovery",
+        "severity": "info",
+        "message": "有 5 类调查方向未尝试；这不是固定完成配额。",
+        "action": "根据具体问题判断是否需要补查。",
+        "details": {
+          "directions": [
+            "positions",
+            "independent",
+            "official_response",
+            "event_response",
+            "followup"
+          ]
+        }
+      },
+      {
+        "code": "fine_grained_cost_latency_unavailable",
+        "stage": "runtime",
+        "severity": "info",
+        "message": "StepRecord 尚未保存分步耗时和 token 用量，当前只能定位动作、重试与预算计数。",
+        "action": "后续在 model/tool 边界记录开始结束时间与安全的 usage 元数据。",
+        "details": {}
+      }
+    ]
+  },
+  "unresolved": {
+    "issues": [
+      {
+        "issue_id": "issue-2223248b43147a78c5cb",
+        "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么？"
+      },
+      {
+        "issue_id": "issue-9e7d99c671cc8f095a3e",
+        "question": "罗永浩具体说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？"
+      },
+      {
+        "issue_id": "issue-b3a64210f818d2147455",
+        "question": "罗永浩相关言论的原始出处是什么，包括发布平台、发布时间与具体原话措辞，是否存在直播、视频或截图等一手材料？"
+      },
+      {
+        "issue_id": "issue-fd77abe5d349e392b26a",
+        "question": "野人先生品牌方（含门店、关联公司）的公开回应在什么时间、通过什么渠道发布，措辞与解释的具体内容是什么？"
+      },
+      {
+        "issue_id": "issue-8300cd0abe7f702dc263",
+        "question": "该事件还牵连到哪些品牌、企业或公众人物，牵连的具体方式和原因是什么？"
+      },
+      {
+        "issue_id": "issue-f64de0c6812a1fb4234d",
+        "question": "事件后续发展如何，包括品牌是否调整产品或宣传、监管部门是否介入、销量与舆论口碑有何变化？"
+      }
+    ],
+    "searches": 1,
+    "reads": 2,
+    "read_failures": 1
+  },
+  "scope_limitation": "仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。"
+}

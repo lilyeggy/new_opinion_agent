@@ -1,0 +1,30 @@
+{
+  "run_id": "684c1f1e588b4f7381b4375504464278",
+  "case_id": "2c4b858de8864477994d4560c361fbd0",
+  "parent_id": null,
+  "mode": "live",
+  "request": {
+    "question": "罗永浩吐槽野人先生冰淇淋事件的始末是什么？罗永浩说了什么，野人先生如何回应，事件还牵连了哪些品牌和后续发展？",
+    "topic": "罗永浩吐槽野人先生冰淇淋事件",
+    "time_range": null,
+    "focus": null,
+    "language": "zh",
+    "include_domains": [],
+    "exclude_domains": [],
+    "region": null,
+    "reference_urls": [],
+    "clarification": null
+  },
+  "fixture": null,
+  "status": "failed",
+  "phase": "调查失败",
+  "created_at": "2026-10-19T05:47:50.085114+00:00",
+  "clarification_questions": [],
+  "clarify_rounds": 0,
+  "progress": {},
+  "plan": null,
+  "followup": null,
+  "updated_at": "2026-10-19T05:47:51.037033+00:00",
+  "error": "调查未能完成，已保存的材料仍然保留。请检查服务配置或开发者日志。",
+  "published": false
+}
