@@ -59,7 +59,8 @@
       "run_dir": "artifacts/live-quality-20261018/live-runs/investigations/runs/166742aa691b4e79acc5db5c9a47793b",
       "materials_dir": "artifacts/live-quality-20261018/live-runs/investigations/cases/6bad2157dec346b792c4f9194701333d/artifacts",
       "annotations": {
-        "retrieval_recall": "evaluation/annotations/icecream-must-hit.json"
+        "retrieval_recall": "evaluation/annotations/icecream-must-hit.json",
+        "faithfulness": "evaluation/annotations/icecream-faithfulness.json"
       }
     },
     {

@@ -1,9 +1,9 @@
 {
   "schema": "opinion-search-quality-gate/1",
-  "generated_at": "2026-10-19T21:40:10+08:00",
+  "generated_at": "2026-10-21T01:29:34+08:00",
   "corpus": "evaluation/corpus.json",
   "code": {
-    "head": "8438205",
+    "head": "50e2dfa",
     "dirty": true
   },
   "boundaries": [
@@ -1306,7 +1306,103 @@
             "supported_rate": null
           },
           "human": {
-            "available": false
+            "available": true,
+            "method": "第二个事件的忠实性标注，用于把 n=1 变成 n=2。规则与三九胃泰一致：逐条对照“绑定摘录”，事实、引语、归属都能找到才算完全支持；方向对但个别具体措辞/日期超出摘录算部分支持；摘录完全不支持算无中生有。不看运行自己的 review 结论。",
+            "total": 12,
+            "counts": {
+              "partial": 3,
+              "fully_supported": 9
+            },
+            "fully_supported_rate": 0.75,
+            "fabricated": 0,
+            "labels": [
+              {
+                "index": 1,
+                "claim_id": "finding-561e5144e9569bf93ea1",
+                "judgement": "partial",
+                "note": "9·12 发帖、点名批评、网友分歧都在摘录里；但“质疑其走红原因”这句所指的具体措辞不在绑定摘录中。"
+              },
+              {
+                "index": 2,
+                "claim_id": "finding-c29523fddcf856448da7",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 3,
+                "claim_id": "finding-5d5059e98a5f19e7d9c6",
+                "judgement": "partial",
+                "note": "“已上报/暂不确定是否公开回复”逐字在摘录内；但“截至 2026-09-14 尚无正式声明”的日期归属超出摘录。"
+              },
+              {
+                "index": 4,
+                "claim_id": "finding-39e1f95442d2d9eeffae",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 5,
+                "claim_id": "finding-361e66a40cd6b2a4661b",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 6,
+                "claim_id": "finding-749376e2c92c169244b9",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 7,
+                "claim_id": "finding-1c56c043dddb9570c3bd",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 8,
+                "claim_id": "finding-9cac968028c150066e34",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 9,
+                "claim_id": "finding-fb706c3aa4e6d7098b4e",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 10,
+                "claim_id": "finding-2b63d53094f68d687653",
+                "judgement": "partial",
+                "note": "属于“百分比来自链接参数”的数据卫生判断；两次方摘录里并不出现这些百分比，无法从绑定摘录直接核验。"
+              },
+              {
+                "index": 11,
+                "claim_id": "finding-f878542f3e17367187c2",
+                "judgement": "fully_supported",
+                "note": ""
+              },
+              {
+                "index": 12,
+                "claim_id": "finding-1c5b15732e5d96c10b99",
+                "judgement": "fully_supported",
+                "note": ""
+              }
+            ],
+            "quote_coverage": {
+              "finding-561e5144e9569bf93ea1": null,
+              "finding-c29523fddcf856448da7": 1.0,
+              "finding-5d5059e98a5f19e7d9c6": 1.0,
+              "finding-39e1f95442d2d9eeffae": null,
+              "finding-361e66a40cd6b2a4661b": 1.0,
+              "finding-749376e2c92c169244b9": 1.0,
+              "finding-1c56c043dddb9570c3bd": 1.0,
+              "finding-9cac968028c150066e34": 0.6666666666666666,
+              "finding-fb706c3aa4e6d7098b4e": 1.0,
+              "finding-2b63d53094f68d687653": 0.0,
+              "finding-f878542f3e17367187c2": null,
+              "finding-1c5b15732e5d96c10b99": 1.0
+            }
           }
         },
         "quote_support": {
@@ -1583,6 +1679,12 @@
       "case": "icecream-cb39",
       "discovery": "12/12",
       "read": "7/12"
+    },
+    "faithfulness_second": {
+      "case": "icecream-live-20261018",
+      "fully_supported": "9/12",
+      "rate": 0.75,
+      "fabricated": 0
     },
     "quote_support": {
       "case_id": "sanjiu-s5b",

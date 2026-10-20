@@ -15,7 +15,9 @@ from opinion_search.domain.investigation.models import (
 )
 from opinion_search.domain.numeric import extract_quantities
 from opinion_search.investigation.context import Compiler, structured_context
-from opinion_search.investigation.quotes import locate, missing_from_excerpts, unbacked_quotes
+from opinion_search.investigation.quotes import (
+    best_supporting_span, locate, missing_from_excerpts, unbacked_quotes,
+)
 from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus, atomic_json, read_json, verify_evidence
 from opinion_search.models.fake import DeterministicIdFactory
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient, HttpxModelTransport
@@ -302,8 +304,6 @@ class Executor:
         for proposal in decision.findings:
             bound = "".join(excerpts[item] for item in proposal.evidence_ids if item in excerpts)
             missing = missing_from_excerpts(proposal.text, [bound])
-            if not missing:
-                continue
             versions = {state_evidence.version_id for state_evidence in state.evidence
                         if state_evidence.evidence_id in proposal.evidence_ids}
             pool = [(version_id, text) for version_id, text in documents.items()
@@ -322,6 +322,25 @@ class Executor:
                     added.append(item)
                     excerpts[item.evidence_id] = excerpt
                 identifiers.append(item.evidence_id)
+            # A claim can also be downgraded for a number or a short phrase the
+            # excerpts never covered. Bind the single sentence of the source that
+            # best matches the claim, so the reviewer can read it.
+            numeric_gap = any(number not in bound for number in re.findall(r"\d[\d,.]*", proposal.text))
+            if not identifiers and (missing or numeric_gap):
+                for version_id, text in pool:
+                    span = best_supporting_span(text, proposal.text)
+                    if span is None:
+                        continue
+                    start, end = span
+                    item = Evidence(
+                        evidence_id=uid("evidence", version_id, str(start), str(end)),
+                        version_id=version_id, excerpt=text[start:end], start=start, end=end,
+                        locator=f"Reader text chars {start}:{end}")
+                    if item.evidence_id not in excerpts:
+                        added.append(item)
+                        excerpts[item.evidence_id] = item.excerpt
+                        identifiers.append(item.evidence_id)
+                    break
             if identifiers:
                 links.append(FindingEvidence(finding_id=finding_identifier(proposal),
                                              evidence_ids=tuple(dict.fromkeys(identifiers))))

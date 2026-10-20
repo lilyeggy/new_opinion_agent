@@ -85,3 +85,40 @@ def locate(quote: str, documents: Sequence[tuple[str, str]]) -> tuple[str, int, 
             if match:
                 return version_id, match.start(), match.end(), match.group(0)
     return None
+
+
+_NUMBER = re.compile(r"\d[\d,.]*%?")
+_CJK = re.compile(r"[\u4e00-\u9fff]+")
+
+
+def _tokens(text: str) -> set[str]:
+    """Numbers plus CJK bigrams: enough overlap signal without a segmenter."""
+
+    found = set(_NUMBER.findall(text or ""))
+    for run in _CJK.findall(text or ""):
+        found.update(run[i : i + 2] for i in range(len(run) - 1))
+    return found
+
+
+_SENTENCE = re.compile(r"[^。！？；\n]{8,}")
+
+
+def best_supporting_span(text: str, claim: str) -> tuple[int, int] | None:
+    """The sentence of ``text`` that shares the most tokens with ``claim``.
+
+    The reviewer judges a finding against its excerpts, so a claim whose wording
+    lives in the document but outside the selected window is downgraded even
+    though the run read it. This picks the sentence that actually supports the
+    claim, so it can be bound as evidence instead of asking the model to guess.
+    """
+
+    wanted = _tokens(claim)
+    if not wanted:
+        return None
+    best: tuple[int, int] | None = None
+    best_score = 2
+    for match in _SENTENCE.finditer(text):
+        score = len(wanted & _tokens(match.group(0)))
+        if score > best_score:
+            best, best_score = (match.start(), match.end()), score
+    return best

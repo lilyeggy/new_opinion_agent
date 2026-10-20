@@ -90,3 +90,20 @@ def test_record_findings_stays_quiet_when_the_quote_is_already_in_the_excerpt(tm
 
     assert observation.evidence == ()
     assert observation.finding_evidence == ()
+
+
+def test_record_findings_binds_a_supporting_sentence_when_specifics_are_missing(tmp_path):
+    """A number the excerpts never covered should pull in the sentence that has it."""
+
+    state, _, decision, executor = _fixture(tmp_path)
+    proposal = decision.findings[0].model_copy(
+        update={"text": "评论认为反常规会变成冒犯点，并提到 2026 年的案例。"}
+    )
+    decision = decision.model_copy(update={"findings": (proposal,)})
+
+    observation = asyncio.run(executor._record_findings(decision, state))
+
+    assert observation.evidence, "a supporting span should have been bound"
+    span = observation.evidence[0]
+    assert DOCUMENT[span.start:span.end] == span.excerpt
+    assert span.excerpt in DOCUMENT
