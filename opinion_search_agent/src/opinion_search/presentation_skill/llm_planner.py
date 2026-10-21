@@ -26,7 +26,10 @@ _NUMERIC_RE = re.compile(r"\d")
 
 
 class PresentationSkillSchema(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    # The planner is a presentation layer: a stray field on one item (the model
+    # likes adding "title") must not discard the whole plan, narrative included.
+    # Content safety is enforced by the narrative gates, not by the schema.
+    model_config = ConfigDict(extra="ignore", frozen=True)
 
 
 class VisualChoice(PresentationSkillSchema):

@@ -1,0 +1,35 @@
+{
+  "action": {
+    "decision": {
+      "action": "read",
+      "issue_id": "issue-318e25582109f3bc656d",
+      "url": "https://baike.baidu.com/item/9%C2%B712%E7%BD%97%E6%B0%B8%E6%B5%A9%E5%90%90%E6%A7%BD%E9%87%8E%E4%BA%BA%E5%85%88%E7%94%9F%E4%BA%8B%E4%BB%B6/69039759",
+      "focus": "提取事件时间线、罗永浩原话、野人先生回应、牵连品牌及后续的可核查事实与引用来源",
+      "role": "unknown"
+    },
+    "tool_name": "read.web",
+    "arguments": {
+      "url": "https://baike.baidu.com/item/9%C2%B712%E7%BD%97%E6%B0%B8%E6%B5%A9%E5%90%90%E6%A7%BD%E9%87%8E%E4%BA%BA%E5%85%88%E7%94%9F%E4%BA%8B%E4%BB%B6/69039759"
+    },
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "read",
+    "outcome": {
+      "action_id": "6f67e82d020a4fc194ffea75f0f38b47:step:2:attempt:1:action",
+      "tool_name": "read.web",
+      "kind": "unreadable_content",
+      "message": "Jina Reader returned no readable page content.",
+      "attempts": 1,
+      "retryable": false
+    },
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}
