@@ -38,7 +38,7 @@ def test_open_questions_become_a_named_section() -> None:
     ]
     rendered = markdown(report).replace("\\", "")
     assert "## 未收口的问题" in rendered
-    assert "这表示这一轮没有查到可以引用的材料" in rendered
+    assert "这表示这一轮没有就这些问题形成可发布的判断" in rendered
     for issue in state.issues:
         assert issue.question in rendered
 

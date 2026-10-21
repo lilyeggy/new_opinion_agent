@@ -135,6 +135,7 @@ def build_presentation_plan(
         status=content.status,
         generated_at=content.generated_at,
         sections=tuple(planned_sections),
+        profile=dict(content.profile),
     )
 
 
@@ -1059,12 +1060,32 @@ def build_content_document_from_investigation(
         )
     )
 
+    def _verdict(item: Any) -> str | None:
+        review = item.get("review") if isinstance(item, dict) else None
+        return review.get("verdict") if isinstance(review, dict) else None
+
+    reviewed = [f for f in findings if _verdict(f)]
+    supported = [f for f in reviewed if _verdict(f) == "supported"]
+    relations = dict(report.get("source_relation_counts") or {})
+    audit = {
+        "findings_total": len(findings),
+        "findings_reviewed": len(reviewed),
+        "findings_supported": len(supported),
+        "issues_total": len(issues),
+        "issues_closed": sum(
+            1 for issue in issues if isinstance(issue, dict) and issue.get("status") != "open"
+        ),
+        "evidence_total": len(evidence_list),
+        "sources_total": len(sources),
+        "relations_total": int(relations.get("version_count") or 0),
+        "relations_unverified": int(relations.get("unverified_relation_count") or 0),
+    }
     return ContentDocument(
         report_id=str(report.get("run_id") or wb.get("run_id") or "report"),
         revision=int(report.get("state_revision") or 1),
         subject=subject,
         status=status,
         generated_at=str(report.get("generated_at") or report.get("cutoff") or ""),
-        profile=dict(wb.get("profile") or {}),
+        profile={**dict(wb.get("profile") or {}), "audit": audit},
         sections=tuple(sections),
     )

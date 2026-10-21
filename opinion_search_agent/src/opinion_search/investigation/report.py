@@ -204,7 +204,11 @@ def markdown(report):
     current_heading = "核心回答"
     current_rows = report["conclusions"]
     if not current_rows and report.get("interim_findings"):
-        current_heading = "已核查的阶段性判断（调查未完成）"
+        checked = all(row.get("support") == "supported" for row in report["interim_findings"])
+        current_heading = (
+            "已核查的阶段性判断（调查未完成）" if checked
+            else "未经核查的判断草稿（调查未完成，不可作为结论引用）"
+        )
         current_rows = report["interim_findings"]
     for heading, rows in ((current_heading, current_rows), ("事件时间线", [f for f in report["findings"] if f["event_time"]])):
         lines += [f"## {heading}", ""]
@@ -228,8 +232,8 @@ def markdown(report):
         lines += ["", "## 未收口的问题", "",
                   f"以下 {len(unresolved['issues'])} 个问题在报告生成时仍未收口。本轮共检索 "
                   f"{unresolved['searches']} 次、读取 {unresolved['reads']} 个来源（失败 "
-                  f"{unresolved['read_failures']} 次）。这表示这一轮没有查到可以引用的材料，"
-                  "不表示问题不存在。", ""]
+                  f"{unresolved['read_failures']} 次）。这表示这一轮没有就这些问题形成可发布的判断——"
+                  "不等于没有材料，也不表示问题不存在。", ""]
         lines += [f"- {esc(issue['question'])}" for issue in unresolved["issues"]]
     if report["changes"]:
         lines += ["", "## 版本变化", ""]

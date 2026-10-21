@@ -204,3 +204,4 @@ class PresentationPlan(BaseModel):
     status: str
     generated_at: str
     sections: tuple[PlannedSection, ...]
+    profile: dict[str, Any] = Field(default_factory=dict)

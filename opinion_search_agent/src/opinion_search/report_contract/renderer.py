@@ -35,8 +35,45 @@ EMPTY_STATES = {
 }
 
 
+def _audit_badges(plan: PresentationPlan) -> dict[str, str]:
+    """Turn the run's own counts into the masthead claims.
+
+    The masthead used to assert "authority verified" and "cross-verified" as
+    fixed strings, which contradicted the body of partial runs. Every claim here
+    now comes from the report; when nothing was reviewed it says so.
+    """
+
+    audit = dict((plan.profile or {}).get("audit") or {})
+    total = int(audit.get("findings_total") or 0)
+    reviewed = int(audit.get("findings_reviewed") or 0)
+    supported = int(audit.get("findings_supported") or 0)
+    issues_total = int(audit.get("issues_total") or 0)
+    issues_closed = int(audit.get("issues_closed") or 0)
+    relations_total = int(audit.get("relations_total") or 0)
+    relations_unverified = int(audit.get("relations_unverified") or 0)
+
+    if not total:
+        rating = "未评级"
+        mechanism = "本轮没有可核查的判断"
+    elif not reviewed:
+        rating = f"未评级 · {total} 条判断待核查"
+        mechanism = f"{total} 条判断尚未送审"
+    else:
+        rating = f"核查评级：{supported}/{total} 条过审"
+        mechanism = (
+            f"需人工核对：{supported}/{total} 条判断过审 · "
+            f"{issues_closed}/{issues_total} 个议题已收口"
+        )
+    ledger = (
+        f"来源关系：{relations_unverified}/{relations_total} 个未核实"
+        if relations_total else "来源关系：未核验"
+    )
+    return {"rating": rating, "mechanism": mechanism, "ledger": ledger}
+
+
 def render_html(plan: PresentationPlan) -> str:
     nav, panels = _render_views(plan)
+    badges = _audit_badges(plan)
     state_counts: dict[str, int] = {}
     for section in plan.sections:
         for module in section.modules:
@@ -69,7 +106,7 @@ def render_html(plan: PresentationPlan) -> str:
 <header class="page-header">
   <div class="masthead-top">
     <div class="masthead-meta">
-      <span class="masthead-vol">VOL. XXIV · NO. 88</span>
+      <span class="masthead-vol">{escape(plan.report_id[:8])}</span>
       <span class="masthead-sep">/</span>
       <span class="masthead-dept">OPINION RESEARCH & INVESTIGATION BUREAU</span>
       <span class="masthead-sep">/</span>
@@ -91,7 +128,7 @@ def render_html(plan: PresentationPlan) -> str:
   <div class="headline-wrap headline-card">
     <div class="headline-kicker-wrap">
       <span class="headline-kicker">专项研判档案 · 核心事件</span>
-      <span class="headline-badge">权威核验级</span>
+      <span class="headline-badge">{escape(badges["rating"])}</span>
     </div>
     <h1 class="headline-main">{escape(plan.subject)}</h1>
     <div class="meta dateline-bar">
@@ -101,14 +138,14 @@ def render_html(plan: PresentationPlan) -> str:
       <span class="dateline-sep">|</span>
       <span class="meta-item"><strong class="dateline-label">归档时间</strong>{escape(plan.generated_at)}</span>
       <span class="dateline-sep">|</span>
-      <span class="meta-item"><strong class="dateline-label">核查机制</strong>事实链独立交叉核验已通过</span>
+      <span class="meta-item"><strong class="dateline-label">核查机制</strong>{escape(badges["mechanism"])}</span>
     </div>
   </div>
 
   <div class="status-strip-wrap audit-panel">
     <div class="status-strip-label audit-panel-header">
       <span class="audit-panel-title">事实链完整度与证据核查评级</span>
-      <span class="audit-panel-badge">评级：全量交叉复核</span>
+      <span class="audit-panel-badge">{escape(badges["ledger"])}</span>
     </div>
     <div class="status-strip">{status_strip}</div>
   </div>
