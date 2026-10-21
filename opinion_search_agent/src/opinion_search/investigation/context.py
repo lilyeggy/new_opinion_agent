@@ -102,6 +102,7 @@ def structured_context(instructions, schema, payload):
 
 
 _MAX_FINDINGS_IN_CONTEXT = 20
+_MAX_PROGRESS_ROWS = 12
 
 
 class Compiler:
@@ -148,6 +149,11 @@ class Compiler:
         progress.pop("aliases", None)
         progress.pop("cutoff", None)
         progress.pop("required_questions", None)
+        # Keep the payload's shape (callers and fixtures read these keys) but stop
+        # the lists from growing with the run.
+        for key in ("searches", "read_attempts", "read_errors", "relations", "reviews", "history", "checks"):
+            if isinstance(progress.get(key), list) and len(progress[key]) > _MAX_PROGRESS_ROWS:
+                progress[key] = progress[key][-_MAX_PROGRESS_ROWS:]
         coverage = {
             issue.issue_id: {"attempts": 0, "errors": 0, "outcomes": {}, "purposes": {},
                              "unattempted_directions": list(SEARCH_DIRECTIONS), "failed_directions": []}
@@ -187,7 +193,7 @@ class Compiler:
             constraint = {
                 **next_action,
                 "allowed_issue_ids": [issue.issue_id for issue in state.issues],
-                "allowed_evidence_ids": [evidence.evidence_id for evidence in state.evidence],
+                "allowed_evidence_ids": [evidence.evidence_id for evidence in state.evidence][:40],
                 "minimum_result": (
                     "Create 1-4 atomic evidence-linked findings for supported points. Copy issue_id and "
                     "evidence_ids only from the allowed lists in this constraint. Prefer assessments=[] "

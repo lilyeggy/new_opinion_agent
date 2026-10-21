@@ -520,11 +520,8 @@ class Validator:
                 == (decision.issue_id, decision.query.casefold(), decision.page)
                 for x in state.searches
             )
-            if repeat and sum(
-                1 for x in state.searches[-3:]
-                if x.query.casefold() == decision.query.casefold() and x.page == decision.page
-            ) >= 2:
-                raise ValueError("the same query keeps returning no new material; change the direction")
+            if repeat:
+                raise ValueError("query/page already attempted; change the search direction")
         elif isinstance(decision, ReadDecision):
             if decision.url in state.read_attempts:
                 raise ValueError("use retrieve to revisit a page already fetched in this version")
