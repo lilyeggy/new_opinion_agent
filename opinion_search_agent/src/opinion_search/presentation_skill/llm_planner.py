@@ -10,10 +10,12 @@ from pydantic import BaseModel, ConfigDict, Field
 from opinion_search.investigation.context import structured_context
 from opinion_search.investigation.service import unbacked_specifics
 from opinion_search.models.contracts import ModelClient
+from opinion_search.report_contract.narrative import filter_narrative
 from opinion_search.report_contract.contracts import (
     CitationRef,
     DataShape,
     ModuleState,
+    NarrativeSection,
     PlannedModule,
     PresentationPlan,
     VisualEncoding,
@@ -54,6 +56,7 @@ class DynamicModuleProposal(PresentationSkillSchema):
 class VisualPlanOutput(PresentationSkillSchema):
     choices: tuple[VisualChoice, ...] = ()
     dynamic_modules: tuple[DynamicModuleProposal, ...] = ()
+    narrative: NarrativeSection | None = None
 
 
 PRESENTATION_INSTRUCTIONS = """You are the OpinionSearch Autonomous Dossier Presentation Agent.
@@ -66,6 +69,13 @@ Hard safety boundaries:
 - Never invent facts, numbers, dates, percentages, or claims not present in the bound findings.
 - Do not choose distribution charts unless the module has items with labels and numeric values.
 - Write a concise Chinese reason for each choice.
+
+Narrative layer (`narrative`), optional but preferred when committed findings exist:
+- Write a short summary a reader can check: a `headline` plus 1 to 3 `paragraphs`.
+- Every clause MUST carry `finding_ids` copied from `committed_findings`; a clause without them is dropped.
+- Every number and every quoted span in a clause MUST already appear in the evidence those findings cite.
+- Prefer judgment over retelling: say what the event amounts to, then support it clause by clause.
+- Never write a clause you cannot bind; an unanswered question stays unanswered.
 """
 
 
@@ -314,7 +324,18 @@ class LlmPresentationPlanner:
                         modules.append(dyn_mod)
 
             sections.append(section.model_copy(update={"modules": tuple(modules)}))
-        return base_plan.model_copy(update={"sections": tuple(sections)})
+        approved = {
+            finding_id for finding_id, finding in (findings_by_id or {}).items()
+            if (finding.get("review") or {}).get("verdict") == "supported"
+        }
+        narrative, dropped = filter_narrative(
+            output.narrative, findings_by_id or {}, evidence_by_id or {}, approved
+        )
+        return base_plan.model_copy(update={
+            "sections": tuple(sections),
+            "narrative": narrative,
+            "profile": {**(base_plan.profile or {}), "narrative_dropped": dropped},
+        })
 
     async def aplan(
         self,

@@ -71,9 +71,38 @@ def _audit_badges(plan: PresentationPlan) -> dict[str, str]:
     return {"rating": rating, "mechanism": mechanism, "ledger": ledger}
 
 
+def _render_narrative(plan: PresentationPlan) -> str:
+    """The prose layer: headline plus paragraphs, each clause carrying its proof."""
+
+    narrative = getattr(plan, "narrative", None)
+    if narrative is None:
+        return ""
+    parts: list[str] = ['<section class="narrative-block">']
+    if narrative.headline:
+        count = len(dict.fromkeys(narrative.headline_finding_ids))
+        parts.append(
+            f'<h2 class="narrative-headline">{escape(narrative.headline)}'
+            f'<sup class="narrative-chip" title="{escape(", ".join(narrative.headline_finding_ids))}">'
+            f'核对 {count} 条判断</sup></h2>'
+        )
+    for paragraph in narrative.paragraphs:
+        parts.append(f'<p class="narrative-para"><span class="narrative-role">{escape(paragraph.role)}</span>')
+        for clause in paragraph.clauses:
+            count = len(dict.fromkeys(clause.finding_ids))
+            parts.append(
+                f'{escape(clause.text)}'
+                f'<sup class="narrative-chip" title="{escape(", ".join(clause.finding_ids))}">'
+                f'核对 {count} 条判断</sup>'
+            )
+        parts.append("</p>")
+    parts.append("</section>")
+    return "".join(parts)
+
+
 def render_html(plan: PresentationPlan) -> str:
     nav, panels = _render_views(plan)
     badges = _audit_badges(plan)
+    narrative_html = _render_narrative(plan)
     state_counts: dict[str, int] = {}
     for section in plan.sections:
         for module in section.modules:
@@ -151,6 +180,7 @@ def render_html(plan: PresentationPlan) -> str:
   </div>
 </header>
 <main>
+{narrative_html}
 {nav}
 {panels}
 </main>

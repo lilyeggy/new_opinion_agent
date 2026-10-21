@@ -194,6 +194,32 @@ class PlannedSection(BaseModel):
     modules: tuple[PlannedModule, ...] = ()
 
 
+class NarrativeClause(BaseModel):
+    """One sentence of the summary, and the approved findings that support it."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    text: str
+    finding_ids: tuple[str, ...] = ()
+
+
+class NarrativeParagraph(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    role: str = "分析"
+    clauses: tuple[NarrativeClause, ...] = ()
+
+
+class NarrativeSection(BaseModel):
+    """The prose layer: a headline plus paragraphs, every clause bound to findings."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    headline: str = ""
+    headline_finding_ids: tuple[str, ...] = ()
+    paragraphs: tuple[NarrativeParagraph, ...] = ()
+
+
 class PresentationPlan(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -205,3 +231,4 @@ class PresentationPlan(BaseModel):
     generated_at: str
     sections: tuple[PlannedSection, ...]
     profile: dict[str, Any] = Field(default_factory=dict)
+    narrative: NarrativeSection | None = None
