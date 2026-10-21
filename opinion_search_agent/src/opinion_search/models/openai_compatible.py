@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
+import time
 import json
 import logging
 from collections.abc import Mapping
@@ -140,6 +141,7 @@ class OpenAICompatibleModelClient:
         if self._reasoning_effort is not None:
             request["reasoning_effort"] = self._reasoning_effort
         for attempt in range(1, self._max_transport_attempts + 1):
+            attempt_started = time.monotonic()
             try:
                 awaitable = self._transport.post(
                     url=self._endpoint,
@@ -165,6 +167,11 @@ class OpenAICompatibleModelClient:
                     or attempt >= self._max_transport_attempts
                 ):
                     raise
+                _LOGGER.info(
+                    "model retry %s/%s after %.1fs: %s",
+                    attempt, self._max_transport_attempts,
+                    time.monotonic() - attempt_started, exc.error.kind.value,
+                )
                 await asyncio.sleep(self._retry_backoff_seconds * attempt)
                 continue
             except TimeoutError as exc:
@@ -191,6 +198,11 @@ class OpenAICompatibleModelClient:
                         "The model decision was truncated or empty at the "
                         f"output cap. {diagnostics}",
                     )
+                _LOGGER.info(
+                    "model retry %s/%s after %.1fs: output cap hit, raising to %s tokens",
+                    attempt, self._max_transport_attempts,
+                    time.monotonic() - attempt_started, current_tokens * 2,
+                )
                 current_tokens = min(current_tokens * 2, _MAX_OUTPUT_TOKENS_CEILING)
                 await asyncio.sleep(self._retry_backoff_seconds * attempt)
                 continue

@@ -84,6 +84,9 @@ class LiveConfig(BaseModel):
                 values.get("OPINION_MODEL_MAX_OUTPUT_TOKENS"), 4096
             ),
             reasoning_effort=(values.get("OPINION_REASONING_EFFORT") or None),
+            max_context_tokens=_env_positive_int(
+                values.get("OPINION_MAX_CONTEXT_TOKENS"), 32_000
+            ),
             allow_insecure_model_endpoint=_env_flag(
                 values.get("OPINION_ALLOW_INSECURE_MODEL_ENDPOINT")
             ),
