@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from opinion_search.domain.investigation.models import State, accepted_review
 from opinion_search.domain.opinion.brief import _escape_markdown, _safe_markdown_destination
 from opinion_search.investigation.diagnostics import build_chain_diagnostics
@@ -191,12 +193,99 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
     return report
 
 
+_BADGE_NOISE = (
+    "未经授权不得转载", "版权所有", "版权声明", "授权联系方式", "banquan@",
+    "正在浏览：", "责任编辑", "上一篇", "下一篇", "扫码关注", "点击查看",
+)
+_ESCAPE_MAP = {"\\#": "#", "\\[" : "[", "\\]": "]", "\\*": "*", "\\_": "_",
+               "\\" + chr(33): chr(33)}
+
+
+def clean_excerpt(text: str) -> str:
+    """Undo markdown escaping that leaked out of the reader."""
+
+    for escaped, plain in _ESCAPE_MAP.items():
+        text = text.replace(escaped, plain)
+    return text.strip()
+
+
+def is_noisy_excerpt(text: str) -> bool:
+    """Footer, navigation and tag-cloud lines are not evidence."""
+
+    stripped = clean_excerpt(text)
+    if not stripped:
+        return True
+    if any(marker in stripped for marker in _BADGE_NOISE):
+        return True
+    if stripped.count("http") >= 2 and len(stripped) < 220:
+        return True
+    if stripped.count("][") >= 2:
+        return True
+    return False
+
+
+def normalise_event_time(value: str) -> str:
+    """Reduce "(9月12日)", "2025-09" and friends to a sortable ISO date."""
+
+    text = re.sub(r"[（(][^）)]*[）)]", "", str(value or "")).strip()
+    match = re.search(r"(\d{4})\s*[-/年]\s*(\d{1,2})(?:\s*[-/月]\s*(\d{1,2}))?", text)
+    if not match:
+        return ""
+    year, month, day = match.group(1), int(match.group(2)), int(match.group(3) or 1)
+    if not 1 <= month <= 12 or not 1 <= day <= 31:
+        return ""
+    return f"{year}-{month:02d}-{day:02d}"
+
+
+def timeline_rows(findings, already_rendered) -> list[dict]:
+    """Dated facts and attributions the body has not already shown, in order."""
+
+    collected = []
+    for finding in findings:
+        if finding.get("kind") not in {"fact", "attributed"}:
+            continue
+        actor = str(finding.get("stakeholder") or "")
+        if "第三方" in actor or "未具名" in actor or "知情人" in actor:
+            continue
+        date = normalise_event_time(finding.get("event_time") or "")
+        if not date:
+            continue
+        collected.append((date, str(finding.get("stakeholder") or ""), finding))
+    collected.sort(key=lambda row: (row[0], row[1]))
+
+    merged: list[dict] = []
+    for date, actor, finding in collected:
+        if merged and merged[-1]["date"] == date and merged[-1]["actor"] == actor:
+            merged[-1]["evidence_ids"].extend(finding.get("evidence_ids") or [])
+            continue
+        merged.append({
+            "date": date, "actor": actor, "text": str(finding.get("text") or ""),
+            "evidence_ids": list(finding.get("evidence_ids") or []),
+        })
+    return merged
+
+
+def _shorten(text, limit):
+    text = " ".join(str(text).split())
+    return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
 def markdown(report):
     esc = _escape_markdown
+    started = report.get("started_at") or "未知"
+    generated = report.get("generated_at") or report["cutoff"]
+    elapsed_line = ""
+    try:
+        from datetime import datetime as _dt
+        span = _dt.fromisoformat(str(generated)) - _dt.fromisoformat(str(started))
+        minutes, seconds = divmod(int(span.total_seconds()), 60)
+        elapsed_line = f"调查耗时：{minutes} 分 {seconds} 秒"
+    except (TypeError, ValueError):
+        elapsed_line = ""
     lines = [f"# {esc(report['subject'])}", "", f"调查状态：{LABELS.get(report['status'], report['status'])}",
-             f"调查开始：{report.get('started_at') or '未知'}",
-             f"查找截止：{report.get('lookup_cutoff') or report['cutoff']}",
-             f"报告生成：{report.get('generated_at') or report['cutoff']}", ""]
+             f"调查开始：{started}",
+             f"材料截止时间：{report.get('lookup_cutoff') or report['cutoff']}",
+             f"报告生成：{generated}"] + ([elapsed_line] if elapsed_line else []) + [""]
     if report["mode"] == "offline":
         lines.extend(["> 虚构材料演示，不代表真实事件或实时搜索结果。", ""])
     if report.get("search_failures") or report.get("read_failures"):
@@ -210,9 +299,18 @@ def markdown(report):
             else "未经核查的判断草稿（调查未完成，不可作为结论引用）"
         )
         current_rows = report["interim_findings"]
-    for heading, rows in ((current_heading, current_rows), ("事件时间线", [f for f in report["findings"] if f["event_time"]])):
-        lines += [f"## {heading}", ""]
-        lines += [f"- {esc((f.get('event_time') or '') + ' ' + f['text'])} {refs(f['evidence_ids'])}" for f in rows] or ["- 尚无完成核查的结论。"]
+    rendered_ids = {row.get("finding_id") for row in current_rows}
+    chronology = timeline_rows(report["findings"], rendered_ids)
+    lines += [f"## {current_heading}", ""]
+    lines += [f"- {esc((f.get('event_time') or '') + ' ' + f['text'])} {refs(f['evidence_ids'])}" for f in current_rows] or ["- 尚无完成核查的结论。"]
+    if chronology:
+        # A chronology is a navigation aid, not a second copy of the body: keep
+        # the date and the actor, drop the prose that is already above.
+        lines += ["", "## 事件时间线", ""]
+        for row in chronology:
+            head = f"{row['date']}{(' · ' + row['actor']) if row['actor'] else ''}"
+            sources_ = len(dict.fromkeys(row["evidence_ids"]))
+            lines.append(f"- **{esc(head)}**（{sources_} 条证据，正文见上）")
     lines += ["", "## 争议与回应", ""]
     for issue in report["issues"]:
         lines += [f"### {esc(issue['question'])}", "", f"{LABELS[issue['status']]}：{esc(issue['note'])}"]
@@ -252,9 +350,11 @@ def markdown(report):
         lines += [""]
     sources = {s["version_id"]: s for s in report["sources"]}
     for e in report["evidence"]:
+        if is_noisy_excerpt(e["excerpt"]):
+            continue
         s = sources[e["version_id"]]
         duplicate = "；与已有版本正文重复，不作为独立证据" if not s.get("independent", True) else ""
-        lines += [f"- **{e['evidence_id']}**：{esc(e['excerpt'])}", f"  来源：[{esc(s['title'])}]({_safe_markdown_destination(s['final_url'])})；{esc(e['locator'])}；获取时间 {s['fetched_at']}{duplicate}"]
+        lines += [f"- **{e['evidence_id']}**：{esc(clean_excerpt(e['excerpt']))}", f"  来源：[{esc(s['title'])}]({_safe_markdown_destination(s['final_url'])})；{esc(e['locator'])}；获取时间 {s['fetched_at']}{duplicate}"]
     lines += ["", "## 调查限制", "", report["scope_limitation"]]
     return "\n".join(lines) + "\n"
 

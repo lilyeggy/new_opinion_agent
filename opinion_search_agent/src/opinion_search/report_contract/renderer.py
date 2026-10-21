@@ -154,7 +154,7 @@ def render_html(plan: PresentationPlan) -> str:
 {nav}
 {panels}
 </main>
-<footer class="page-footer">内容契约 → 呈现方案 → 确定性渲染</footer>
+<footer class="page-footer">本报告只基于上述公开材料；事实需由读者对照来源复核。</footer>
 {_view_script()}
 </body>
 </html>'''

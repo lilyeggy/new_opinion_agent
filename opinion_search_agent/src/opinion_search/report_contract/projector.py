@@ -994,12 +994,19 @@ def build_content_document_from_investigation(
 
     diag = report.get("diagnostics") or ((wb.get("views") or {}).get("diagnostics") or {})
     stages = list(diag.get("stages") or [])
+    stage_status = {
+        "blocked": "未达发布条件",
+        "observed": "已采集",
+        "attention": "需注意",
+        "pending": "未开始",
+        "ok": "正常",
+    }
     if stages:
         stage_rows = tuple(
             {
-                "链路阶段": str(st.get("title") or st.get("stage") or ""),
-                "状态": str(st.get("status") or ""),
-                "核查摘要": str(st.get("summary") or ""),
+                "调查阶段": str(st.get("title") or st.get("stage") or ""),
+                "状态": stage_status.get(str(st.get("status") or ""), str(st.get("status") or "")),
+                "说明": str(st.get("summary") or ""),
             }
             for st in stages
         )
@@ -1007,10 +1014,10 @@ def build_content_document_from_investigation(
             ContentModule(
                 module_id="evidence-diagnostics",
                 semantic_type="diagnostics",
-                title="调查生产链路健康度诊断",
+                title="调查过程与完成度（供核对）",
                 state=ready_state,
                 data_shape=DataShape.COMPARISON,
-                table_columns=("链路阶段", "状态", "核查摘要"),
+                table_columns=("调查阶段", "状态", "说明"),
                 items=stage_rows,
                 view_id="evidence",
             )
@@ -1052,7 +1059,7 @@ def build_content_document_from_investigation(
     sections.append(
         ContentSection(
             section_id="section-evidence",
-            title="证据卷宗与生产链路诊断",
+            title="证据卷宗与核查记录",
             order=4,
             view_id="evidence",
             view_title="证据卷宗与诊断",

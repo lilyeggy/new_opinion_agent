@@ -208,5 +208,5 @@ def test_markdown_states_start_lookup_and_generation_times():
     report["generated_at"] = "2026-01-01T01:00:00+00:00"
     text = markdown(report)
     assert "调查开始：2026-01-01T00:00:00+00:00" in text
-    assert "查找截止：" in text
+    assert "材料截止时间：" in text
     assert "报告生成：2026-01-01T01:00:00+00:00" in text
