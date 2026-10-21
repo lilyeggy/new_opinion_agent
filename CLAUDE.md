@@ -122,3 +122,16 @@
 - 将工作拆成可独立验证的小步；每一步完成后先验证，再继续下一步。
 - 新增特性、重构或修复都要确认不破坏已有功能、接口和关键路径。
 - 若当前无法完成必要验证，应暂停继续扩展，并明确说明阻塞、风险和未覆盖范围。
+
+## 工作约定：改完就跑一次完整链路
+
+任何对 runtime / domain / context / presentation / report 的改动，提交后必须立刻用真实模型跑一次完整链路（`scripts/run_live_investigation.py`，`--max-steps 40`），并记录四项结果：
+
+1. 终态（completed / partial / failed）与 stop_reason
+2. `timing.jsonl` 的分阶段耗时（model / tool 的 p50 与 max）
+3. `presentation_plan.json` 里 `narrative` 的段数与 `narrative_dropped` 数
+4. `dossier.html` 是否生成、有没有 `narrative-block`
+
+理由：单元测试只证明组件正确，证明不了"整条链路能产出可发布产物"。本项目历史上有 18 次运行 0 次 completed，全部是在单测全绿的情况下发生的。
+
+运行前置：`.env` 需要有可用的 `OPINION_MODEL_API_KEY`；`NO_PROXY` 与 `no_proxy` 都要设（含 `[::1]` 会让 httpx 报 Invalid port）。
