@@ -101,6 +101,9 @@ def structured_context(instructions, schema, payload):
     ])
 
 
+_MAX_FINDINGS_IN_CONTEXT = 20
+
+
 class Compiler:
     def __init__(self, budget):
         self.budget = budget
@@ -116,14 +119,29 @@ class Compiler:
             "required_questions": list(state.required_questions),
             "issues": [x.model_dump(mode="json") for x in state.issues],
         }
+        # The findings section used to carry every finding. A long run produced 89
+        # of them, the section could not be compacted, and the whole run ended on
+        # "required context exceeds the input budget". Keep the ones the model can
+        # still act on and tell it how many were left out.
+        def _context_priority(finding) -> tuple[int, int]:
+            reviewed = 1 if self._review(state, finding) else 0
+            return (reviewed, 1 if finding.active else 0)
+
+        ordered = sorted(state.findings, key=_context_priority, reverse=True)
+        selected = ordered[:_MAX_FINDINGS_IN_CONTEXT]
         findings = [
             {"finding_id": f.finding_id, "issue_id": f.issue_id, "text": f.text, "kind": f.kind,
              "stakeholder": f.stakeholder, "stance": f.stance, "stance_target": f.stance_target,
              "response": f.response, "evidence_ids": list(f.evidence_ids),
              "contradicting_ids": list(f.contradicting_ids), "active": f.active,
              "review": (r.verdict if (r := self._review(state, f)) else "unreviewed")}
-            for f in state.findings
+            for f in selected
         ]
+        if len(ordered) > len(selected):
+            findings.append({
+                "omitted_findings": len(ordered) - len(selected),
+                "note": "其余判断未列入上下文；需要时按其 evidence_ids 检索或另行评估",
+            })
         progress = state.model_dump(mode="json", exclude={"request", "evidence", "sources", "candidates", "findings", "update_intent"})
         progress.pop("issues", None)
         progress.pop("subject", None)

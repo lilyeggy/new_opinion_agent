@@ -34,12 +34,13 @@ def compact_context_sections(
     working = list(sections)
     compacted: list[str] = []
 
-    locked = tuple(
-        section
-        for section in sections
-        if section.required or section.compaction is CompactionMode.NEVER
+    # Only sections that can never be compacted are truly irreducible: the
+    # instructions and the schema. Everything else - including sections marked
+    # required - may be squeezed if the alternative is ending the whole run.
+    irreducible = tuple(
+        section for section in sections if section.compaction is CompactionMode.NEVER
     )
-    if _measure(locked, estimator) > input_token_limit:
+    if _measure(irreducible, estimator) > input_token_limit:
         raise RequiredContextOverflow(
             "required context exceeds the available input budget"
         )
@@ -80,6 +81,18 @@ def compact_context_sections(
             key=_degradation_rank,
         )
         for section in droppable:
+            if _measure(tuple(working), estimator) <= input_token_limit:
+                break
+            index = _index_for_id(working, section.section_id)
+            working.pop(index)
+
+    if _measure(tuple(working), estimator) > input_token_limit:
+        # Last resort: free even the sections marked required, in degradation
+        # order, and say in the plan which ids went.
+        for section in sorted(
+            (item for item in working if item.compaction is not CompactionMode.NEVER),
+            key=_degradation_rank,
+        ):
             if _measure(tuple(working), estimator) <= input_token_limit:
                 break
             index = _index_for_id(working, section.section_id)
