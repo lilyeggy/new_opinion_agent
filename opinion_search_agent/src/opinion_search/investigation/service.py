@@ -211,6 +211,7 @@ def live_model(config, budget, schema):
         extra_headers=config.model_extra_headers,
         max_transport_attempts=config.model_transport_attempts,
         max_output_tokens=config.model_max_output_tokens,
+        reasoning_effort=config.reasoning_effort,
         transport=MeteredTransport(budget), decision_type=schema)
 
 

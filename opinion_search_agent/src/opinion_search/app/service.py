@@ -375,6 +375,7 @@ def build_live_service(
         extra_headers=config.model_extra_headers,
         max_transport_attempts=config.model_transport_attempts,
         max_output_tokens=config.model_max_output_tokens,
+        reasoning_effort=config.reasoning_effort,
     )
     result_cache = JsonActionResultCache(
         checkpoint_path.parent / "action_results"

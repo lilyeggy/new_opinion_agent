@@ -89,6 +89,7 @@ class OpenAICompatibleModelClient:
         max_transport_attempts: int = 1,
         retry_backoff_seconds: float = 0.5,
         max_output_tokens: int = 4096,
+        reasoning_effort: str | None = None,
     ) -> None:
         normalized_key = api_key.strip()
         normalized_model = model.strip()
@@ -116,6 +117,9 @@ class OpenAICompatibleModelClient:
         self._max_transport_attempts = max_transport_attempts
         self._retry_backoff_seconds = max(0.0, retry_backoff_seconds)
         self._max_output_tokens = max_output_tokens
+        # Reasoning models otherwise spend tens of seconds per decision;
+        # measured on the Go gateway: default 87s vs effort=low 3.5s.
+        self._reasoning_effort = (reasoning_effort or "").strip().lower() or None
 
     async def decide(self, context: CompiledContext) -> AgentDecision:
         current_tokens = self._max_output_tokens
@@ -133,6 +137,8 @@ class OpenAICompatibleModelClient:
             # cut the decision JSON mid-object; state the cap explicitly.
             "max_tokens": current_tokens,
         }
+        if self._reasoning_effort is not None:
+            request["reasoning_effort"] = self._reasoning_effort
         for attempt in range(1, self._max_transport_attempts + 1):
             try:
                 awaitable = self._transport.post(

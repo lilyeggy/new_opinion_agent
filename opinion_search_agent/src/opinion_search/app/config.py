@@ -28,6 +28,8 @@ class LiveConfig(BaseModel):
     # Reasoning-style models can drain a low cap on thinking alone; the client
     # doubles this on output-cap truncations up to the transport budget.
     model_max_output_tokens: int = Field(default=4096, gt=0)
+    # 'low' keeps routine decisions fast; 'high' is for review/synthesis.
+    reasoning_effort: str | None = None
     allow_insecure_model_endpoint: bool = False
 
     @model_validator(mode="after")
@@ -81,6 +83,7 @@ class LiveConfig(BaseModel):
             model_max_output_tokens=_env_positive_int(
                 values.get("OPINION_MODEL_MAX_OUTPUT_TOKENS"), 4096
             ),
+            reasoning_effort=(values.get("OPINION_REASONING_EFFORT") or None),
             allow_insecure_model_endpoint=_env_flag(
                 values.get("OPINION_ALLOW_INSECURE_MODEL_ENDPOINT")
             ),
