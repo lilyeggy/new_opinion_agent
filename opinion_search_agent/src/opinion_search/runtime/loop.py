@@ -132,6 +132,7 @@ class AgentLoop:
         decision_validator: DecisionValidator,
         action_resolver: ActionResolver,
         action_executor: ActionExecutor,
+        timing: Any = None,
         observation_processor: ObservationProcessor,
         completion_evaluator: CompletionEvaluator[Any, Any, Any],
         reducer: Callable[[Any, Any], Any],
@@ -152,6 +153,7 @@ class AgentLoop:
         self._decision_validator = decision_validator
         self._action_resolver = action_resolver
         self._action_executor = action_executor
+        self._timing = timing
         self._observation_processor = observation_processor
         self._completion_evaluator = completion_evaluator
         self._reducer = reducer
@@ -165,6 +167,20 @@ class AgentLoop:
     async def resume(self) -> RunResult[Any]:
         state = await self._checkpoint_store.load()
         return await self.run(state)
+
+    def _measured(self, state: RuntimeState, phase: str, action: Any = None):
+        """Time one phase without letting a missing recorder change behaviour."""
+
+        if self._timing is None:
+            from contextlib import nullcontext
+            return nullcontext()
+        tool_name = getattr(action, "tool_name", None) if action is not None else None
+        return self._timing.phase(
+            run_id=str(getattr(state, "run_id", "")),
+            step_index=int(getattr(state, "next_step_index", 0) or 0),
+            phase=phase,
+            tool_name=tool_name,
+        )
 
     async def run(self, state: RuntimeState) -> RunResult[Any]:
         while True:
@@ -276,9 +292,10 @@ class AgentLoop:
                     continue
 
                 try:
-                    decision_payload = await self._await_operation(
-                        lambda: self._model.decide(context)
-                    )
+                    with self._measured(state, "model"):
+                        decision_payload = await self._await_operation(
+                            lambda: self._model.decide(context)
+                        )
                 except _RunCancelled:
                     state = terminate_run(
                         state,
@@ -369,9 +386,10 @@ class AgentLoop:
                 if step is None or step.action is None:
                     raise RuntimeError("action phase has no ActionRequest")
                 try:
-                    observation_payload = await self._await_operation(
-                        lambda: self._action_executor.execute(step.action)
-                    )
+                    with self._measured(state, "tool", step.action):
+                        observation_payload = await self._await_operation(
+                            lambda: self._action_executor.execute(step.action)
+                        )
                 except _RunCancelled:
                     state = terminate_run(
                         state,

@@ -22,6 +22,7 @@ from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus,
 from opinion_search.models.fake import DeterministicIdFactory
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient, HttpxModelTransport
 from opinion_search.runtime.checkpoint import JsonCheckpointStore
+from opinion_search.runtime.timing import TimingRecorder
 from opinion_search.runtime.errors import ContextOverflowError
 from opinion_search.runtime.loop import AgentLoop
 from opinion_search.runtime.transaction import RunState
@@ -437,6 +438,7 @@ def build_loop(run_root: Path, case_root: Path, mode, budget, hook, signal, conf
     return AgentLoop(model=model, context_compiler=compiler,
                      decision_validator=ConsolidationValidator(Validator(), budget),
                      action_resolver=Resolver(),
+                     timing=TimingRecorder(run_root / "timing.jsonl"),
                      action_executor=Executor(executor, checkpoint, corpus, reviewer, model_name),
                      observation_processor=Processor(), completion_evaluator=CompletionEvaluator(),
                      reducer=reduce_state, checkpoint_store=checkpoint,

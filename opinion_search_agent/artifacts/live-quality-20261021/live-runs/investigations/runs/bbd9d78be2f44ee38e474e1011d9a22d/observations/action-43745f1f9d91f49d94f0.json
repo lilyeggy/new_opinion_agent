@@ -1,0 +1,316 @@
+{
+  "action": {
+    "decision": {
+      "action": "reflect",
+      "findings": [
+        {
+          "issue_id": "issue-2223248b43147a78c5cb",
+          "text": "观察者网介绍，野人先生是意式冰淇淋品牌，前身为2011年崔建维创立的野人牧坊；2015年该品牌推出意式手工冰淇淋并在北京开设首家购物中心门店。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-c4a678967a1b9389c8f9",
+            "evidence-2371d06ea203347447a3"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-d0dba56864f441d22228",
+          "text": "一篇已保存报道称，2025年9月西贝遭罗永浩吐槽后迅速发酵为全网关注的舆论事件，对经营影响巨大——近1年内关店200余家、预计亏损6亿元以上。",
+          "kind": "fact",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-9bc8fed6304ac597e19d",
+            "evidence-65c923ea20688484b0be"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-d0dba56864f441d22228",
+          "text": "“6亿元”是已保存报道所述西贝2025年舆论事件后的预计亏损；“28元、328元”是同一材料中野人先生单球与蛋糕冰淇淋的定价。两者对象和指标不同，不能作为同一价格或损失直接对比。",
+          "kind": "interpretation",
+          "stakeholder": "",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-9bc8fed6304ac597e19d",
+            "evidence-fa05cf7f88cb0ee88e8a",
+            "evidence-a392f25da700643f21dc"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-17cd948fb77dd3f8a1d0",
+          "text": "综合观察者网与南都/腾讯报道，罗永浩9月12日下午在机场试吃后发文称“考虑到价格，甚至可以说难吃”，追问“它是怎么火起来的”；随后在回复网友时称“感觉比钟薛高难吃多了，怀念钟薛高”，并惋惜一个国货品牌没有活下来，还提示“这是一个消费者的正常评价和疑问，请千万不要惹我，然后说我下黑手之类的”。",
+          "kind": "attributed",
+          "stakeholder": "罗永浩",
+          "stance": "oppose",
+          "stance_target": "野人先生冰淇淋产品",
+          "evidence_ids": [
+            "evidence-818b787e8a3b5ccf1d61",
+            "evidence-874cb2babbb9412373b9",
+            "evidence-376f0e748dd4464e58f6",
+            "evidence-b3639fe11e0fa242ca14",
+            "evidence-1976f45650f8377d33c3",
+            "evidence-2744f996754e0e0c3535"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        },
+        {
+          "issue_id": "issue-b2ba6c0e5882279447be",
+          "text": "南都报道显示，在9月16日首度发声前，野人先生官方账号在数日内未就此次风波公开回应；同期有网友在其账号下刷屏建议“不要回答”，“野人先生 冷处理”成为热搜话题。",
+          "kind": "attributed",
+          "stakeholder": "南方都市报",
+          "stance": "unclear",
+          "stance_target": "",
+          "evidence_ids": [
+            "evidence-392e153c105a1a7ba893",
+            "evidence-d74d21a15d30397ea73e",
+            "evidence-808c1e0f6ca4a74c2a8a",
+            "evidence-a1bae7ecc3b07c65de65"
+          ],
+          "contradicting_ids": [],
+          "event_time": null,
+          "response": null,
+          "response_target": "",
+          "covered": [],
+          "uncovered": [],
+          "coverage_reason": "",
+          "module_fields": []
+        }
+      ],
+      "assessments": [
+        {
+          "issue_id": "issue-2223248b43147a78c5cb",
+          "status": "answered",
+          "reason": "9月12日吐槽、“冷处理”热搜、9月16日官方发声与9月23日活动预告构成可核查时间线；原始微博全文未取得，具体措辞以报道转述为限。",
+          "evidence_ids": [
+            "evidence-f3c65cd71d9d93a60a08",
+            "evidence-d74d21a15d30397ea73e",
+            "evidence-808c1e0f6ca4a74c2a8a",
+            "evidence-50b39e2e5f87c21039e3",
+            "evidence-c4709721e3b4d93092be"
+          ],
+          "components": []
+        },
+        {
+          "issue_id": "issue-17cd948fb77dd3f8a1d0",
+          "status": "answered",
+          "reason": "多篇报道一致转述罗永浩的核心原话与消费者评价框定，可以回答其言论要点；原始微博未直接取得，引用具体措辞仍应标注为报道转述。",
+          "evidence_ids": [
+            "evidence-f3c65cd71d9d93a60a08",
+            "evidence-874cb2babbb9412373b9",
+            "evidence-b3639fe11e0fa242ca14",
+            "evidence-376f0e748dd4464e58f6",
+            "evidence-1976f45650f8377d33c3"
+          ],
+          "components": []
+        },
+        {
+          "issue_id": "issue-b2ba6c0e5882279447be",
+          "status": "answered",
+          "reason": "9月16日官方账号已首度发声，可以回答“如何回应”；但回应只致谢、承诺聆听并预告活动，未直接解释口味、定价或走红原因，覆盖为部分。",
+          "evidence_ids": [
+            "evidence-50b39e2e5f87c21039e3",
+            "evidence-808c1e0f6ca4a74c2a8a",
+            "evidence-dda44063a743d8f69d36",
+            "evidence-c4709721e3b4d93092be"
+          ],
+          "components": []
+        },
+        {
+          "issue_id": "issue-d0dba56864f441d22228",
+          "status": "answered",
+          "reason": "已保存材料明确提及钟薛高与西贝；未发现其他品牌被卷入的可核查材料。",
+          "evidence_ids": [
+            "evidence-f3c65cd71d9d93a60a08",
+            "evidence-1976f45650f8377d33c3",
+            "evidence-736425da5d6d6b26f633",
+            "evidence-9bc8fed6304ac597e19d",
+            "evidence-65c923ea20688484b0be"
+          ],
+          "components": []
+        },
+        {
+          "issue_id": "issue-496211b5d3f38d672005",
+          "status": "open",
+          "reason": "争议观点与双方定价分歧有材料；公众关切缺乏独立调查或代表性数据，不能据此推断公众态度。",
+          "evidence_ids": [
+            "evidence-fa05cf7f88cb0ee88e8a",
+            "evidence-ff5bca28145253599371",
+            "evidence-874cb2babbb9412373b9",
+            "evidence-a392f25da700643f21dc"
+          ],
+          "components": [
+            {
+              "text": "争议观点（口味主观评价、定价性价比）",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-fa05cf7f88cb0ee88e8a",
+                "evidence-ff5bca28145253599371",
+                "evidence-874cb2babbb9412373b9"
+              ],
+              "note": "罗永浩质疑价格与口味；报道列出28元至328元产品价格。"
+            },
+            {
+              "text": "公众关切",
+              "status": "unavailable",
+              "evidence_ids": [],
+              "note": "缺乏独立调查或代表性数据，不能推断公众态度。"
+            },
+            {
+              "text": "品牌方与罗永浩方的分歧",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-fa05cf7f88cb0ee88e8a",
+                "evidence-a392f25da700643f21dc",
+                "evidence-874cb2babbb9412373b9"
+              ],
+              "note": "罗永浩质疑价格与口味；创始人称“是我们把行业价格打下来了”。"
+            }
+          ]
+        },
+        {
+          "issue_id": "issue-b3c1f012c6fb2c604d23",
+          "status": "open",
+          "reason": "已确认9月16日官方发声和9月23日“冰淇淋丰收节”预告；活动后事件是否平息、品牌是否进一步回应仍缺材料。",
+          "evidence_ids": [
+            "evidence-50b39e2e5f87c21039e3",
+            "evidence-c4709721e3b4d93092be",
+            "evidence-d74d21a15d30397ea73e"
+          ],
+          "components": []
+        },
+        {
+          "issue_id": "issue-703294a9c84852c34edd",
+          "status": "open",
+          "reason": "复合问题中罗永浩言论、官方回应与已知品牌牵连已有材料；后续发展仍缺活动后信息。",
+          "evidence_ids": [
+            "evidence-f3c65cd71d9d93a60a08",
+            "evidence-50b39e2e5f87c21039e3",
+            "evidence-808c1e0f6ca4a74c2a8a",
+            "evidence-1976f45650f8377d33c3",
+            "evidence-736425da5d6d6b26f633"
+          ],
+          "components": [
+            {
+              "text": "罗永浩说了什么",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-818b787e8a3b5ccf1d61",
+                "evidence-874cb2babbb9412373b9",
+                "evidence-376f0e748dd4464e58f6",
+                "evidence-b3639fe11e0fa242ca14",
+                "evidence-1976f45650f8377d33c3",
+                "evidence-2744f996754e0e0c3535"
+              ],
+              "note": "已有多篇报道转述其核心原话。"
+            },
+            {
+              "text": "野人先生如何回应",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-50b39e2e5f87c21039e3",
+                "evidence-808c1e0f6ca4a74c2a8a"
+              ],
+              "note": "9月16日官方账号首度发声，但只作泛化表态，未直接回答具体质疑。"
+            },
+            {
+              "text": "事件还牵连哪些品牌",
+              "status": "answered",
+              "evidence_ids": [
+                "evidence-f3c65cd71d9d93a60a08",
+                "evidence-1976f45650f8377d33c3",
+                "evidence-736425da5d6d6b26f633",
+                "evidence-9bc8fed6304ac597e19d"
+              ],
+              "note": "钟薛高与西贝已确认被提及。"
+            },
+            {
+              "text": "后续发展",
+              "status": "open",
+              "evidence_ids": [
+                "evidence-50b39e2e5f87c21039e3",
+                "evidence-c4709721e3b4d93092be",
+                "evidence-d74d21a15d30397ea73e"
+              ],
+              "note": "已宣布丰收节，但活动后事件是否平息、是否有进一步回应未知。"
+            }
+          ]
+        }
+      ],
+      "add_questions": [],
+      "retirements": [
+        {
+          "finding_id": "finding-c611263f7a7d8bc45732",
+          "reason": "原表述含未在摘录中出现的“2024年4月更名‘野人先生’”；以删除该未支持细节的新发现替换。"
+        },
+        {
+          "finding_id": "finding-053ef619b3645e36eba2",
+          "reason": "原表述含未在摘录中出现的“斑马消费报道称”来源归属；以仅保留有摘录支持的报道内容的新发现替换。"
+        },
+        {
+          "finding_id": "finding-4925f8f95e2fcef7ad46",
+          "reason": "原表述引号中的“28元/328元”未在支持摘录中逐字出现；以改写为“28元、328元”并明确指标差异的新发现替换。"
+        },
+        {
+          "finding_id": "finding-08447d127c15382fa13f",
+          "reason": "原表述中的“好好的一个国货品牌没有活下来”未被支持摘录逐字覆盖；以保留有摘录支持原话、将该处改为概述的新发现替换。"
+        },
+        {
+          "finding_id": "finding-4a484e2b73f606997116",
+          "reason": "原表述声称“媒体以‘冷处理’描述品牌初期选择”，但支持摘录只显示“野人先生 冷处理”热搜话题，未显示媒体如此描述；以限定为热搜话题与未回应事实的新发现替换。"
+        }
+      ],
+      "source_relations": [],
+      "reason": "处置已保存证据与数值口径，修复被审查标为部分支持的发现：删去无摘录支持的更名、来源归属和媒体描述，重写罗永浩原话与官方回应；更新问题评估，保留后续与公众关切的未决状态。"
+    },
+    "tool_name": null,
+    "arguments": {},
+    "review_context": null,
+    "verdict": null
+  },
+  "observation": {
+    "action": "reflect",
+    "outcome": null,
+    "sources": [],
+    "evidence": [],
+    "finding_evidence": [],
+    "numeric": [],
+    "reviews": [],
+    "check": null,
+    "verdict": null
+  }
+}
