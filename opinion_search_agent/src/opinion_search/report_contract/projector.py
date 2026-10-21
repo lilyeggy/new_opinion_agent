@@ -208,7 +208,14 @@ def _short_issue_label(question: str) -> str:
             if len(part) >= 4:
                 cleaned = part
                 break
-    return cleaned[:22] + ("…" if len(cleaned) > 22 else "")
+    if len(cleaned) <= 22:
+        return cleaned
+    window = cleaned[:22]
+    for boundary in ("、", "的", "与", "和", "及", "在", "对"):
+        cut = window.rfind(boundary)
+        if cut >= 12:
+            return window[:cut] + "…"
+    return window + "…"
 
 
 def _build_facet_content_modules(

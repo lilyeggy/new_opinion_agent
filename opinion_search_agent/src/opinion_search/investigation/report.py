@@ -154,6 +154,23 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
     no_change = bool(parent) and bool(changes) and all(c["kind"] == "unchanged" for c in changes) and bool(state.searches) and not any(s.outcome == "error" for s in state.searches) and not state.read_errors and status == "completed"
     conclusions = [f for f in findings
                    if f["finding_id"] in state.conclusion_ids and f["support"] == "supported"]
+    # A conclusion may not rest on a source that disagrees with another source
+    # by a factor of ten: the conflict is unresolved, so the claim cannot close.
+    conflicted_versions = set()
+    for row in (numeric_conflicts or ()):
+        conflicted_versions.add(str((row.get("lower") or {}).get("version_id") or ""))
+        conflicted_versions.add(str((row.get("higher") or {}).get("version_id") or ""))
+    conflicted_versions.discard("")
+    blocked = 0
+    if conflicted_versions:
+        evidence_version = {item.evidence_id: item.version_id for item in state.evidence}
+        kept = []
+        for finding in conclusions:
+            if any(evidence_version.get(eid) in conflicted_versions for eid in finding["evidence_ids"]):
+                blocked += 1
+                continue
+            kept.append(finding)
+        conclusions = kept
     # A bounded run may finish immediately after review and never spend another
     # model call selecting conclusion IDs. Preserve reviewed, supported work in
     # a separately labelled partial-report section; it is not promoted to a
@@ -188,6 +205,8 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
                                                 publication_status=status,
                                                 checkpoint_boundary=checkpoint_boundary),
         "unresolved": _unresolved(state),
+        "numeric_blocked_conclusions": blocked,
+        "stop_reason_text": stop_reason_text(reason),
         "scope_limitation": " ".join(("仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。", *scope_notes)),
     }
     return report
@@ -268,6 +287,29 @@ def timeline_rows(findings, already_rendered) -> list[dict]:
 def _shorten(text, limit):
     text = " ".join(str(text).split())
     return text if len(text) <= limit else text[: limit - 1] + "…"
+
+
+_STOP_REASONS = (
+    ("Decision recovery was exhausted", "模型连续给出无效决策，决策恢复预算耗尽"),
+    ("The maximum number of committed steps was reached", "达到提交步数上限"),
+    ("maximum number of committed steps", "达到提交步数上限"),
+    ("The run was cancelled", "运行被取消"),
+    ("rate limited", "模型供应商限流"),
+    ("budget", "调查预算耗尽"),
+)
+
+
+def stop_reason_text(reason: str) -> str:
+    """Say in plain language why the run stopped."""
+
+    text = str(reason or "").strip()
+    if not text:
+        return "未记录停止原因。"
+    for marker, chinese in _STOP_REASONS:
+        if marker.lower() in text.lower():
+            detail = text.split(":", 1)[1].strip() if ":" in text else ""
+            return chinese + ("（" + _shorten(detail, 60) + "）" if detail and detail != text else "") + "。"
+    return _shorten(text, 90)
 
 
 def markdown(report):
@@ -355,7 +397,12 @@ def markdown(report):
         s = sources[e["version_id"]]
         duplicate = "；与已有版本正文重复，不作为独立证据" if not s.get("independent", True) else ""
         lines += [f"- **{e['evidence_id']}**：{esc(clean_excerpt(e['excerpt']))}", f"  来源：[{esc(s['title'])}]({_safe_markdown_destination(s['final_url'])})；{esc(e['locator'])}；获取时间 {s['fetched_at']}{duplicate}"]
-    lines += ["", "## 调查限制", "", report["scope_limitation"]]
+    lines += ["", "## 调查限制", ""]
+    if report.get("stop_reason_text"):
+        lines.append(f"- 停止原因：{esc(report['stop_reason_text'])}")
+    if report.get("numeric_blocked_conclusions"):
+        lines.append(f"- 有 {report['numeric_blocked_conclusions']} 条判断因所引来源之间存在数量级冲突，未进入核心结论。")
+    lines += ["", report["scope_limitation"]]
     return "\n".join(lines) + "\n"
 
 
