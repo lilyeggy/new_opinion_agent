@@ -62,6 +62,20 @@ class VisualPlanOutput(PresentationSkillSchema):
     narrative: NarrativeSection | None = None
 
 
+class NarrativeOnlyOutput(PresentationSkillSchema):
+    """Second, smaller call: the summary alone, when the plan call came back empty."""
+
+    narrative: NarrativeSection | None = None
+
+
+NARRATIVE_INSTRUCTIONS = """You are the OpinionSearch Dossier Narrator.
+Write a short, checkable summary of the event from the committed findings you are given.
+Return only `narrative`: a `headline` and 1 to 3 `paragraphs`.
+Every clause MUST carry `finding_ids` copied from the input; a clause without them is dropped.
+Every number and every quoted span in a clause MUST already appear in that finding.
+Prefer judgment over retelling. Never write a clause you cannot bind.
+"""
+
 PRESENTATION_INSTRUCTIONS = """You are the OpinionSearch Autonomous Dossier Presentation Agent.
 You receive already verified ContentDocument modules, module data profiles, and optional committed findings.
 Your job is to:
@@ -340,6 +354,36 @@ class LlmPresentationPlanner:
             "profile": {**(base_plan.profile or {}), "narrative_dropped": dropped},
         })
 
+    async def _narrative_retry(self, base_plan, findings_by_id):
+        """Ask for the summary on its own when the combined call produced none.
+
+        One call produces choices, dynamic modules and prose together; when that
+        payload is truncated the run loses the narrative silently. The retry is a
+        much smaller request and only has to return prose.
+        """
+
+        from opinion_search.investigation.context import structured_context
+        from opinion_search.presentation_skill.llm_planner import NARRATIVE_INSTRUCTIONS
+
+        payload = {
+            "focus": base_plan.subject,
+            "committed_findings": [
+                {"finding_id": fid, "text": (finding.get("text") or "")[:400],
+                 "evidence_ids": list(finding.get("evidence_ids") or ())}
+                for fid, finding in (findings_by_id or {}).items()
+                if (finding.get("review") or {}).get("verdict") == "supported"
+            ],
+        }
+        if not payload["committed_findings"]:
+            return None, "no_supported_findings"
+        try:
+            output = await self._model.decide(
+                structured_context(NARRATIVE_INSTRUCTIONS, NarrativeOnlyOutput, payload)
+            )
+        except Exception as exc:  # noqa: BLE001 - planner failure must not break publishing
+            return None, type(exc).__name__
+        return output.narrative, None
+
     async def aplan(
         self,
         base_plan: PresentationPlan,
@@ -352,11 +396,21 @@ class LlmPresentationPlanner:
         registry = registry_by_type()
         payload = self._build_payload(base_plan, registry, findings_by_id)
         context = structured_context(PRESENTATION_INSTRUCTIONS, VisualPlanOutput, payload)
+        narrative_error = None
         try:
             output = await self._model.decide(context)
-        except Exception:
-            return base_plan
-        return self._apply_output(
+        except Exception as exc:  # noqa: BLE001 - publish must not depend on the planner
+            output = VisualPlanOutput()
+            narrative_error = type(exc).__name__
+        if output.narrative is None:
+            try:
+                narrative, retry_error = await self._narrative_retry(base_plan, findings_by_id or {})
+            except Exception as exc:  # noqa: BLE001 - the summary is best effort
+                narrative, retry_error = None, type(exc).__name__
+            narrative_error = narrative_error or retry_error
+            if narrative is not None:
+                output = output.model_copy(update={"narrative": narrative})
+        planned = self._apply_output(
             base_plan,
             output,
             registry,
@@ -365,6 +419,11 @@ class LlmPresentationPlanner:
             citation_labels=citation_labels,
             citation_refs=citation_refs,
         )
+        if narrative_error:
+            planned = planned.model_copy(update={
+                "profile": {**(planned.profile or {}), "narrative_error": narrative_error},
+            })
+        return planned
 
     def plan(
         self,

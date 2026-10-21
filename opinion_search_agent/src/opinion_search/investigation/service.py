@@ -177,6 +177,57 @@ def unbacked_specifics(finding, evidence) -> tuple[str, ...]:
     return tuple(dict.fromkeys(missing))
 
 
+def repair_investigation_decision(state, decision):
+    """Salvage a near-miss decision instead of burning another model attempt.
+
+    Three failures ended real runs: an issue marked answered while a component
+    stayed open, a finding citing evidence the run never stored, and a finish
+    naming conclusions that were not supported. All three are repairable in the
+    conservative direction - claim less - so the run can continue.
+    """
+
+    if isinstance(decision, ReflectDecision):
+        changed = False
+        evidence_ids = {item.evidence_id for item in state.evidence}
+        assessments = []
+        for item in decision.assessments:
+            status = item.status
+            open_components = [
+                component for component in item.components
+                if component.status not in {"answered", "not_found", "unavailable"}
+            ]
+            if status in {"answered", "not_found"} and open_components:
+                status = "open"
+                changed = True
+            assessments.append(item.model_copy(update={"status": status}) if status != item.status else item)
+
+        findings = []
+        for proposal in decision.findings:
+            kept = tuple(item for item in proposal.evidence_ids if item in evidence_ids)
+            if kept != tuple(proposal.evidence_ids):
+                changed = True
+                if not kept:
+                    continue
+                proposal = proposal.model_copy(update={"evidence_ids": kept})
+            findings.append(proposal)
+
+        if not changed:
+            return None
+        return decision.model_copy(update={
+            "assessments": tuple(assessments), "findings": tuple(findings),
+        })
+
+    if isinstance(decision, FinishDecision):
+        supported = {
+            finding.finding_id for finding in state.findings
+            if finding.active and (review := accepted_review(state, finding)) and review.verdict == "supported"
+        }
+        kept = tuple(item for item in decision.conclusion_ids if item in supported)
+        if kept != tuple(decision.conclusion_ids):
+            return decision.model_copy(update={"conclusion_ids": kept})
+    return None
+
+
 class MeteredTransport:
     def __init__(self, budget):
         self.budget = budget
@@ -439,6 +490,7 @@ def build_loop(run_root: Path, case_root: Path, mode, budget, hook, signal, conf
                      decision_validator=ConsolidationValidator(Validator(), budget),
                      action_resolver=Resolver(),
                      timing=TimingRecorder(run_root / "timing.jsonl"),
+                     decision_repair=repair_investigation_decision,
                      action_executor=Executor(executor, checkpoint, corpus, reviewer, model_name),
                      observation_processor=Processor(), completion_evaluator=CompletionEvaluator(),
                      reducer=reduce_state, checkpoint_store=checkpoint,

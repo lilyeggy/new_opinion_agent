@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from enum import StrEnum
 from typing import Any, Callable, Protocol
 
@@ -49,6 +50,8 @@ from opinion_search.runtime.transaction import (
     terminate_run,
 )
 
+
+_LOGGER = logging.getLogger(__name__)
 
 RuntimeState = RunState[Any, Any, Any, Any]
 
@@ -133,6 +136,7 @@ class AgentLoop:
         action_resolver: ActionResolver,
         action_executor: ActionExecutor,
         timing: Any = None,
+        decision_repair: Callable[[Any, Any], Any | None] | None = None,
         observation_processor: ObservationProcessor,
         completion_evaluator: CompletionEvaluator[Any, Any, Any],
         reducer: Callable[[Any, Any], Any],
@@ -154,6 +158,7 @@ class AgentLoop:
         self._action_resolver = action_resolver
         self._action_executor = action_executor
         self._timing = timing
+        self._decision_repair = decision_repair
         self._observation_processor = observation_processor
         self._completion_evaluator = completion_evaluator
         self._reducer = reducer
@@ -167,6 +172,24 @@ class AgentLoop:
     async def resume(self) -> RunResult[Any]:
         state = await self._checkpoint_store.load()
         return await self.run(state)
+
+    def _try_repair(self, state: RuntimeState, decision: Any, exc: Exception) -> Any | None:
+        """Give the domain one chance to salvage the decision instead of retrying."""
+
+        if self._decision_repair is None:
+            return None
+        try:
+            repaired = self._decision_repair(state.domain_state, decision)
+        except Exception:
+            return None
+        if repaired is None:
+            return None
+        try:
+            self._decision_validator.validate(state.domain_state, repaired)
+        except (DecisionValidationError, ValueError):
+            return None
+        _LOGGER.info("decision repaired after %s", type(exc).__name__)
+        return repaired
 
     def _measured(self, state: RuntimeState, phase: str, action: Any = None):
         """Time one phase without letting a missing recorder change behaviour."""
@@ -319,21 +342,22 @@ class AgentLoop:
                         state.domain_state,
                         decision_payload,
                     )
-                except DecisionValidationError as exc:
-                    state = await self._recover_decision_failure(
-                        state,
-                        RuntimeFailure(kind=exc.kind, message=str(exc)),
-                    )
-                    continue
-                except ValueError as exc:
-                    state = await self._recover_decision_failure(
-                        state,
-                        RuntimeFailure(
-                            kind=RuntimeFailureKind.INVALID_DECISION,
-                            message=str(exc),
-                        ),
-                    )
-                    continue
+                except (DecisionValidationError, ValueError) as exc:
+                    # A near-miss decision may be repairable. Repair is preferred
+                    # over another retry: the model has already been told what it
+                    # got wrong, and the budget is finite.
+                    repaired = self._try_repair(state, decision_payload, exc)
+                    if repaired is not None:
+                        decision_payload = repaired
+                    else:
+                        kind = (
+                            exc.kind if isinstance(exc, DecisionValidationError)
+                            else RuntimeFailureKind.INVALID_DECISION
+                        )
+                        state = await self._recover_decision_failure(
+                            state, RuntimeFailure(kind=kind, message=str(exc)),
+                        )
+                        continue
                 decision = DecisionEnvelope(
                     run_id=state.run_id,
                     step_id=step.step_id,
