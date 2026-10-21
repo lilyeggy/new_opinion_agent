@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OpinionSearch 内容质量审计 · 发布就绪度评估</title>
+<style>
+:root{
+  --paper:#fbfaf7; --ink:#17161a; --ink-2:#4a4750; --ink-3:#76727d;
+  --line:#e2ded6; --line-2:#cfcac0;
+  --p0:#a8281f; --p0-bg:#fdf1ef;
+  --p1:#8a5a12; --p1-bg:#fdf6e9;
+  --p2:#3f4a5a; --p2-bg:#f2f4f7;
+  --ok:#1f5c43; --ok-bg:#eef6f1;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15.5px; line-height:1.72; letter-spacing:.01em;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 32px 120px}
+
+/* masthead */
+.masthead{border-bottom:2px solid var(--ink);padding:28px 0 14px;margin-bottom:0}
+.mast-top{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase}
+.mast-top .sep{color:var(--line-2);margin:0 8px}
+.mast-title{font-size:13px;letter-spacing:.3em;color:var(--ink-2);margin-top:26px;text-transform:uppercase}
+h1{font-size:40px;line-height:1.22;letter-spacing:-.015em;font-weight:800;margin:6px 0 0}
+.sub{font-size:17px;color:var(--ink-2);margin:12px 0 0;font-weight:400}
+.meta-row{display:flex;flex-wrap:wrap;gap:0 26px;font-size:12.5px;color:var(--ink-3);margin-top:22px;padding-top:14px;border-top:1px solid var(--line)}
+.meta-row b{color:var(--ink-2);font-weight:600;letter-spacing:.04em;margin-right:6px}
+
+/* verdict */
+.verdict{margin:44px 0 0;border-left:4px solid var(--p0);background:var(--p0-bg);padding:24px 28px}
+.verdict .tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--p0);border:1px solid currentColor;padding:2px 8px;border-radius:2px;margin-bottom:12px}
+.verdict h2{margin:0 0 10px;font-size:23px;line-height:1.45;font-weight:750}
+.verdict p{margin:0;color:var(--ink-2);font-size:15px}
+.verdict p+p{margin-top:10px}
+
+/* numbers */
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:36px 0 0}
+.num{background:#fff;padding:20px 18px}
+.num .v{font-family:var(--mono);font-size:29px;font-weight:600;letter-spacing:-.03em;line-height:1.1}
+.num .k{font-size:12px;color:var(--ink-3);margin-top:8px;line-height:1.5}
+.num .v.bad{color:var(--p0)}
+.num .v.good{color:var(--ok)}
+.num .v.mid{color:var(--p1)}
+
+h2.sec{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin:64px 0 0;padding-bottom:10px;border-bottom:1px solid var(--line-2)}
+h2.sec span{color:var(--ink);letter-spacing:.06em;font-size:15px;display:block;margin-top:6px;text-transform:none;font-weight:750}
+
+/* defect */
+.d{border-top:1px solid var(--line);padding:26px 0 4px}
+.d:first-of-type{border-top:1px solid var(--line-2);margin-top:26px}
+.d-head{display:flex;gap:14px;align-items:flex-start}
+.pill{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;padding:3px 8px;border-radius:2px;margin-top:4px}
+.p0{background:var(--p0);color:#fff}
+.p1{background:var(--p1);color:#fff}
+.p2{background:var(--p2);color:#fff}
+.d h3{margin:0;font-size:19px;line-height:1.45;font-weight:700;flex:1}
+.d .body{margin:12px 0 0;padding-left:0;color:var(--ink-2)}
+.d .body p{margin:0 0 10px}
+.d .body p:last-child{margin-bottom:0}
+
+/* evidence */
+.ev{margin:14px 0 18px;border:1px solid var(--line);background:#fff}
+.ev .where{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);padding:8px 14px;border-bottom:1px solid var(--line);background:#faf9f6;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ev .where b{color:var(--p0);font-weight:600}
+.ev pre{margin:0;padding:13px 14px;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--ink)}
+.ev pre .hl{background:#fbe6a2;color:#000;padding:0 1px}
+.fix{margin:10px 0 0;padding:12px 16px;border-left:2px solid var(--ok);background:var(--ok-bg);font-size:14px;color:#204838}
+.fix b{color:var(--ok);letter-spacing:.06em;font-size:11.5px;font-family:var(--mono);display:block;margin-bottom:4px}
+
+/* quote block */
+blockquote{margin:14px 0;padding:14px 20px;border-left:3px solid var(--line-2);background:#fff;color:var(--ink-2);font-size:14.5px}
+blockquote cite{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-style:normal;margin-top:8px}
+
+/* table */
+table{width:100%;border-collapse:collapse;margin:20px 0 0;font-size:13.5px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--line-2)}
+td.n{font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+
+/* plan */
+.plan{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:24px}
+.plan>div{background:#fff;padding:22px 24px}
+.plan h4{margin:0 0 14px;font-size:15px;letter-spacing:.02em}
+.plan ol{margin:0;padding-left:20px;color:var(--ink-2);font-size:14px}
+.plan ol li{margin-bottom:9px}
+.plan .cost{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+
+.foot{margin-top:70px;padding-top:18px;border-top:2px solid var(--ink);font-size:12px;color:var(--ink-3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+code{font-family:var(--mono);font-size:.88em;background:#f0ece4;padding:1.5px 5px;border-radius:2px;color:#3a2f22}
+
+@media (max-width:760px){
+  .wrap{padding:0 18px 80px}
+  h1{font-size:28px}
+  .nums{grid-template-columns:1fr 1fr}
+  .plan{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff;font-size:11pt}
+  .wrap{max-width:none;padding:0}
+  .d{break-inside:avoid}
+  .ev{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="mast-top">
+      <span>OpinionSearch · Content Quality Audit</span>
+      <span>2026-10-20<span class="sep">/</span>内部评审<span class="sep">/</span>不对外</span>
+    </div>
+    <div class="mast-title">发布就绪度评估</div>
+    <h1>内容够得着发布，<br>声明撑不住发布</h1>
+    <p class="sub">对 opinion_search_agent 现有产出的一次代码级对账：18 次有记录的运行、最近 3 次完整运行、2 份 HTML 报告、1 份 Markdown 报告。</p>
+    <div class="meta-row">
+      <span><b>审计对象</b>artifacts/live-quality-20261019b、report_contract/renderer.py、investigation/report.py</span>
+      <span><b>方法</b>读产物 + 读渲染代码 + 离线复算</span>
+      <span><b>门禁</b><code>quality_gate.py --check</code> 通过</span>
+    </div>
+  </header>
+
+  <section class="verdict">
+    <span class="tag">结论</span>
+    <h2>不能按“舆情调查报告”发布；可以按“公开材料核查台账”发布。</h2>
+    <p>事实层是站得住的：最近一次运行 25 条判断 24 条过审，引用闭合 100%，摘录落回冻结快照 256/256，人工标注虚构数 0，质量门禁能离线逐位复算。</p>
+    <p>塌的是<b>元陈述（meta-claim）</b>：报告头部写死“事实链独立交叉核验已通过”“权威核验级”“评级：全量交叉复核”，而同一份运行里 6 个议题有 4 个未收口、9 个来源的相互关系全部未核实、核心结论 0 条。读者第一眼看到的自我评级，和正文实际状态是反的。</p>
+    <p>这不是打磨问题。任何一个懂行的评审——媒体法务、公关、面试官——都会先看头部声明再看脚注，然后发现两处对不上。那一下之后，正文写得再准也不作数了。</p>
+  </section>
+
+  <div class="nums">
+    <div class="num"><div class="v bad">18 / 18</div><div class="k">有记录的运行全部 <code>partial</code>，<br>零次 <code>completed</code></div></div>
+    <div class="num"><div class="v bad">0</div><div class="k">18 次运行累计产出的<br>核心结论（conclusions）条数</div></div>
+    <div class="num"><div class="v mid">71%</div><div class="k">忠实性 10/14（人工完全支持）；<br>引语覆盖率 61.5%</div></div>
+    <div class="num"><div class="v good">100%</div><div class="k">引用闭合、摘录可核 256/256、<br>零虚构，可离线复算</div></div>
+  </div>
+
+  <h2 class="sec">第一级 · 发布即事故<span>4 条，全部在渲染层，改文案和取值就能解决</span></h2>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p0">P0-1</span><h3>头部的四项权威声明是硬编码字符串，与运行事实无关</h3></div>
+    <div class="body">
+      <p>“权威核验级”“事实链独立交叉核验已通过”“评级：全量交叉复核”“VOL. XXIV · NO. 88”全部写死在模板里，不读任何运行状态。</p>
+      <div class="ev">
+        <div class="where"><span><b>renderer.py</b> 第 72 / 94 / 104 / 111 行</span><span>硬编码</span></div>
+        <pre>&lt;span class="masthead-vol"&gt;<span class="hl">VOL. XXIV · NO. 88</span>&lt;/span&gt;
+&lt;span class="headline-badge"&gt;<span class="hl">权威核验级</span>&lt;/span&gt;
+&lt;span class="meta-item"&gt;&lt;strong&gt;核查机制&lt;/strong&gt;<span class="hl">事实链独立交叉核验已通过</span>&lt;/span&gt;
+&lt;span class="audit-panel-badge"&gt;<span class="hl">评级：全量交叉复核</span>&lt;/span&gt;</pre>
+      </div>
+      <p>后果在运行 <code>5b8c20ff</code> 上暴露得最彻底：该次运行 17 条判断<b>全部未送审</b>（<code>review_models: {}</code>），报告头部依然写着“事实链独立交叉核验已通过”，而同一页的核查说明写着“尚无通过核查的核心判断”。同一份文件里两个相反的断言。</p>
+      <div class="fix"><b>改法</b>徽章值改为从运行状态推导：过审条数/总条数、议题收口数、来源关系核实数。推导不出就显示“未评级”。同时删掉 VOL/NO 这类虚构刊号。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p0">P0-2</span><h3>“已核实”徽章的真实语义是“这个模块有数据”，不是“这些事实过审了”</h3></div>
+    <div class="body">
+      <p>徽章取自 <code>ModuleState.READY</code>，而 <code>READY</code> 只表示该模块被判定为“可展示”。时间线模块只要有节点就是 <code>READY</code>，哪怕节点里每一条判断都是 <code>unreviewed</code>。</p>
+      <div class="ev">
+        <div class="where"><span><b>renderer.py</b> 第 18 行</span><span>语义错位</span></div>
+        <pre>STATE_LABELS = {
+    ModuleState.READY: <span class="hl">"已核实"</span>,   # 实际含义：模块有数据可展示
+    ModuleState.PENDING: "待核查",
+}</pre>
+      </div>
+      <div class="ev">
+        <div class="where"><span><b>projector.py</b> 第 791 行</span><span>文案写死</span></div>
+        <pre>summary=f"串联 {len(timeline_items)} 个<span class="hl">已核实</span>时间节点，展示从引发争议到各方回应的完整演进链条。"</pre>
+      </div>
+      <p>在 <code>5b8c20ff</code> 的 HTML 里，“已核实”出现 <b>13 次</b>，而该运行可核判断为 0 条。0 条判断的报告里有 13 个“已核实”，这是会被截图的那一类问题。</p>
+      <div class="fix"><b>改法</b><code>READY</code> 的显示文案改成“有材料”；真正的“已核实”只在模块内<b>全部</b>条目 <code>support == supported</code> 时出现，否则降级为“部分核查”。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p0">P0-3</span><h3>Markdown 报告把未核查判断当已核查内容发布，且不作任何标记</h3></div>
+    <div class="body">
+      <p>时间线只按“有没有 event_time”取数，不带审查结论。已过审和没送审的判断，在报告里长得一模一样。</p>
+      <div class="ev">
+        <div class="where"><span><b>report.py</b> 第 209–211 行</span><span>缺 support 标签</span></div>
+        <pre>for heading, rows in ((current_heading, current_rows),
+                     ("事件时间线", [f for f in report["findings"] if f["event_time"]])):
+    lines += [f"- {esc((f.get('event_time') or '') + ' ' + f['text'])} {refs(f['evidence_ids'])}" for f in rows]</pre>
+      </div>
+      <p>对比 <code>5b8c20ff</code> 的 report.md 第 15–19 行：5 个时间线节点全部是 <code>unreviewed</code>，输出格式与已过审判断完全一致，读者无从分辨。HTML 侧靠“查看事实引证及核查原文”的折叠交互补了一点，Markdown 侧没有任何补偿。</p>
+      <div class="fix"><b>改法</b>时间线行尾补 <code>[未核查]</code> / <code>[引用支持]</code> 前缀；未核查项在 Markdown 里默认加删除线或单独归入“未经审查的线索”小节。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p0">P0-4</span><h3>“未收口的问题”说“没有查到可以引用的材料”，而正文正在引用材料回答这些问题</h3></div>
+    <div class="body">
+      <p>四个议题状态是 <code>open</code>，报告统一加了一句解释性结论，把“未收口”等同于“没查到东西”。但同一份报告里，这四个议题各自挂着 3–8 条判断和引用。</p>
+      <div class="ev">
+        <div class="where"><span><b>report.py</b> 第 229–232 行</span><span>固定文案</span></div>
+        <pre>f"以下 {len(unresolved['issues'])} 个问题在报告生成时仍未收口。本轮共检索 "
+f"{unresolved['searches']} 次、读取 {unresolved['reads']} 个来源（失败 "
+f"{unresolved['read_failures']} 次）。<span class="hl">这表示这一轮没有查到可以引用的材料，不表示问题不存在。</span>"</pre>
+      </div>
+      <blockquote>
+        实际状态：<code>open</code> / 8 条判断<br>
+        note 开头写的却是：“<b>已核实</b>：9月14日热搜第一、截至9月14日未回应、次日视频账号涨粉近3万……”
+        <cite>run 4dbd16d8 · report.json · issues[4]</cite>
+      </blockquote>
+      <p>于是同一页上出现三种互相打架的表述：标题写“待调查”，note 写“已核实”，页尾写“没查到可引用材料”。这是最容易被读者抓现行的一处。</p>
+      <div class="fix"><b>改法</b>把 <code>open</code> 的语义拆成“已有关键材料但未完整回答”，文案改成“已引用 N 条材料，仍缺 X 部分”；只有在该议题<b>零</b>判断时才允许出现“没有查到可引用材料”。</div>
+    </div>
+  </article>
+
+  <h2 class="sec">第二级 · 读者一眼看出不专业<span>6 条，集中在时间线与证据附录</span></h2>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-5</span><h3>“事件时间线”与“阶段性判断”100% 重复，纯属排版事故</h3></div>
+    <div class="body">
+      <p><code>interim_findings</code> 取全部 <code>supported</code> 判断，时间线取全部带 <code>event_time</code> 的判断。在这份运行里两个集合完全重叠：14 个时间线节点，14 个都已在上一节出现过。</p>
+      <table>
+        <tr><th>集合</th><th class="n">条数</th><th>说明</th></tr>
+        <tr><td>阶段性判断</td><td class="n">24</td><td>全部 supported 判断</td></tr>
+        <tr><td>事件时间线</td><td class="n">14</td><td>全部带日期的判断</td></tr>
+        <tr><td>两者交集</td><td class="n" style="color:var(--p0)">14</td><td>时间线新增信息量 = 0</td></tr>
+      </table>
+      <div class="fix"><b>改法</b>时间线取数时排除已在上文出现的 finding_id；或反过来，时间线只放“日期 + 一句话”，把长判断留在议题节。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-6</span><h3>时间线不排序、同一节点重复五次、日期格式畸形</h3></div>
+    <div class="body">
+      <p>14 个节点按 state 插入顺序渲染，没有任何归一化排序。实际输出：</p>
+      <div class="ev">
+        <div class="where"><span>presentation_plan.json · overview-event-timeline</span><span>14 节点</span></div>
+        <pre> 1  2026-09-12  罗永浩
+ 2  2026-09-12  罗永浩      ← 同一事件
+ 3  2026-09-12  罗永浩      ← 同一事件
+ 4  2026-09-12  罗永浩      ← 同一事件
+ 5  2026-09-14  野人先生门店
+ …
+13  <span class="hl">2025-09</span>     西贝        ← 早于事件一年，却排在倒数第二
+14  2026-09-12<span class="hl">（9月12日）</span>  罗永浩   ← 格式未归一，第 5 个同主体节点</pre>
+      </div>
+      <p>14 个节点里 5 个在讲同一天同一方（4 个完全同形，1 个是日期畸形版）。HTML 的“脉络图”把这五个渲染成连排的五个“2026-09-12 罗永浩”，读者会以为是排版 bug，而不是在讲一件事被五篇报道分别复述。</p>
+      <div class="fix"><b>改法</b>渲染前按 <code>event_time</code> 归一化（剥掉括号补注、补全 2025-09 → 2025-09-01）后升序；同一天同一 actor 的节点合并为一个，多篇报道作为该节点的多引证。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-7</span><h3>时间线里混进了不是事件的东西</h3></div>
+    <div class="body">
+      <p>被当成“事件节点”的包括：媒体的设问式修辞、第三方统计数据、一条未具名爆料。</p>
+      <blockquote>
+        “同一篇澎湃新闻文章在开头把罗永浩的公开吐槽概括为给野人先生‘出了一道考题，还是保持沉默’——这是媒体对品牌回应策略的<b>设问式解读</b>，不是品牌自身的表态。”
+        <cite>被标为 2026-09-15 的事件节点</cite>
+      </blockquote>
+      <blockquote>
+        “据搜狐报道引用的<b>第三方数据</b>：门店超1700家，人均消费26.84元；视频账号累计粉丝超439万……”
+        <cite>被标为 2026-09-14 的事件节点</cite>
+      </blockquote>
+      <p>这两条作为判断是合格的（都带了“这是解读”“这是第三方口径”的限定），但它们不构成时间线上的一个“节点”。时间线一旦掺入非事件，读者对整条脉络的信任就降级了。</p>
+      <div class="fix"><b>改法</b>给 finding 加一个 <code>event_kind</code>（事件 / 表态 / 数据 / 解读），时间线只收前两类。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-8</span><h3>证据附录 6/33 是页脚、导航、图片链接和标签云</h3></div>
+    <div class="body">
+      <p>摘录抽取没有过滤 DOM 噪声，版权声明和导航条被当成“原文证据”冻结进了卷宗。</p>
+      <div class="ev">
+        <div class="where"><span><b>evidence-b82719555c7da7157ad3</b></span><span>南都版权页脚</span></div>
+        <pre>南都N视频，未经授权不得转载、授权联系方式
+ banquan@nandu.cc. 020-87006626</pre>
+      </div>
+      <div class="ev">
+        <div class="where"><span><b>evidence-a19ddb752c1a515a614a</b></span><span>页面导航</span></div>
+        <pre><span class="hl">正在浏览：</span>被罗永浩吐槽难吃后，野人先生沉默数日后首发声；……</pre>
+      </div>
+      <div class="ev">
+        <div class="where"><span><b>evidence-8c1945a247b7d1fb90b7</b></span><span>商品标签云</span></div>
+        <pre>[可爱多雪糕][冰淇凌][冷饮][冰淇淋][冰棒][中街1946][蒙牛冰激凌][甜筒冰淇淋]</pre>
+      </div>
+      <p>另外正文里有未清理的 Markdown 转义残留：<code>\#罗永浩吐槽野人先生后特意提示\#</code>、<code>\![Image 10]</code>、<code>\[罗永浩说野人先生难吃，品牌方的回应只有一句话\]</code>。这些直接出现在“来源与证据”节的读者视野里。</p>
+      <div class="fix"><b>改法</b>证据入库前加一道噪声过滤（版权关键词、导航前缀、纯链接行、图片语法），并做一次 markdown 反转义。这条改动最小、观感提升最大。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-9</span><h3>“查找截止”比调查开始只晚 14 秒，而报告 30 分钟后才生成</h3></div>
+    <div class="body">
+      <p>报告头三行时间是这样的：</p>
+      <div class="ev">
+        <div class="where"><span>run 4dbd16d8 · report.json</span><span>时间语义错位</span></div>
+        <pre>调查开始：2026-10-19T12:15:13     ← started_at
+<span class="hl">查找截止：2026-10-19T12:15:27</span>     ← 只过了 14 秒
+报告生成：2026-10-19T12:45:23     ← 实际跑了 30 分钟（elapsed 1810s）</pre>
+      </div>
+      <p><code>cutoff</code> 实际是“材料时间基准”，在规划阶段就冻结了，不是“检索结束”。但字段名和展示文案都叫“查找截止”。读者会得出“这个 agent 只搜了 14 秒”的结论——恰好与事实相反。</p>
+      <div class="fix"><b>改法</b>标签改成“材料截止时间”，另加一行“检索耗时 30 分 11 秒”。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">P1-10</span><h3>内部调试面板原样进了读者视野</h3></div>
+    <div class="body">
+      <p>“调查生产链路健康度诊断”一节把 <code>blocked / observed / attention</code> 三档状态直接铺给读者，无中文、无解释；页脚写着“内容契约 → 呈现方案 → 确定性渲染”，全部是内部管线术语。</p>
+      <div class="ev">
+        <div class="where"><span>dossier.html · 第五节 · 页脚</span><span>面向开发者，不是读者</span></div>
+        <pre>blocked
+observed
+attention
+attention
+observed
+<span class="hl">内容契约 → 呈现方案 → 确定性渲染</span></pre>
+      </div>
+      <div class="fix"><b>改法</b>该节在对外版本里默认折叠并译成中文（“未达发布条件 / 已采集 / 需注意”），或整节移出发布版，只保留在 <code>/dev</code> 控制台。</div>
+    </div>
+  </article>
+
+  <h2 class="sec">第三级 · 打磨项<span>4 条，不影响可信度但要花时间</span></h2>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p2">P2-11</span><h3>没有综合叙述：24 张卡片的堆叠，没有一句“这件事怎么定性”</h3></div>
+    <div class="body">
+      <p>报告正文全部由 <code>finding.text</code> 确定性渲染，模型不能自由写段落——这是防幻觉的正确取舍，代价是全文没有一处综合。读者读完 24 张卡片，仍然不知道“品牌到底算不算回应了”。</p>
+      <p>这不是 bug，是取舍。但它决定了这个产物<b>不能叫“报告”</b>——报告的定义包含“给出判断”，而这里只给“列出核查结果”。</p>
+      <div class="fix"><b>改法</b>如果要做报告，需补一层“综合”：模型只能引用已过审 finding 的 id 组句，输出段落必须每个分句挂 id。这不是收尾范围。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p2">P2-12</span><h3>议题标题被截断成“各方归因与公众…”</h3></div>
+    <div class="body">
+      <p>卡片副标题按固定字数截断，在词中间断开，后面没有省略号处理也没有 title 提示。同类问题：<code>_short_issue_label</code> 生成的标签在多处只剩半句。低成本修复。</p>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p2">P2-13</span><h3>被放大 10 倍的数字只被“挡在判断层外”，没有被拦截</h3></div>
+    <div class="body">
+      <p>对抗埋点第三条记为“通过”，但门禁自己写明了：<code>3160.3</code> 与 <code>908.9</code> 确实以原始摘录出现在报告末尾的证据附录里，判断层没出现是因为“这一轮没轮到综合”，不是校验机制起作用。</p>
+      <p><code>domain/numeric.py</code> 的检测器已经能报出 5 条冲突、覆盖 4 个指标、两轮真实运行零误报——但它<b>尚未接进运行时</b>。这是全套系统里最划算的一项未接线改造。</p>
+      <div class="fix"><b>改法</b>在 reflect 阶段调用 <code>numeric_audit</code>，冲突项直接禁止进入 conclusions。改动小，能把“侥幸”变成“机制”。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p2">P2-14</span><h3>报告从不解释自己为什么停下来</h3></div>
+    <div class="body">
+      <p><code>stop_reason</code> 是英文内部串（<code>Decision recovery was exhausted: query/page already attempted; change the search direction</code>），只存在于 report.json，未进入正文。读者看不到“为什么没查完”，只能看到一个中性的“阶段性完成”。</p>
+      <div class="fix"><b>改法</b>把 stop_reason 译成一句人话放进“调查限制”（“因同一检索方向重复触发保护，本轮在第 14 次检索后停止”）。诚实交代停止原因，比含糊的“阶段性完成”更能建立信任。</div>
+    </div>
+  </article>
+
+  <h2 class="sec">深层问题 · 收尾改不动，但必须先承认<span>决定这个项目能不能被称作“能出报告”</span></h2>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p0">结构</span><h3>18 次运行、0 次 completed、0 条结论——这不是偶发</h3></div>
+    <div class="body">
+      <p>把所有 artifacts 下的 report.json 拉平看，18 次运行的状态分布是<b>单点</b>的：</p>
+      <table>
+        <tr><th>停止原因</th><th class="n">次数</th><th>含义</th></tr>
+        <tr><td>Step 上限</td><td class="n">7</td><td>预算耗尽</td></tr>
+        <tr><td>时间 / 模型调用预算</td><td class="n">3</td><td>预算耗尽</td></tr>
+        <tr><td>Decision recovery exhausted</td><td class="n">8</td><td>决策层死锁，主动放弃</td></tr>
+        <tr><td>completed</td><td class="n" style="color:var(--p0)">0</td><td>从未发生</td></tr>
+      </table>
+      <p>近一半运行不是“查够了停下”，而是<b>决策层卡住后放弃</b>：最近一次 14 次检索拿到 63 个候选，只读了 9 个，还有 51 个未读、40 次模型额度没用完就停了。另一次在 3 次检索后停在“reflect is required before …”，直接导致 17 条判断全部未送审。</p>
+      <p>换句话说：<b>这个系统从来没有产出过一份“查完了”的报告</b>。它现在的能力边界是“在有限步数内尽可能多地采集并核验证据”，不是“给出结论”。</p>
+      <div class="fix"><b>必须先做的决定</b>要么接受“证据台账”定位并据此改文案；要么补完成路径（<code>ACCEPT_COMPLETE</code> 目前只存在于 opinion 域，调查域里没有找到对应判定）。二者选一，不能靠修排版糊过去。</div>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">召回</span><h3>必中清单只读到 6/10，第二个事件 7/12</h3></div>
+    <div class="body">
+      <p>门禁基线（可复算、已通过 <code>--check</code>）：发现层 7/10、已读层 6/10；第二事件发现层 12/12、已读层 7/12。意味着每 10 条“合格调查必须找到的内容”，有 3–4 条从未被读过。</p>
+      <p>对“台账”定位而言这是可接受的（台账不承诺穷尽）；对“报告”定位而言这是硬伤——一份漏掉 40% 关键事实的舆情报告，发布出去就是事故。</p>
+    </div>
+  </article>
+
+  <article class="d">
+    <div class="d-head"><span class="pill p1">审查</span><h3>“引用支持”是同一个模型自评，不是事实正确</h3></div>
+    <div class="body">
+      <p><code>review_models: {"deepseek-v4.1-flash": 25}</code>——25 条判断的审查全部由生成它们的同一类模型完成。门禁里“系统自评 supported 6/14”对“人工完全支持 10/14”这一对数字也说明：自评比人工更严，但两者衡量的不是同一件事。</p>
+      <p>报告里“引用支持”只保证“这句话能在绑定的摘录里找到”，不保证“摘录本身是真的、来源是独立的”。9 个来源里 3 个是 <code>sina.cn</code> 的互相转载，而源关系全部标为 <code>unverified</code>——所谓“独立交叉核验”在数据上并不成立。</p>
+    </div>
+  </article>
+
+  <h2 class="sec">收尾路径<span>两条，先选定位再动手</span></h2>
+
+  <div class="plan">
+    <div>
+      <h4>A · 诚实版台账（推荐，48 小时内可完成）</h4>
+      <ol>
+        <li>删掉四处硬编码权威声明，徽章改为按 review 覆盖率生成。</li>
+        <li><code>READY</code> 文案改“有材料”，真“已核实”只在全条过审时出现。</li>
+        <li>Markdown 时间线加 <code>[未核查]</code> 标签。</li>
+        <li>时间线去重、按归一化日期排序、过滤非事件节点。</li>
+        <li>未收口文案改为“已引用 N 条材料，仍缺 X”。</li>
+        <li>证据附录过滤页脚 / 导航 / 图片链接 / 标签云，清转义残留。</li>
+        <li>“查找截止”改“材料截止”，补检索耗时；stop_reason 译成中文进限制节。</li>
+      </ol>
+      <div class="cost">全部是渲染层改动，不碰 runtime。验收：用 5b8c20ff 与 4dbd16d8 重渲染，断言 0 处虚假声明、0 处时间线重复、日期单调递增。</div>
+    </div>
+    <div>
+      <h4>B · 真做成报告（下一期，不是收尾）</h4>
+      <ol>
+        <li>补调查域完成路径，让 <code>completed</code> 可达。</li>
+        <li>补综合层：模型只能引用已过审 finding 组句。</li>
+        <li>修决策死锁：51 个未读候选 + 40 次剩余额度时不该停。</li>
+        <li>提升已读层召回（6/10 → 8/10 以上）。</li>
+        <li>接入 <code>numeric_audit</code>，把对抗第三条从侥幸变机制。</li>
+        <li>换独立审查模型或加入人工抽检环节。</li>
+      </ol>
+      <div class="cost">工作量以周计，且第 1、3 项是架构级改动。收尾阶段不建议启动。</div>
+    </div>
+  </div>
+
+  <h2 class="sec">一句话的定位建议<span>如果不改代码，改叙述也行</span></h2>
+
+  <article class="d" style="border-top:1px solid var(--line-2)">
+    <div class="body">
+      <p>这套东西真正的卖点不是“生成了舆情报告”，而是<b>一条不会撒谎的证据链</b>：每个结论都钉到字符级摘录、每条摘录都能落回冻结快照（256/256）、每一步都能确定性回放、质量数字能离线逐位复算、并且系统自己会标注“这里没查够”。</p>
+      <p>所以对外叙事应该是“我造了一个可复算、可回放、知道自己边界的核查机器”，而不是“我做了个舆情报告生成器”。前者现在就能拿出去讲，后者一被问到“为什么 18 次没一次跑完”就崩了。</p>
+      <p>相应地，产物名字建议从“舆情调查报告”改成“公开材料核查台账 · 阶段性”。名字一改，7 条 P0/P1 里有一半从“缺陷”变成“如实标注”——它本来就该这么写。</p>
+    </div>
+  </article>
+
+  <footer class="foot">
+    <span>审计基于 artifacts/live-quality-20261019b 与 live-quality-20261019 全部运行 · 代码引用对应工作区当前版本</span>
+    <span>质量门禁复核：<code>quality gate: baseline reproduced exactly</code></span>
+  </footer>
+
+</div>
+</body>
+</html>
