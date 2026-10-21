@@ -381,7 +381,7 @@ class LlmPresentationPlanner:
                 structured_context(NARRATIVE_INSTRUCTIONS, NarrativeOnlyOutput, payload)
             )
         except Exception as exc:  # noqa: BLE001 - planner failure must not break publishing
-            return None, type(exc).__name__
+            return None, f"{type(exc).__name__}: {exc}"[:400]
         return output.narrative, None
 
     async def aplan(
@@ -401,12 +401,12 @@ class LlmPresentationPlanner:
             output = await self._model.decide(context)
         except Exception as exc:  # noqa: BLE001 - publish must not depend on the planner
             output = VisualPlanOutput()
-            narrative_error = type(exc).__name__
+            narrative_error = f"{type(exc).__name__}: {exc}"[:400]
         if output.narrative is None:
             try:
                 narrative, retry_error = await self._narrative_retry(base_plan, findings_by_id or {})
             except Exception as exc:  # noqa: BLE001 - the summary is best effort
-                narrative, retry_error = None, type(exc).__name__
+                narrative, retry_error = None, f"{type(exc).__name__}: {exc}"[:400]
             narrative_error = narrative_error or retry_error
             if narrative is not None:
                 output = output.model_copy(update={"narrative": narrative})

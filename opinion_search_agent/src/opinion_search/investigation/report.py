@@ -4,6 +4,7 @@ import re
 
 from opinion_search.domain.investigation.models import State, accepted_review
 from opinion_search.domain.opinion.brief import _escape_markdown, _safe_markdown_destination
+from opinion_search.domain.investigation.engine import completion as completion_verdict
 from opinion_search.investigation.diagnostics import build_chain_diagnostics
 
 LABELS = {
@@ -83,6 +84,20 @@ def _unresolved(state) -> dict[str, object] | None:
         "reads": len(state.sources),
         "read_failures": len(state.read_errors),
     }
+
+
+def _completion_gate(state, status) -> dict | None:
+    """Why the run did not finish, in the gate's own words."""
+
+    if status == "completed":
+        return None
+    try:
+        verdict = completion_verdict(state)
+    except (ValueError, AttributeError):
+        return None
+    if verdict is None:
+        return None
+    return {"disposition": verdict.disposition.value, "reason": verdict.reason[:600]}
 
 
 def build_report(state: State, status: str, reason: str, *, case_id, run_id, parent_id=None, parent=None,
@@ -205,6 +220,7 @@ def build_report(state: State, status: str, reason: str, *, case_id, run_id, par
                                                 publication_status=status,
                                                 checkpoint_boundary=checkpoint_boundary),
         "unresolved": _unresolved(state),
+        "completion_gate": _completion_gate(state, status),
         "numeric_blocked_conclusions": blocked,
         "stop_reason_text": stop_reason_text(reason),
         "scope_limitation": " ".join(("仅分析本次可获得的公开文件与报道，不代表公众整体态度。回应覆盖不等于问题已解决。证据审查是模型辅助判断，不是真值证明。", *scope_notes)),
@@ -400,6 +416,9 @@ def markdown(report):
     lines += ["", "## 调查限制", ""]
     if report.get("stop_reason_text"):
         lines.append(f"- 停止原因：{esc(report['stop_reason_text'])}")
+    gate = report.get("completion_gate")
+    if gate:
+        lines.append(f"- 完成门禁未通过（{esc(gate['disposition'])}）：{esc(gate['reason'])}")
     if report.get("numeric_blocked_conclusions"):
         lines.append(f"- 有 {report['numeric_blocked_conclusions']} 条判断因所引来源之间存在数量级冲突，未进入核心结论。")
     lines += ["", report["scope_limitation"]]
