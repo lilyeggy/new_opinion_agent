@@ -173,6 +173,13 @@ def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path
     else:
         raise AssertionError("consolidation must reject further acquisition")
 
+    try:
+        guarded.validate(state, _search_decision_with_unknown_issue())
+    except ValueError as exc:
+        assert "finish now with a partial report" in str(exc)
+    else:
+        raise AssertionError("closeout must take precedence over inner validation")
+
     finding_id = state.findings[0].finding_id
     guarded.validate(state, FinishDecision(conclusion_ids=(finding_id,)))
 
@@ -181,3 +188,9 @@ def _search_decision(state: State):
     from opinion_search.domain.investigation.models import SearchDecision
 
     return SearchDecision(issue_id=state.issues[0].issue_id, query="另一种搜索方向", purpose="original")
+
+
+def _search_decision_with_unknown_issue():
+    from opinion_search.domain.investigation.models import SearchDecision
+
+    return SearchDecision(issue_id="unknown-issue", query="无效新搜索", purpose="original")

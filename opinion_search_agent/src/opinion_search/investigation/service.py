@@ -90,15 +90,27 @@ class ConsolidationValidator:
         self.budget = budget
 
     def validate(self, state: State, decision) -> None:
-        self.inner.validate(state, decision)
         snapshot = self.budget.snapshot()
         limit = self.budget.limits["model"]
         used = snapshot["model"]
         consolidation_seconds = self.budget.limits.get("consolidate_seconds", 900)
-        if (
-            used < consolidation_model_call_limit(limit)
-            and snapshot["elapsed_seconds"] < consolidation_seconds
-        ):
+        consolidating = (
+            used >= consolidation_model_call_limit(limit)
+            or snapshot["elapsed_seconds"] >= consolidation_seconds
+        )
+        if consolidating and partial_finish_allowed(state):
+            # The closeout decision must win over an invalid new acquisition or
+            # synthesis attempt: otherwise an inner field error turns the final
+            # step into an avoidable decision-recovery failure.
+            if not isinstance(decision, FinishDecision):
+                raise ValueError(
+                    "the bounded investigation is ready to close; finish now with a partial report "
+                    "instead of changing evidence or findings"
+                )
+            self.inner.validate(state, decision)
+            return
+        self.inner.validate(state, decision)
+        if not consolidating:
             return
         remaining = limit - used
         active = [finding for finding in state.findings if finding.active]
@@ -123,13 +135,6 @@ class ConsolidationValidator:
             (rev := accepted_review(state, finding)) is not None and rev.verdict != "supported"
             for finding in active
         )
-        if open_required and partial_finish_allowed(state):
-            if not isinstance(decision, FinishDecision):
-                raise ValueError(
-                    "the bounded investigation is ready to close; finish now with a partial report "
-                    "instead of changing evidence or findings"
-                )
-            return
         if isinstance(decision, RetrieveDecision) and remaining >= 4 and (has_partial_review or open_required):
             return
         if isinstance(decision, ReflectDecision) and (open_required or (has_partial_review and remaining >= 3)):
