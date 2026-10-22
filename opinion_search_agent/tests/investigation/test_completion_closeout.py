@@ -105,6 +105,46 @@ def test_unreviewed_findings_keep_the_bounded_partial_gate_closed():
     assert verdict.disposition is CompletionDisposition.REJECT_AND_CONTINUE
 
 
+def test_stale_negative_finding_prevents_a_bounded_partial_finish():
+    state = _progressive_state()
+    issue_id = state.issues[0].issue_id
+    stale = Finding(
+        issue_id=issue_id,
+        text="品牌方尚未公开回应事件。",
+        kind="fact",
+        evidence_ids=("e1",),
+        response="not_found",
+        finding_id="finding-stale-closeout",
+    )
+    stale_review = ReviewRecord(
+        finding_id=stale.finding_id,
+        verdict="supported",
+        reason="构造的当前审查",
+        finding_hash=finding_hash(stale),
+        model="test",
+        reviewed_at=utcnow(),
+    )
+    response_evidence = Evidence(
+        evidence_id="e2",
+        version_id="v2",
+        excerpt="品牌方已发布声明回应事件。",
+        start=0,
+        end=15,
+        locator="Reader text chars 0:15",
+    )
+    state = state.model_copy(update={
+        "findings": (*state.findings, stale),
+        "reviews": (*state.reviews, stale_review),
+        "evidence": (*state.evidence, response_evidence),
+    })
+
+    assert partial_finish_allowed(state) is False
+    verdict = completion(state)
+
+    assert verdict.disposition is CompletionDisposition.REJECT_AND_CONTINUE
+    assert stale.finding_id in verdict.reason
+
+
 def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path):
     state = _progressive_state()
     budget_path = tmp_path / "budget.json"

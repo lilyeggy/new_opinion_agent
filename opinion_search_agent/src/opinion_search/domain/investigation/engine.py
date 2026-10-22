@@ -696,6 +696,8 @@ def partial_finish_allowed(state: State) -> bool:
     open_required = [x for x in state.issues if x.required and x.status == "open"]
     if not open_required:
         return False
+    if _stale_negative_findings(state):
+        return False
     if required_next_action(state) is not None:
         return False
     active = [x for x in state.findings if x.active]
