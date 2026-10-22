@@ -1,0 +1,217 @@
+{
+  "plan_version": "presentation-plan/1",
+  "source_content_revision": 1,
+  "report_id": "cfc7df135ca345cdbbb27a12d4d31178",
+  "subject": "某市公交夜班车调整的争议与回应",
+  "status": "failed",
+  "generated_at": "2026-10-22T11:59:46.731575+00:00",
+  "sections": [
+    {
+      "section_id": "section-overview",
+      "title": "事件核心研判与演进脉络",
+      "order": 0,
+      "view_id": "overview",
+      "view_title": "核心研判与脉络",
+      "modules": [
+        {
+          "module_id": "overview-current-judgments",
+          "semantic_type": "current-judgments",
+          "title": "核心核查研判结论",
+          "state": "insufficient",
+          "data_shape": "cards",
+          "preferred_visual": null,
+          "summary": "基于 0 份公开归档材料与 0 条原文证据交叉核验形成的核心判断。",
+          "table_columns": [],
+          "items": [],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "尚无通过核查的核心判断。",
+          "view_id": "overview",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        },
+        {
+          "module_id": "overview-event-timeline",
+          "semantic_type": "event-timeline",
+          "title": "事件演进关键脉络图",
+          "state": "not_applicable",
+          "data_shape": "timeline",
+          "preferred_visual": null,
+          "summary": "串联 0 个已核实时间节点，展示从引发争议到各方回应的完整演进链条。",
+          "table_columns": [],
+          "items": [],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "本轮材料中未提取到明确声明的事件时间节点。",
+          "view_id": "overview",
+          "selected_visual": "timeline",
+          "selection_reason": "data_shape=timeline; preferred visual is allowed"
+        },
+        {
+          "module_id": "overview-key-limitations",
+          "semantic_type": "key-limitations",
+          "title": "调查边界与限制说明",
+          "state": "ready",
+          "data_shape": "cards",
+          "preferred_visual": null,
+          "summary": "",
+          "table_columns": [],
+          "items": [
+            {
+              "title": "收束原因与状态",
+              "summary": "调查中断，已保存的材料与判断仍然保留，报告不完整。"
+            },
+            {
+              "title": "调查范围与边界说明",
+              "summary": "调查未能形成完整领域投影；已保留运行元数据、检查点和失败原因。"
+            }
+          ],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "overview",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        }
+      ]
+    },
+    {
+      "section_id": "section-issues",
+      "title": "分议题全量事实与证据核查",
+      "order": 2,
+      "view_id": "issues",
+      "view_title": "分议题事实核查",
+      "modules": [
+        {
+          "module_id": "issues-full-map",
+          "semantic_type": "issue-map",
+          "title": "调查议题与逐条核查判断",
+          "state": "not_found",
+          "data_shape": "cards",
+          "preferred_visual": null,
+          "summary": "覆盖全部 0 个调查子议题与 0 条有效判断（已自动提炼核心标题与要点，点击可展开原文引证）。",
+          "table_columns": [],
+          "items": [],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "issues",
+          "selected_visual": "cards",
+          "selection_reason": "data_shape=cards; preferred visual is allowed"
+        }
+      ]
+    },
+    {
+      "section_id": "section-evidence",
+      "title": "证据卷宗与核查记录",
+      "order": 4,
+      "view_id": "evidence",
+      "view_title": "证据卷宗与诊断",
+      "modules": [
+        {
+          "module_id": "evidence-full-index",
+          "semantic_type": "evidence-index",
+          "title": "原文证据卷宗与字符级定位",
+          "state": "unavailable",
+          "data_shape": "evidence",
+          "preferred_visual": null,
+          "summary": "收录全部 0 条经正文校验的原文摘录与字符区间。",
+          "table_columns": [],
+          "items": [],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "evidence",
+          "selected_visual": "evidence_drawer",
+          "selection_reason": "data_shape=evidence; preferred visual is allowed"
+        },
+        {
+          "module_id": "evidence-diagnostics",
+          "semantic_type": "diagnostics",
+          "title": "调查过程与完成度（供核对）",
+          "state": "ready",
+          "data_shape": "comparison",
+          "preferred_visual": null,
+          "summary": "",
+          "table_columns": [
+            "调查阶段",
+            "状态",
+            "说明"
+          ],
+          "items": [
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未开始",
+              "说明": ""
+            },
+            {
+              "调查阶段": "",
+              "状态": "未达发布条件",
+              "说明": ""
+            }
+          ],
+          "citations": [],
+          "limitations": [],
+          "empty_reason": "",
+          "view_id": "evidence",
+          "selected_visual": "comparison_table",
+          "selection_reason": "data_shape=comparison; preferred visual is allowed"
+        }
+      ]
+    }
+  ],
+  "profile": {
+    "facets": [
+      "general"
+    ],
+    "config_version": "workbench-modules-1",
+    "rationale": "未确认事件侧重点，使用通用视图。",
+    "audit": {
+      "findings_total": 0,
+      "findings_reviewed": 0,
+      "findings_supported": 0,
+      "issues_total": 0,
+      "issues_closed": 0,
+      "evidence_total": 0,
+      "sources_total": 0,
+      "relations_total": 0,
+      "relations_unverified": 0
+    }
+  },
+  "narrative": null
+}

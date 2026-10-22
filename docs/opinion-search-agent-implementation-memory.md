@@ -75,6 +75,12 @@
 
 这说明之前的 `completed = 0` 不是完成门禁不可达，而是缺少一个“先显式处置问题，再停止扩写”的收尾阶段。
 
+### 终端产物兜底
+
+`investigation/manager.py` 现在把所有终态统一到 `_write_report_bundle()`：无论 `completed`、`partial`、`failed` 还是 `cancelled`，都会写出 `report.json`、`report.md`、`workbench.json`、`presentation_plan.json` 和 `dossier.html`。当领域投影无法构建时使用 `_minimal_report()`；当 Presentation 计划无法渲染时使用 `investigation/fallback.py` 的确定性最小 dossier。
+
+验证包含两条证据：真实 live partial run 仍产出完整五件套；强制不可恢复失败的离线 run 输出 `status=failed` 且五件套均非空。对应测试为 `tests/investigation/test_publish_protocol.py` 中的失败兜底用例。
+
 ### 验证命令
 
 ```text

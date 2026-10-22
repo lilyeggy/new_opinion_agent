@@ -23,3 +23,5 @@ artifacts/complete-proof-*/
 artifacts/live-first-run/
 artifacts/live-recorded-run/
 artifacts/eval-*/
+artifacts/live-fallback-proof*/
+artifacts/terminal-fallback-proof*/

@@ -48,6 +48,14 @@ state when required questions could not all be factually disposed. This is a
 product behavior, not a hidden failure: the report preserves the open issues
 and limitations instead of claiming completion.
 
+## Failed-run fallback
+
+`fallback/` is a forced unrecoverable-failure run. It demonstrates the delivery
+guarantee: even a failed investigation emits `report.json`, `report.md`,
+`workbench.json`, `presentation_plan.json`, and `dossier.html`. The report keeps
+the failure reason and explicitly says the result is incomplete; the fallback
+does not turn failure into a completed claim.
+
 ## Verification
 
 From `opinion_search_agent/`:
@@ -61,6 +69,6 @@ ruff check src
 
 Expected:
 
-- `888 passed, 2 skipped`
+- `889 passed, 2 skipped`
 - `quality gate: baseline reproduced exactly`
 - ruff clean

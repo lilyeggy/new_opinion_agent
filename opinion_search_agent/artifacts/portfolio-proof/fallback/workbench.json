@@ -1,0 +1,251 @@
+{
+  "format": "opinion-workbench/1",
+  "projection_version": "workbench-projection-6",
+  "snapshot_id": "workbench-82a4cdb015ff6735fb0e",
+  "run_id": "cfc7df135ca345cdbbb27a12d4d31178",
+  "case_id": "7bbbe8ed024749418749c500ac615eb9",
+  "parent_id": null,
+  "generated_at": "2026-10-22T11:59:46.731575+00:00",
+  "started_at": "2026-10-22T11:59:46.726656+00:00",
+  "lookup_cutoff": "2026-10-22T11:59:46.731573+00:00",
+  "publication_state": "failed",
+  "profile": {
+    "facets": [
+      "general"
+    ],
+    "config_version": "workbench-modules-1",
+    "rationale": "未确认事件侧重点，使用通用视图。"
+  },
+  "page_plan": {
+    "format": "opinion-page-plan/1",
+    "policy_version": "public-event-framework-1",
+    "framework": "public-event-investigation",
+    "terminal": true,
+    "event_facets": [
+      "general"
+    ],
+    "rationale": "未确认事件侧重点，使用通用调查框架。",
+    "sections": [
+      {
+        "section_id": "overview",
+        "view": "overview",
+        "title": "事件总览",
+        "purpose": "先呈现当前可核查判断、关键限制、时间线与材料时间分布。",
+        "required": true,
+        "module_types": [
+          "current-judgments",
+          "event-timeline",
+          "publication-distribution"
+        ]
+      },
+      {
+        "section_id": "issues",
+        "view": "issues",
+        "title": "争议、主张与回应",
+        "purpose": "按调查问题组织主体主张、支持或反驳证据以及回应覆盖。",
+        "required": true,
+        "module_types": [
+          "issues-review"
+        ]
+      },
+      {
+        "section_id": "coverage",
+        "view": "coverage",
+        "title": "材料与来源关系",
+        "purpose": "核对材料角色、发布时间、重复或转述关系以及实际搜索范围。",
+        "required": true,
+        "module_types": [
+          "coverage-comparison"
+        ]
+      },
+      {
+        "section_id": "citations",
+        "view": "citations",
+        "title": "证据与原文",
+        "purpose": "查看正文版本、原文定位和判断支持关系。",
+        "required": true,
+        "module_types": []
+      },
+      {
+        "section_id": "diagnostics",
+        "view": "diagnostics",
+        "title": "链路诊断",
+        "purpose": "暴露调查生产链路中的缺失、失败、审查和预算信号。",
+        "required": false,
+        "module_types": []
+      },
+      {
+        "section_id": "report",
+        "view": "report",
+        "title": "完整报告",
+        "purpose": "阅读与当前结构化页面同源的中文 Markdown 报告。",
+        "required": false,
+        "module_types": []
+      }
+    ],
+    "module_requirements": [],
+    "search_targets": [],
+    "summary": {
+      "section_count": 6,
+      "required_module_count": 0,
+      "missing_required_field_count": 0
+    },
+    "plan_id": "page-plan-e62b29d49746f7137787"
+  },
+  "limitations": {
+    "stop_reason": "调查中断，已保存的材料与判断仍然保留，报告不完整。",
+    "scope_limitation": "调查未能形成完整领域投影；已保留运行元数据、检查点和失败原因。",
+    "search_failures": 0,
+    "read_failures": 0,
+    "no_material_change": false
+  },
+  "citations": {},
+  "modules": [
+    {
+      "module_type": "current-judgments",
+      "state": "insufficient",
+      "gap": "尚无可核查的核心判断。"
+    },
+    {
+      "module_type": "event-timeline",
+      "state": "insufficient",
+      "gap": "本轮材料中没有可定位的事件时间。"
+    },
+    {
+      "module_type": "publication-distribution",
+      "state": "insufficient",
+      "gap": "缺少可靠发布日期，不绘制材料发布时间分布。"
+    },
+    {
+      "module_type": "coverage-comparison",
+      "state": "insufficient",
+      "gap": "本轮没有可展示的公开材料。"
+    },
+    {
+      "module_type": "issues-review",
+      "state": "insufficient",
+      "gap": "尚未形成可展示的调查问题。"
+    }
+  ],
+  "views": {
+    "overview": {
+      "subject": "某市公交夜班车调整的争议与回应",
+      "question": "某市公交夜班车调整的争议与回应",
+      "mode": "offline",
+      "required_questions": [],
+      "judgment_mode": "none",
+      "judgments": [],
+      "timeline": {
+        "events": [],
+        "unparsed": []
+      },
+      "publication_distribution": null,
+      "source_relation_counts": {},
+      "highlights": []
+    },
+    "coverage": {
+      "materials": [],
+      "known_date_count": 0,
+      "unknown_date_count": 0,
+      "search_coverage": []
+    },
+    "issues": {
+      "issues": []
+    },
+    "diagnostics": {
+      "format": "opinion-investigation-diagnostics/1",
+      "summary": {
+        "status": "blocked",
+        "critical": 1,
+        "warnings": 0,
+        "informational": 0,
+        "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+      },
+      "stages": [
+        {
+          "id": "scope",
+          "label": "事件与问题",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "discovery",
+          "label": "搜索与召回",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "acquisition",
+          "label": "正文获取",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "sources",
+          "label": "来源结构",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "evidence",
+          "label": "证据定位",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "analysis",
+          "label": "争议与回应分析",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "review",
+          "label": "关键结论审查",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "completion",
+          "label": "结束判断",
+          "status": "pending",
+          "metrics": {},
+          "signal_codes": []
+        },
+        {
+          "id": "runtime",
+          "label": "运行与预算",
+          "status": "blocked",
+          "metrics": {},
+          "signal_codes": [
+            "domain_checkpoint_missing"
+          ]
+        }
+      ],
+      "signals": [
+        {
+          "code": "domain_checkpoint_missing",
+          "stage": "runtime",
+          "severity": "critical",
+          "message": "运行在形成可诊断的领域 checkpoint 前结束。",
+          "action": "检查规划、模型配置和首个 checkpoint 写入。",
+          "details": {
+            "publication_status": "failed",
+            "reason": "调查中断，已保存的材料与判断仍然保留，报告不完整。"
+          }
+        }
+      ],
+      "budget": {
+        "available": false,
+        "resources": {}
+      }
+    }
+  },
+  "projection_source": "saved"
+}

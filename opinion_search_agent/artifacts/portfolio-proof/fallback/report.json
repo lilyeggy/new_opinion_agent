@@ -1,0 +1,132 @@
+{
+  "schema_version": 2,
+  "case_id": "7bbbe8ed024749418749c500ac615eb9",
+  "run_id": "cfc7df135ca345cdbbb27a12d4d31178",
+  "parent_id": null,
+  "mode": "offline",
+  "subject": "某市公交夜班车调整的争议与回应",
+  "question": "某市公交夜班车调整的争议与回应",
+  "status": "failed",
+  "stop_reason": "调查中断，已保存的材料与判断仍然保留，报告不完整。",
+  "cutoff": "2026-10-22T11:59:46.731566+00:00",
+  "lookup_cutoff": "2026-10-22T11:59:46.731573+00:00",
+  "generated_at": "2026-10-22T11:59:46.731575+00:00",
+  "started_at": "2026-10-22T11:59:46.726656+00:00",
+  "required_questions": [],
+  "issues": [],
+  "findings": [],
+  "retired": [],
+  "conclusions": [],
+  "interim_findings": [],
+  "sources": [],
+  "evidence": [],
+  "searches": [],
+  "read_errors": [],
+  "checks": [],
+  "changes": [],
+  "no_material_change": false,
+  "budget": {},
+  "diagnostics": {
+    "format": "opinion-investigation-diagnostics/1",
+    "summary": {
+      "status": "blocked",
+      "critical": 1,
+      "warnings": 0,
+      "informational": 0,
+      "disclaimer": "这些是确定性的链路完整性信号，不是事实正确率、公众代表性或报告质量分数。"
+    },
+    "stages": [
+      {
+        "id": "scope",
+        "label": "事件与问题",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "discovery",
+        "label": "搜索与召回",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "acquisition",
+        "label": "正文获取",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "sources",
+        "label": "来源结构",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "evidence",
+        "label": "证据定位",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "analysis",
+        "label": "争议与回应分析",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "review",
+        "label": "关键结论审查",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "completion",
+        "label": "结束判断",
+        "status": "pending",
+        "metrics": {},
+        "signal_codes": []
+      },
+      {
+        "id": "runtime",
+        "label": "运行与预算",
+        "status": "blocked",
+        "metrics": {},
+        "signal_codes": [
+          "domain_checkpoint_missing"
+        ]
+      }
+    ],
+    "signals": [
+      {
+        "code": "domain_checkpoint_missing",
+        "stage": "runtime",
+        "severity": "critical",
+        "message": "运行在形成可诊断的领域 checkpoint 前结束。",
+        "action": "检查规划、模型配置和首个 checkpoint 写入。",
+        "details": {
+          "publication_status": "failed",
+          "reason": "调查中断，已保存的材料与判断仍然保留，报告不完整。"
+        }
+      }
+    ],
+    "budget": {
+      "available": false,
+      "resources": {}
+    }
+  },
+  "unresolved": {
+    "issues": [],
+    "searches": 0,
+    "reads": 0,
+    "read_failures": 0
+  },
+  "completion_gate": null,
+  "numeric_blocked_conclusions": 0,
+  "scope_limitation": "调查未能形成完整领域投影；已保留运行元数据、检查点和失败原因。"
+}

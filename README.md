@@ -17,7 +17,7 @@
   - `domain/investigation`: 6-action full investigation workbench (`+ retrieve`, `review`) with dynamic page planning, issue tracking, and automated source cross-verification.
 - **Deterministic Replay, Verified Against a Live Provider**: every committed step is journaled with a `context_hash` and a state fingerprint; replaying that journal drives the real runtime loop and reproduces the run step for step (`matched`) without calling a model or a provider. A tampered hash names the first divergent step and field instead of failing silently.
 - **Reproducible Quality Numbers**: an offline gate recomputes the published quality metrics (retrieval recall, faithfulness, adversarial probes, excerpt grounding) from four frozen runs in one command — zero model calls, zero network requests, and a non-zero exit on any drift.
-- **Battle-Tested Quality**: 888 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
+- **Battle-Tested Quality**: 889 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
 
 ---
 
@@ -35,8 +35,12 @@ is in [`opinion_search_agent/artifacts/portfolio-proof`](opinion_search_agent/ar
   visible with limitations instead of being reported as completed.
 
 The intended claim is precise: the system produces evidence-backed reports with
-explicit `completed` or `partial` semantics. It does not claim universal source
-coverage, population sentiment, or truth adjudication.
+explicit `completed` or `partial` semantics. Every terminal run, including a
+`failed` or `cancelled` one, publishes the same minimum artifact bundle:
+`report.json`, `report.md`, `workbench.json`, `presentation_plan.json`, and
+`dossier.html`. The fallback proves delivery, not a fabricated conclusion. It
+does not claim universal source coverage, population sentiment, or truth
+adjudication.
 
 Run the one-command release check:
 
