@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Ruff Lint
         run: |
-          ruff check opinion_search_agent/src --config opinion_search_agent/pyproject.toml
+          ruff check opinion_search_agent/src opinion_search_agent/tests --config opinion_search_agent/pyproject.toml
 
       - name: Run Mypy Typecheck
         run: |

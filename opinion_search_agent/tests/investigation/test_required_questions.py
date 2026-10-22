@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from opinion_search.domain.investigation.models import (
-    InvestigationRequest, Issue, QuestionProposal, PlanProposal, State, uid, utcnow,
+    InvestigationRequest, Issue, State, uid, utcnow,
 )
 from opinion_search.investigation.manager import _cover_required, required_questions
 

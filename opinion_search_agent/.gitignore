@@ -14,3 +14,12 @@ __pycache__/
 artifacts/*.log
 artifacts/report-quality/*/runs/
 artifacts/report-quality/*/cases/*/snapshots/
+
+# Raw live-run scratch directories. The frozen quality corpus and the small
+# portfolio-proof set remain tracked.
+artifacts/live-quality-*/
+artifacts/live-complete-proof*/
+artifacts/complete-proof-*/
+artifacts/live-first-run/
+artifacts/live-recorded-run/
+artifacts/eval-*/

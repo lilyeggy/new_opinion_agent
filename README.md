@@ -17,7 +17,32 @@
   - `domain/investigation`: 6-action full investigation workbench (`+ retrieve`, `review`) with dynamic page planning, issue tracking, and automated source cross-verification.
 - **Deterministic Replay, Verified Against a Live Provider**: every committed step is journaled with a `context_hash` and a state fingerprint; replaying that journal drives the real runtime loop and reproduces the run step for step (`matched`) without calling a model or a provider. A tampered hash names the first divergent step and field instead of failing silently.
 - **Reproducible Quality Numbers**: an offline gate recomputes the published quality metrics (retrieval recall, faithfulness, adversarial probes, excerpt grounding) from four frozen runs in one command — zero model calls, zero network requests, and a non-zero exit on any drift.
-- **Battle-Tested Quality**: Over 820 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
+- **Battle-Tested Quality**: 888 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
+
+---
+
+## Portfolio Evidence
+
+This repository is positioned as a portfolio-grade single-event investigation
+agent, not a production public-opinion monitoring platform. The frozen evidence
+is in [`opinion_search_agent/artifacts/portfolio-proof`](opinion_search_agent/artifacts/portfolio-proof):
+
+- **Live completed run** `6ba850f7c5684af7940b4b7c53b0ac4a`: 15/15 findings
+  reviewed and supported, 5/5 required issues explicitly disposed, 4 independent
+  sources, 20 evidence excerpts, 2 narrative paragraphs / 6 clauses, and a
+  self-contained `dossier.html`.
+- **Bounded partial example**: a real run where open required questions are kept
+  visible with limitations instead of being reported as completed.
+
+The intended claim is precise: the system produces evidence-backed reports with
+explicit `completed` or `partial` semantics. It does not claim universal source
+coverage, population sentiment, or truth adjudication.
+
+Run the one-command release check:
+
+```bash
+make verify
+```
 
 ---
 

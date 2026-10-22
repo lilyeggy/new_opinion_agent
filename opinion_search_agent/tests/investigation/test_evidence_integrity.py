@@ -57,7 +57,6 @@ def test_committed_state_reverifies_against_artifacts(manager, run_offline):
 
 
 def test_unverifiable_read_degrades_to_a_tool_error_instead_of_crashing(tmp_path, monkeypatch):
-    from pathlib import Path
 
     from opinion_search.domain.investigation.models import (
         Action, InvestigationRequest, Issue, ReadDecision, State, uid, utcnow,

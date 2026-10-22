@@ -202,10 +202,9 @@ def test_coverage_failures_name_the_field_the_model_must_fix():
 
 
 def _compound_state(*, component_status="open", issue_status="open", with_review=True):
-    from opinion_search.domain.investigation.engine import reduce_state
     from opinion_search.domain.investigation.models import (
-        ComponentAssessment, Delta, Finding, Observation, QuestionComponent, ReviewRecord,
-        accepted_review, finding_hash,
+        Finding, QuestionComponent, ReviewRecord,
+        finding_hash,
     )
 
     question = "用户范围、退费标准、执行时间"
@@ -285,7 +284,7 @@ def test_compound_issue_reducer_and_workbench_expose_component_status():
 
 
 def test_completion_stays_partial_when_an_answered_issue_has_an_open_component():
-    from opinion_search.domain.investigation.engine import CompletionEvaluator, completion
+    from opinion_search.domain.investigation.engine import completion
     from opinion_search.runtime.completion import CompletionDisposition
 
     state = _compound_state(component_status="open", issue_status="answered")
