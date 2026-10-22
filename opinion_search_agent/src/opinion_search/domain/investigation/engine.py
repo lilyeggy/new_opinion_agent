@@ -30,6 +30,22 @@ ONGOING_REFLECTION_UNDISPOSED_LIMIT = 8
 # review once the backlog is real.
 MAX_NEW_FINDINGS_PER_REFLECT = 6
 REVIEW_BACKLOG_LIMIT = 8
+# A finish with open required questions must not be accepted at step one, but
+# refusing it forever merely converts a bounded partial result into a step-limit
+# spin. These are the minimum evidence-producing actions before a partial finish
+# becomes an honest terminal outcome rather than an early abandonment.
+MIN_PARTIAL_FINISH_SEARCHES = 3
+MIN_PARTIAL_FINISH_READS = 3
+MIN_PARTIAL_FINISH_SOURCES = 2
+# A 40-step live run used roughly two model calls per committed step. Reserving
+# publication work only after two thirds of the model budget therefore races the
+# step limit. Start the bounded closeout at half the model-call budget instead;
+# the remaining half is still large enough to review and publish the subset.
+CONSOLIDATION_MODEL_CALLS_PERCENT = 50
+
+
+def consolidation_model_call_limit(limit: int) -> int:
+    return max(1, (limit * CONSOLIDATION_MODEL_CALLS_PERCENT + 99) // 100)
 
 # Finish-gate guidance limits: the rejection reason must stay scannable.
 _GUIDANCE_PREVIEW_ITEMS = 3
@@ -666,18 +682,61 @@ class Validator:
                     raise ValueError("core conclusions must be active and supported by a current review")
 
 
-def completion(state: State):
+def partial_finish_allowed(state: State) -> bool:
+    """Whether open questions now describe a bounded partial result.
+
+    A finish proposal used to be rejected whenever a required question stayed
+    open. That protected against premature completion, but it also made the
+    completion gate unreachable once the agent had exhausted the useful work it
+    could do within its step budget. The gate still rejects an early stop; only
+    after material has been acquired, at least one finding has passed review,
+    and no higher-priority local action remains may the run close as partial.
+    """
+
     open_required = [x for x in state.issues if x.required and x.status == "open"]
-    if open_required:
-        return CompletionVerdict(
-            disposition=Disposition.REJECT_AND_CONTINUE,
-            reason=_open_questions_guidance(state, open_required),
-        )
+    if not open_required:
+        return False
+    if required_next_action(state) is not None:
+        return False
+    active = [x for x in state.findings if x.active]
+    if any(accepted_review(state, finding) is None for finding in active):
+        return False
+    if not any(
+        (review := accepted_review(state, finding)) is not None
+        and review.verdict == "supported"
+        for finding in active
+    ):
+        return False
+    if len(state.searches) < MIN_PARTIAL_FINISH_SEARCHES:
+        return False
+    if len(state.read_attempts) < MIN_PARTIAL_FINISH_READS:
+        return False
+    if len(state.sources) < MIN_PARTIAL_FINISH_SOURCES:
+        return False
+    return True
+
+
+def completion(state: State):
     stale = _stale_negative_findings(state)
     if stale:
         return CompletionVerdict(
             disposition=Disposition.REJECT_AND_CONTINUE,
             reason=_stale_findings_guidance(stale),
+        )
+    open_required = [x for x in state.issues if x.required and x.status == "open"]
+    if open_required:
+        if partial_finish_allowed(state):
+            questions = " | ".join(issue.question[:60] for issue in open_required)
+            return CompletionVerdict(
+                disposition=Disposition.ACCEPT_PARTIAL,
+                reason=(
+                    "Required questions remain open after a bounded investigation; "
+                    f"publishing a partial report with the limitations preserved: {questions}"
+                ),
+            )
+        return CompletionVerdict(
+            disposition=Disposition.REJECT_AND_CONTINUE,
+            reason=_open_questions_guidance(state, open_required),
         )
     active = [x for x in state.findings if x.active]
     problems = [x for x in state.issues if x.required and x.status == "unavailable"]

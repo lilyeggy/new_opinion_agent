@@ -1,5 +1,4 @@
 import json
-import math
 from hashlib import sha256
 
 from pydantic import TypeAdapter
@@ -13,7 +12,11 @@ from opinion_search.context.models import (
 from opinion_search.domain.investigation.models import (
     SEARCH_DIRECTIONS, Decision, MODULE_FACET_FIELDS, accepted_review,
 )
-from opinion_search.domain.investigation.engine import evidence_quality_signals, required_next_action
+from opinion_search.domain.investigation.engine import (
+    consolidation_model_call_limit,
+    evidence_quality_signals,
+    required_next_action,
+)
 from opinion_search.investigation.page_plan import build_page_plan
 from opinion_search.runtime.errors import ContextOverflowError
 
@@ -35,7 +38,8 @@ Copy visible evidence IDs exactly. A response addressing a question is not proof
 the problem was solved or that people are satisfied. Give every response judgement an
 explicit coverage: response='direct' answers every part and leaves 'uncovered' empty,
 response='partial' must list the unanswered parts in 'uncovered', and both need a
-concrete 'coverage_reason'. Distinguish fact, attribution,
+concrete 'coverage_reason'. If you cannot state that basis, omit the response
+judgement entirely instead of emitting an incomplete one. Distinguish fact, attribution,
 interpretation, requests, stance targets, dates, source dependencies and uncertainty.
 Reflect creates atomic findings and explicit issue dispositions. It may also
 propose source_relations (same_text, repost, excerpt, followup) only when every
@@ -230,7 +234,7 @@ class Compiler:
             }
             sections.append(section("memory.coverage", json.dumps(coverage_payload, ensure_ascii=False), Origin.MODEL, priority=95))
         model_limit = self.budget.limits["model"]
-        model_consolidation_point = math.ceil(model_limit * 2 / 3)
+        model_consolidation_point = consolidation_model_call_limit(model_limit)
         should_consolidate = (
             budget_snapshot["elapsed_seconds"] >= self.budget.limits["consolidate_seconds"]
             or budget_snapshot["model"] >= model_consolidation_point

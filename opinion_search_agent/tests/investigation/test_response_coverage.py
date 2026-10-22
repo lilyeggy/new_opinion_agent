@@ -88,6 +88,30 @@ def test_duplicate_reprints_are_not_independent_sources():
     assert [s["independent"] for s in report["sources"]] == [True, False, False]
 
 
+def test_repair_drops_an_ungrounded_response_judgement_without_losing_the_finding():
+    from opinion_search.investigation.service import repair_investigation_decision
+
+    proposal = _proposal(
+        response="partial",
+        response_target="夜班调整",
+        covered=("周末班次",),
+        uncovered=("工作日替代出行",),
+        coverage_reason="",
+    )
+    decision = ReflectDecision(findings=(proposal,), reason="整理回应")
+    repaired = repair_investigation_decision(_base_state(), decision)
+
+    assert repaired is not None
+    finding = repaired.findings[0]
+    assert finding.text == proposal.text
+    assert finding.evidence_ids == proposal.evidence_ids
+    assert finding.response is None
+    assert finding.response_target == ""
+    assert finding.covered == ()
+    assert finding.uncovered == ()
+    assert finding.coverage_reason == ""
+
+
 def test_coverage_failures_name_the_field_the_model_must_fix():
     from opinion_search.investigation.context import INSTRUCTIONS
 

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import math
 import re
 from hashlib import sha256
 from pathlib import Path
 
 from opinion_search.domain.investigation.engine import (
     MAX_NEW_FINDINGS_PER_REFLECT, CompletionEvaluator, Processor, Resolver, Validator, allowed_url,
+    consolidation_model_call_limit, partial_finish_allowed,
     reduce_state,
 )
 from opinion_search.domain.investigation.models import (
@@ -91,9 +91,14 @@ class ConsolidationValidator:
 
     def validate(self, state: State, decision) -> None:
         self.inner.validate(state, decision)
+        snapshot = self.budget.snapshot()
         limit = self.budget.limits["model"]
-        used = self.budget.snapshot()["model"]
-        if used < math.ceil(limit * 2 / 3):
+        used = snapshot["model"]
+        consolidation_seconds = self.budget.limits.get("consolidate_seconds", 900)
+        if (
+            used < consolidation_model_call_limit(limit)
+            and snapshot["elapsed_seconds"] < consolidation_seconds
+        ):
             return
         remaining = limit - used
         active = [finding for finding in state.findings if finding.active]
@@ -118,6 +123,13 @@ class ConsolidationValidator:
             (rev := accepted_review(state, finding)) is not None and rev.verdict != "supported"
             for finding in active
         )
+        if open_required and partial_finish_allowed(state):
+            if not isinstance(decision, FinishDecision):
+                raise ValueError(
+                    "the bounded investigation is ready to close; finish now with a partial report "
+                    "instead of changing evidence or findings"
+                )
+            return
         if isinstance(decision, RetrieveDecision) and remaining >= 4 and (has_partial_review or open_required):
             return
         if isinstance(decision, ReflectDecision) and (open_required or (has_partial_review and remaining >= 3)):
@@ -217,6 +229,23 @@ def repair_investigation_decision(state, decision):
                 if not kept:
                     continue
                 proposal = proposal.model_copy(update={"evidence_ids": kept})
+            response_invalid = (
+                proposal.response in {"direct", "partial", "non_substantive"}
+                and not proposal.coverage_reason.strip()
+            ) or (
+                proposal.response == "partial" and not proposal.uncovered
+            ) or (
+                proposal.response == "direct" and bool(proposal.uncovered)
+            )
+            if response_invalid:
+                changed = True
+                proposal = proposal.model_copy(update={
+                    "response": None,
+                    "response_target": "",
+                    "covered": (),
+                    "uncovered": (),
+                    "coverage_reason": "",
+                })
             findings.append(proposal)
 
         if not changed:
