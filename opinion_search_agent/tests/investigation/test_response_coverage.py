@@ -7,7 +7,8 @@ import pytest
 from opinion_search.domain.investigation.engine import Validator, response_search_complete
 from opinion_search.domain.investigation.models import (
     ComponentAssessment, Evidence, FindingProposal, InvestigationRequest, Issue, IssueAssessment,
-    QuestionComponent, ReflectDecision, SearchAttempt, SourceVersion, State, uid, utcnow,
+    QuestionComponent, ReflectDecision, SearchAttempt, SourceRelation, SourceRelationProposal,
+    SourceVersion, State, uid, utcnow,
 )
 from opinion_search.investigation.report import build_report
 
@@ -123,6 +124,42 @@ def test_repair_turns_an_unfinished_not_found_into_unavailable():
 
     assert repaired is not None
     assert repaired.assessments[0].status == "unavailable"
+
+
+def test_repair_filters_a_source_relation_pair_already_recorded():
+    from opinion_search.investigation.service import repair_investigation_decision
+
+    relation = SourceRelation(
+        source_version_id="v1",
+        related_version_id="v2",
+        relation="repost",
+        basis_evidence_ids=("e1",),
+        explanation="已有关系",
+        relation_id="relation-existing",
+    )
+    state = _base_state().model_copy(update={
+        "sources": (
+            _base_state().sources[0],
+            SourceVersion(
+                version_id="v2", url="https://example.org/b", final_url="https://example.org/b",
+                title="转载", fetched_at=utcnow(), artifact_ref="artifact://sha256/" + "5" * 64,
+                content_hash="5" * 64,
+            ),
+        ),
+        "relations": (relation,),
+    })
+    duplicate = SourceRelationProposal(
+        source_version_id="v2",
+        related_version_id="v1",
+        relation="repost",
+        basis_evidence_ids=("e1",),
+        explanation="重复关系",
+    )
+    decision = ReflectDecision(source_relations=(duplicate,), reason="补充关系")
+    repaired = repair_investigation_decision(state, decision)
+
+    assert repaired is not None
+    assert repaired.source_relations == ()
 
 
 def test_repair_drops_an_ungrounded_response_judgement_without_losing_the_finding():

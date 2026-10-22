@@ -276,6 +276,20 @@ def repair_investigation_decision(state, decision):
             ) else item
             assessments.append(updated)
 
+        existing_pairs = {
+            frozenset((relation.source_version_id, relation.related_version_id))
+            for relation in state.relations
+        }
+        seen_pairs = set(existing_pairs)
+        relations = []
+        for relation in decision.source_relations:
+            pair = frozenset((relation.source_version_id, relation.related_version_id))
+            if pair in seen_pairs:
+                changed = True
+                continue
+            seen_pairs.add(pair)
+            relations.append(relation)
+
         findings = []
         if len(decision.findings) > MAX_NEW_FINDINGS_PER_REFLECT:
             changed = True
@@ -314,7 +328,9 @@ def repair_investigation_decision(state, decision):
         if not changed:
             return None
         return decision.model_copy(update={
-            "assessments": tuple(assessments), "findings": tuple(findings),
+            "assessments": tuple(assessments),
+            "findings": tuple(findings),
+            "source_relations": tuple(relations),
         })
 
     if isinstance(decision, FinishDecision):

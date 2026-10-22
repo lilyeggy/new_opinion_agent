@@ -700,6 +700,10 @@ class Validator:
             if len(set(retired_ids)) != len(retired_ids) or not set(retired_ids) <= set(findings):
                 raise ValueError("unknown or duplicate retired finding")
             known_sources = {x.version_id for x in state.sources}
+            existing_pairs = {
+                frozenset((relation.source_version_id, relation.related_version_id))
+                for relation in state.relations
+            }
             relation_pairs = set()
             for relation in decision.source_relations:
                 endpoints = {relation.source_version_id, relation.related_version_id}
@@ -713,6 +717,8 @@ class Validator:
                 pair = frozenset(endpoints)
                 if pair in relation_pairs:
                     raise ValueError("duplicate source relation pair in one reflection")
+                if pair in existing_pairs:
+                    raise ValueError("source relation pair is already recorded")
                 relation_pairs.add(pair)
             if len({x.issue_id for x in decision.assessments}) != len(decision.assessments):
                 raise ValueError("duplicate question assessments")
