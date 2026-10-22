@@ -3,10 +3,58 @@
 > 文档性质：持续追加的工程事实记录  
 > Canonical Design：[`public-opinion-search-agent-design.md`](./public-opinion-search-agent-design.md)  
 > 执行计划：[`opinion-search-agent-5-day-plan.md`](./opinion-search-agent-5-day-plan.md)  
-> 当前记录截至：2026-10-15（M1–M6 全链路深度化改造完成：展示层视觉拓扑重构 + 收束死锁解除 + 页面内证据清洗加权 + 反方与数值冲突检测）
-> 当前已完成节点：Day 1–4、Web 演示控制台、工作台与研判流程（§18/§19 各批次）、秋招收尾（D1–D5）、深度化改造 M1–M6（视觉拓扑与自主编排 Presentation Agent + 收束控制修复 + 页面内检索清洗与冲突检测）
+> 当前记录截至：2026-10-22（审查配比纠正 + 叙述层 JSON 响应契约修复；真实直播链路已复验，完成门禁仍未通过）
+> 当前已完成节点：Day 1–4、Web 演示控制台、工作台与研判流程（§18/§19 各批次）、秋招收尾（D1–D5）、深度化改造 M1–M6、质量审计 P0/P1 收口、finding burst 与 review backlog 控制、叙述层 JSON 契约修复
 
-## 0. 最新节点：M1–M6 全链路深度化改造（2026-10-15）
+## 0. 最新节点：审查配比纠正与叙述层 JSON 契约（2026-10-22）
+
+### 解决的问题
+
+上一轮 40 步真实运行的失败链是：finding 产出速度远高于 review 速度，大量 active finding 从未进入审查，导致完成门禁、核心结论和叙述层同时饥饿；即使 review 跟上，报告仍可能没有综合叙述。两个约束需要同时成立：
+
+1. 单次 reflect 的新 finding 数量必须有界，且未审查积压达到阈值时下一次动作必须优先 review；
+2. Presentation Agent 的请求必须满足 provider 的 `response_format=json_object` 前置条件，否则整段叙述在进入 `filter_narrative` 之前就因 HTTP 400 消失。
+
+### 实现范围与相关文件
+
+- `domain/investigation/engine.py`：新增 `MAX_NEW_FINDINGS_PER_REFLECT = 6` 与 `REVIEW_BACKLOG_LIMIT = 8`；`required_next_action` 在未审查 active finding 达到 8 条时要求 review，Validator 禁止此时继续 acquisition 或 synthesis。
+- `investigation/service.py`：repair hook 对超过 6 条的 reflect finding burst 做保守截断，保留前 6 条并丢弃无法绑定已存 evidence 的 proposal。
+- `presentation_skill/llm_planner.py`：`PRESENTATION_INSTRUCTIONS` 与 `NARRATIVE_INSTRUCTIONS` 明确要求返回一个 JSON object。根因是 Go 网关在 `response_format=json_object` 时要求 prompt 中出现 `json` 一词；缺词时 provider 返回 HTTP 400，联合调用与单独的 narrative retry 都会失败。
+- `tests/investigation/test_decision_prompts.py`：把 presentation 与 narrative 两个 prompt 纳入既有 JSON 契约测试。
+
+### 真实运行证据
+
+| 运行 | 代码状态 | 终态 / stop_reason | active findings | 已审 / supported | narrative 段 / clause | dropped | dossier narrative-block |
+|---|---|---|---:|---:|---:|---:|---:|
+| `ea29de8bc1c1440499aed5c6784fe3f7` | cap 前 | partial / max committed steps | 112 | 0 / 0 | 0 / 0 | 12 | 0 |
+| `5596e8218a7f4e16b3df37e01576ce81` | cap 后、prompt 修复前 | partial / max committed steps | 18 | 18 / 18 | 0 / 0 | 0（`narrative_error`：HTTP 400） | 0 |
+| `08c8927310484535806ba5013716c17b` | prompt 修复后 | partial / decision recovery exhausted | 13 | 9 / 3 | 3 / 5 | 1（`no_reviewed_finding`） | 1 |
+
+- `5596e821…` 的 40 步运行证明 backlog 控制生效：18 条 active finding 全部有当前 review，18 条 verdict 为 supported；此前 `ea29de8b…` 的 112 条 active finding 为 0 条 review。该运行的叙述层仍为 0，但 `presentation_plan.json.profile.narrative_error` 明确记录 provider HTTP 400，`narrative_dropped` 为空，说明缺口发生在 gate 之前。
+- 定位 HTTP 400 后，用同一份已落盘报告重放 Presentation Agent：修复后 provider 返回 200，计划通过 `validate_presentation_plan`，得到 3 个 narrative paragraph、0 条 dropped。
+- `08c89273…` 是修复后的完整直播链路（`--max-steps 40`）：第 17 步因模型连续给出缺少 `coverage_reason` 的无效 decision 触发 recovery 耗尽而终止；但发布阶段已成功生成 3 段 / 5 个 clause 的 narrative，唯一丢弃项绑定的是未被 review 的 finding，`dossier.html` 含 1 个 `narrative-block`。
+
+### 验证命令
+
+```text
+cd opinion_search_agent
+NO_PROXY=localhost,127.0.0.1,::1 no_proxy=localhost,127.0.0.1,::1 .venv/bin/python -m pytest -q -W error
+# 875 passed, 2 skipped
+
+PYTHONPATH=src .venv/bin/python scripts/quality_gate.py --check
+# quality gate: baseline reproduced exactly
+
+ruff check src
+# All checks passed
+```
+
+### 已知限制与下一节点
+
+- 完成门禁仍未通过：`08c89273…` 的 6 个必答问题中 2 个仍为 open，`report.json.completion_gate` 明确拒绝 `finish`；该 run 还在第 17 步提前终止，尚未走到 40 步上限。
+- 新的运行时失败点是模型决策稳定性：缺少 `coverage_reason` 的 reflect 被正确拒绝，但现有 repair hook 不能在不虚构理由的前提下补出该字段，连续无效后 run 以 partial 结束。下一节点应先确认这是 prompt 可观察性问题还是 repair 的保守边界，不应放松“响应判断必须有具体依据”的校验。
+- `review` 已能跟上 finding 产出，但 supported 率仍受“日期/出处/推断是否逐字出现在 cited excerpt”的严格程序核验影响；未过审 finding 仍会按设计被叙述层排除。
+
+## 0.1 历史节点：M1–M6 全链路深度化改造（2026-10-15）
 
 ### 解决的问题
 
@@ -35,7 +83,7 @@
 - `tests/unit/report_contract`、`tests/unit/presentation_skill` 及 `tests/investigation/` 下的专项、页面计划、工作台投影、页面导出、回应覆盖、决策校验、回放套件等 **86 项核心测试全部通过**。
 - 两个真实运行产物（三九胃泰 `9b1bf7d631804cffbfc85a00086aef52` 与罗永浩事件 `cb39508854dd491a8d9752fae46e2ec6`）生成包含双 SVG 关系拓扑图、正反拔河条与三栏泳道看板的 `dossier.html` 验证通过。
 
-## 0.1 历史节点：项目封存（2026-09-22）
+## 0.2 历史节点：项目封存（2026-09-22）
 
 ### 解决的问题
 
