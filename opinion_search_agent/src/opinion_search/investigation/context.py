@@ -199,21 +199,30 @@ class Compiler:
                 "allowed_issue_ids": [issue.issue_id for issue in state.issues],
                 "allowed_evidence_ids": [evidence.evidence_id for evidence in state.evidence][:40],
                 "minimum_result": (
-                    "Create 1-4 atomic evidence-linked findings for supported points. Copy issue_id and "
-                    "evidence_ids only from the allowed lists in this constraint. Prefer assessments=[] "
-                    "for this first synthesis; if an assessment is included, keep the parent and any "
-                    "unresolved component status open. Do not use not_found unless its scoped-search "
-                    "prerequisites are complete. Do not add questions, retire findings, or propose source "
-                    "relations in this first synthesis."
-                    if next_action["required_action"] == "reflect"
-                    and not next_action.get("allow_assessment_only")
+                    "Closeout: return a ReflectDecision whose reason starts with CLOSEOUT:. Include one "
+                    "assessment for every closeout_issue_id. Each status must be answered, disputed, "
+                    "not_found, or unavailable; never leave a required issue open. Close every declared "
+                    "component too. Use answered/disputed only with evidence_ids copied from allowed "
+                    "lists; use not_found only when scoped response searching is complete; otherwise use "
+                    "unavailable with a bounded reason. Do not add unrelated findings."
+                    if next_action.get("closeout_issue_ids")
                     else (
-                        "Dispose the undisposed saved evidence: create findings or issue assessments that "
-                        "cite the allowed evidence_ids, retire stale findings, or record source relations. "
-                        "Evidence cited by any of these counts as disposed; acquisition resumes once the "
-                        "backlog is worked down."
+                        "Create 1-4 atomic evidence-linked findings for supported points. Copy issue_id and "
+                        "evidence_ids only from the allowed lists in this constraint. Prefer assessments=[] "
+                        "for this first synthesis; if an assessment is included, keep the parent and any "
+                        "unresolved component status open. Do not use not_found unless its scoped-search "
+                        "prerequisites are complete. Do not add questions, retire findings, or propose source "
+                        "relations in this first synthesis."
                         if next_action["required_action"] == "reflect"
-                        else "Read one exact URL from allowed_urls and extract evidence for its linked issue."
+                        and not next_action.get("allow_assessment_only")
+                        else (
+                            "Dispose the undisposed saved evidence: create findings or issue assessments that "
+                            "cite the allowed evidence_ids, retire stale findings, or record source relations. "
+                            "Evidence cited by any of these counts as disposed; acquisition resumes once the "
+                            "backlog is worked down."
+                            if next_action["required_action"] == "reflect"
+                            else "Read one exact URL from allowed_urls and extract evidence for its linked issue."
+                        )
                     )
                 ),
             }
@@ -224,6 +233,39 @@ class Compiler:
                 priority=100,
                 protected=True,
             ))
+            if next_action.get("closeout_issue_ids"):
+                closeout = []
+                for issue in state.issues:
+                    if issue.issue_id not in next_action["closeout_issue_ids"]:
+                        continue
+                    supported = [
+                        {
+                            "finding_id": finding.finding_id,
+                            "text": finding.text,
+                            "evidence_ids": list(finding.evidence_ids),
+                        }
+                        for finding in state.findings
+                        if finding.active
+                        and finding.issue_id == issue.issue_id
+                        and (review := accepted_review(state, finding)) is not None
+                        and review.verdict == "supported"
+                    ]
+                    closeout.append({
+                        "issue_id": issue.issue_id,
+                        "question": issue.question,
+                        "components": [
+                            {"text": component.text, "status": component.status}
+                            for component in issue.components
+                        ],
+                        "supported_findings": supported,
+                    })
+                sections.append(section(
+                    "memory.closeout",
+                    json.dumps({"issues": closeout}, ensure_ascii=False),
+                    Origin.RUNTIME,
+                    priority=101,
+                    protected=True,
+                ))
         signals = evidence_quality_signals(state)
         if coverage:
             gaps = [a.target_gap for a in state.searches if a.target_gap][-10:]

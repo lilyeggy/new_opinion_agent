@@ -37,6 +37,7 @@ REVIEW_BACKLOG_LIMIT = 8
 MIN_PARTIAL_FINISH_SEARCHES = 3
 MIN_PARTIAL_FINISH_READS = 3
 MIN_PARTIAL_FINISH_SOURCES = 2
+MIN_CLOSEOUT_EVIDENCE = 8
 # A 40-step live run used roughly two model calls per committed step. Reserving
 # publication work only after two thirds of the model budget therefore races the
 # step limit. Start the bounded closeout at half the model-call budget instead;
@@ -463,6 +464,18 @@ def required_next_action(state: State) -> dict | None:
                 "finding_ids": [finding.finding_id for finding, _ in stale],
                 "reason": _stale_findings_guidance(stale),
             }
+        if closeout_ready(state) and not closeout_attempted(state):
+            open_ids = [issue.issue_id for issue in state.issues if issue.required and issue.status == "open"]
+            return {
+                "required_action": "reflect",
+                "allow_assessment_only": True,
+                "closeout_issue_ids": open_ids,
+                "reason": (
+                    "CLOSEOUT: assess every open required question as answered, disputed, "
+                    "not_found, or unavailable; do not leave a required issue open and do "
+                    "not add unrelated findings"
+                ),
+            }
         undisposed = _undisposed_evidence(state)
         if len(undisposed) >= ONGOING_REFLECTION_UNDISPOSED_LIMIT:
             return {
@@ -544,6 +557,20 @@ class Validator:
                 raise ValueError(
                     "reflect is required before more search/read/retrieve work: " + next_action["reason"]
                 )
+            if required_action == "reflect" and next_action.get("closeout_issue_ids"):
+                if not isinstance(decision, ReflectDecision):
+                    raise ValueError("closeout requires a ReflectDecision")
+                if not decision.reason.strip().startswith("CLOSEOUT:"):
+                    raise ValueError("closeout reflection reason must start with CLOSEOUT:")
+                required_ids = set(next_action.get("closeout_issue_ids") or ())
+                assessed = {item.issue_id: item.status for item in decision.assessments}
+                missing = required_ids - set(assessed)
+                still_open = {issue_id for issue_id in required_ids if assessed.get(issue_id) == "open"}
+                if missing or still_open:
+                    raise ValueError(
+                        "closeout reflection must dispose every open required question; "
+                        f"missing={sorted(missing)} open={sorted(still_open)}"
+                    )
             if required_action == "reflect" and next_action.get("allow_assessment_only"):
                 if not (
                     decision.findings
@@ -690,15 +717,18 @@ class Validator:
                     raise ValueError("core conclusions must be active and supported by a current review")
 
 
-def partial_finish_allowed(state: State) -> bool:
-    """Whether open questions now describe a bounded partial result.
+def closeout_attempted(state: State) -> bool:
+    """Whether a closeout reflection has already tried to dispose open issues."""
 
-    A finish proposal used to be rejected whenever a required question stayed
-    open. That protected against premature completion, but it also made the
-    completion gate unreachable once the agent had exhausted the useful work it
-    could do within its step budget. The gate still rejects an early stop; only
-    after material has been acquired, at least one finding has passed review,
-    and no higher-priority local action remains may the run close as partial.
+    return any(entry.startswith("CLOSEOUT:") for entry in state.history)
+
+
+def closeout_ready(state: State) -> bool:
+    """Whether the run has enough reviewed material for a closeout reflection.
+
+    This is the boundary between open-ended acquisition and an explicit
+    disposition pass. The pass is not a finish: it must first map every open
+    required issue to answered/disputed/not_found/unavailable.
     """
 
     open_required = [x for x in state.issues if x.required and x.status == "open"]
@@ -706,7 +736,7 @@ def partial_finish_allowed(state: State) -> bool:
         return False
     if _stale_negative_findings(state):
         return False
-    if required_next_action(state) is not None:
+    if len(_undisposed_evidence(state)) >= ONGOING_REFLECTION_UNDISPOSED_LIMIT:
         return False
     active = [x for x in state.findings if x.active]
     if any(accepted_review(state, finding) is None for finding in active):
@@ -722,6 +752,28 @@ def partial_finish_allowed(state: State) -> bool:
     if len(state.read_attempts) < MIN_PARTIAL_FINISH_READS:
         return False
     if len(state.sources) < MIN_PARTIAL_FINISH_SOURCES:
+        return False
+    if len(state.evidence) < MIN_CLOSEOUT_EVIDENCE:
+        return False
+    return True
+
+
+def partial_finish_allowed(state: State) -> bool:
+    """Whether open questions now describe a bounded partial result.
+
+    Before this point the model must attempt one explicit closeout reflection.
+    If that reflection still leaves questions open, the run may publish a
+    partial rather than spinning until the step limit.
+    """
+
+    open_required = [x for x in state.issues if x.required and x.status == "open"]
+    if not open_required:
+        return False
+    if not closeout_attempted(state):
+        return False
+    if not closeout_ready(state):
+        return False
+    if required_next_action(state) is not None:
         return False
     return True
 

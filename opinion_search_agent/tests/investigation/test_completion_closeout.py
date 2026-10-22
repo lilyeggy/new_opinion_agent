@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from opinion_search.domain.investigation.engine import (
+    closeout_attempted,
+    closeout_ready,
     completion,
     partial_finish_allowed,
     required_next_action,
@@ -42,12 +44,15 @@ def _source(index: int) -> SourceVersion:
     )
 
 
-def _progressive_state() -> State:
+def _progressive_state(*, closeout_attempted_value: bool = False) -> State:
     issues = tuple(Issue(issue_id=uid("issue", text), question=text) for text in ("起因", "回应", "后续"))
     excerpt = "品牌方表示会持续改进。"
-    evidence = Evidence(
-        evidence_id="e1", version_id="v1", excerpt=excerpt,
-        start=0, end=len(excerpt), locator=f"Reader text chars 0:{len(excerpt)}",
+    evidence = tuple(
+        Evidence(
+            evidence_id=f"e{index}", version_id="v1", excerpt=excerpt,
+            start=0, end=len(excerpt), locator=f"Reader text chars 0:{len(excerpt)}",
+        )
+        for index in range(1, 9)
     )
     proposal = FindingProposal(
         issue_id=issues[1].issue_id,
@@ -81,17 +86,19 @@ def _progressive_state() -> State:
         cutoff=utcnow(),
         issues=issues,
         sources=(_source(1), _source(2)),
-        evidence=(evidence,),
+        evidence=evidence,
         findings=(finding,),
         reviews=(review,),
         searches=searches,
         read_attempts=("https://example.org/1", "https://example.org/2", "https://example.org/3"),
+        history=("CLOSEOUT: prior disposition pass",) if closeout_attempted_value else (),
     )
 
 
 def test_completion_accepts_a_bounded_partial_with_open_required_questions():
-    state = _progressive_state()
+    state = _progressive_state(closeout_attempted_value=True)
 
+    assert closeout_attempted(state) is True
     assert partial_finish_allowed(state) is True
     verdict = completion(state)
 
@@ -101,7 +108,7 @@ def test_completion_accepts_a_bounded_partial_with_open_required_questions():
 
 
 def test_unreviewed_findings_keep_the_bounded_partial_gate_closed():
-    state = _progressive_state().model_copy(update={"reviews": ()})
+    state = _progressive_state(closeout_attempted_value=True).model_copy(update={"reviews": ()})
 
     assert partial_finish_allowed(state) is False
     verdict = completion(state)
@@ -113,7 +120,7 @@ def test_invalid_decision_at_bounded_closeout_repairs_to_finish():
     from opinion_search.domain.investigation.models import ReflectDecision
     from opinion_search.investigation.service import repair_investigation_decision
 
-    state = _progressive_state()
+    state = _progressive_state(closeout_attempted_value=True)
     repaired = repair_investigation_decision(
         state,
         ReflectDecision(findings=(), reason="模型准备继续补查但字段无效"),
@@ -124,7 +131,7 @@ def test_invalid_decision_at_bounded_closeout_repairs_to_finish():
 
 
 def test_stale_negative_finding_prevents_a_bounded_partial_finish():
-    state = _progressive_state()
+    state = _progressive_state(closeout_attempted_value=True)
     issue_id = state.issues[0].issue_id
     stale = Finding(
         issue_id=issue_id,
@@ -167,8 +174,37 @@ def test_stale_negative_finding_prevents_a_bounded_partial_finish():
     assert next_action["finding_ids"] == [stale.finding_id]
 
 
-def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path):
+def test_closeout_ready_forces_one_explicit_disposition_reflect():
+    from opinion_search.domain.investigation.models import IssueAssessment, ReflectDecision
+
     state = _progressive_state()
+    assert closeout_ready(state) is True
+    next_action = required_next_action(state)
+
+    assert next_action is not None
+    assert next_action["required_action"] == "reflect"
+    assert set(next_action["closeout_issue_ids"]) == {issue.issue_id for issue in state.issues}
+
+    incomplete = ReflectDecision(assessments=(), reason="CLOSEOUT: close")
+    try:
+        Validator().validate(state, incomplete)
+    except ValueError as exc:
+        assert "must dispose every open required question" in str(exc)
+    else:
+        raise AssertionError("closeout without assessments must be rejected")
+
+    closed = ReflectDecision(
+        assessments=tuple(
+            IssueAssessment(issue_id=issue.issue_id, status="unavailable", reason="材料边界")
+            for issue in state.issues
+        ),
+        reason="CLOSEOUT: dispose all open questions",
+    )
+    Validator().validate(state, closed)
+
+
+def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path):
+    state = _progressive_state(closeout_attempted_value=True)
     budget_path = tmp_path / "budget.json"
     atomic_json(budget_path, {
         "started_at": (datetime.now(timezone.utc) - timedelta(seconds=10)).isoformat(),
