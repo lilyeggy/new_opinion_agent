@@ -30,7 +30,9 @@ def _state() -> State:
 def test_a_repeated_query_is_rejected():
     state = _state()
     issue_id = state.issues[0].issue_id
-    state = state.model_copy(update={"searches": (SearchAttempt(
+    # Clear the finding backlog: a review requirement would be checked first and
+    # this test is about the repeated query.
+    state = state.model_copy(update={"findings": (), "reviews": (), "sources": (), "evidence": (), "searches": (SearchAttempt(
         issue_id=issue_id, query="罗永浩 野人先生", purpose="original", page=0,
         outcome="candidates", count=3),)})
 

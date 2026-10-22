@@ -7,7 +7,10 @@ import re
 from hashlib import sha256
 from pathlib import Path
 
-from opinion_search.domain.investigation.engine import CompletionEvaluator, Processor, Resolver, Validator, allowed_url, reduce_state
+from opinion_search.domain.investigation.engine import (
+    MAX_NEW_FINDINGS_PER_REFLECT, CompletionEvaluator, Processor, Resolver, Validator, allowed_url,
+    reduce_state,
+)
 from opinion_search.domain.investigation.models import (
     Action, Decision, Evidence, FindingEvidence, FinishDecision, NumericObservation, Observation,
     ReadDecision, ReflectDecision, RetrieveDecision, ReviewDecision, ReviewRecord, ReviewResult,
@@ -202,6 +205,11 @@ def repair_investigation_decision(state, decision):
             assessments.append(item.model_copy(update={"status": status}) if status != item.status else item)
 
         findings = []
+        if len(decision.findings) > MAX_NEW_FINDINGS_PER_REFLECT:
+            changed = True
+            decision = decision.model_copy(
+                update={"findings": tuple(decision.findings[:MAX_NEW_FINDINGS_PER_REFLECT])}
+            )
         for proposal in decision.findings:
             kept = tuple(item for item in proposal.evidence_ids if item in evidence_ids)
             if kept != tuple(proposal.evidence_ids):

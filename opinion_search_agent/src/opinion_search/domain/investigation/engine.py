@@ -25,6 +25,11 @@ FIRST_REFLECTION_DUPLICATE_STREAK = 2
 # next acquisition decision is redirected into synthesis. Measured pain: a
 # 2026-09-23 live run converted only 4 of 8 read sources into findings.
 ONGOING_REFLECTION_UNDISPOSED_LIMIT = 8
+# A run that keeps writing findings never spends its budget on review: one
+# 40-step run produced 132 findings and reviewed 8. Cap the burst and force
+# review once the backlog is real.
+MAX_NEW_FINDINGS_PER_REFLECT = 6
+REVIEW_BACKLOG_LIMIT = 8
 
 # Finish-gate guidance limits: the rejection reason must stay scannable.
 _GUIDANCE_PREVIEW_ITEMS = 3
@@ -421,6 +426,19 @@ def required_next_action(state: State) -> dict | None:
     """
 
     if any(finding.active for finding in state.findings):
+        unreviewed = [
+            finding.finding_id for finding in state.findings
+            if finding.active and accepted_review(state, finding) is None
+        ]
+        if len(unreviewed) >= REVIEW_BACKLOG_LIMIT:
+            return {
+                "required_action": "review",
+                "finding_ids": unreviewed,
+                "reason": (
+                    f"{len(unreviewed)} active findings have never been reviewed; "
+                    "review them before more acquisition or synthesis"
+                ),
+            }
         undisposed = _undisposed_evidence(state)
         if len(undisposed) >= ONGOING_REFLECTION_UNDISPOSED_LIMIT:
             return {
@@ -490,6 +508,14 @@ class Validator:
                 raise ValueError(
                     "read one of the discovered unread candidate URLs before another search"
                 )
+            if required_action == "review":
+                if not isinstance(decision, ReviewDecision):
+                    raise ValueError(
+                        "review is required before more acquisition: " + next_action["reason"]
+                    )
+                allowed = set(next_action.get("finding_ids") or ())
+                if not set(decision.finding_ids) <= allowed:
+                    raise ValueError("review only findings that have never been reviewed")
             if required_action == "reflect" and not isinstance(decision, ReflectDecision):
                 raise ValueError(
                     "reflect is required before more search/read/retrieve work: " + next_action["reason"]
@@ -511,6 +537,11 @@ class Validator:
                     "the required first reflection must create at least one evidence-linked finding; "
                     "leave assessments empty when current evidence cannot dispose a whole question"
                 )
+        if isinstance(decision, ReflectDecision) and len(decision.findings) > MAX_NEW_FINDINGS_PER_REFLECT:
+            raise ValueError(
+                f"at most {MAX_NEW_FINDINGS_PER_REFLECT} new findings per reflection; "
+                "review the current backlog first"
+            )
         if isinstance(decision, SearchDecision):
             # A repeated query used to reject the decision, and three rejections
             # ended the whole run. Let it through instead: the reducer records it
