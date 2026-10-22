@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 
 from opinion_search.domain.investigation.engine import (
     closeout_attempted,
@@ -26,6 +27,7 @@ from opinion_search.domain.investigation.models import (
     uid,
     utcnow,
 )
+from opinion_search.investigation.context import Compiler
 from opinion_search.investigation.service import ConsolidationValidator, Validator
 from opinion_search.investigation.storage import Budget, atomic_json
 from opinion_search.runtime.completion import CompletionDisposition
@@ -251,6 +253,23 @@ def test_closeout_ready_forces_one_explicit_disposition_reflect():
         reason="CLOSEOUT: dispose all open questions",
     )
     Validator().validate(state, closed)
+
+
+def test_closeout_context_section_compiles(tmp_path):
+    state = _progressive_state()
+    run = SimpleNamespace(
+        run_id="r",
+        domain_state=state,
+        next_step_index=12,
+        committed_steps=(),
+        active_step=SimpleNamespace(step_id="s1", failures=()),
+    )
+    context = Compiler(Budget(tmp_path / "budget.json")).compile(run)
+    by_id = {item.section_id: item for item in context.sections}
+
+    assert "memory.closeout" in by_id
+    assert by_id["memory.closeout"].priority <= 100
+    assert "CLOSEOUT" in by_id["memory.next_action_constraint"].content
 
 
 def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path):

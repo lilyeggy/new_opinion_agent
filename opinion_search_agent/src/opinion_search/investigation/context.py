@@ -263,7 +263,7 @@ class Compiler:
                     "memory.closeout",
                     json.dumps({"issues": closeout}, ensure_ascii=False),
                     Origin.RUNTIME,
-                    priority=101,
+                    priority=100,
                     protected=True,
                 ))
         signals = evidence_quality_signals(state)
