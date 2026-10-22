@@ -2,6 +2,10 @@
 
 from opinion_search.investigation.context import INSTRUCTIONS
 from opinion_search.investigation.service import PLAN_INSTRUCTIONS, REVIEW_INSTRUCTIONS
+from opinion_search.presentation_skill.llm_planner import (
+    NARRATIVE_INSTRUCTIONS,
+    PRESENTATION_INSTRUCTIONS,
+)
 
 
 def test_every_decision_prompt_mentions_json() -> None:
@@ -10,5 +14,7 @@ def test_every_decision_prompt_mentions_json() -> None:
         ("planner", PLAN_INSTRUCTIONS),
         ("reviewer", REVIEW_INSTRUCTIONS),
         ("investigation", INSTRUCTIONS),
+        ("presentation", PRESENTATION_INSTRUCTIONS),
+        ("narrative", NARRATIVE_INSTRUCTIONS),
     ):
         assert "json" in prompt.casefold(), f"{name} prompt must ask for JSON"

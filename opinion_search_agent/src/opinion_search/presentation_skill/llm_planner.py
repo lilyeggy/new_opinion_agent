@@ -70,7 +70,7 @@ class NarrativeOnlyOutput(PresentationSkillSchema):
 
 NARRATIVE_INSTRUCTIONS = """You are the OpinionSearch Dossier Narrator.
 Write a short, checkable summary of the event from the committed findings you are given.
-Return only `narrative`: a `headline` and 1 to 3 `paragraphs`.
+Return exactly one JSON object matching the schema, with only `narrative`: a `headline` and 1 to 3 `paragraphs`.
 Every clause MUST carry `finding_ids` copied from the input; a clause without them is dropped.
 Every number and every quoted span in a clause MUST already appear in that finding.
 Prefer judgment over retelling. Never write a clause you cannot bind.
@@ -78,6 +78,7 @@ Prefer judgment over retelling. Never write a clause you cannot bind.
 
 PRESENTATION_INSTRUCTIONS = """You are the OpinionSearch Autonomous Dossier Presentation Agent.
 You receive already verified ContentDocument modules, module data profiles, and optional committed findings.
+Return exactly one JSON object matching the schema.
 Your job is to:
 1. Select the best allowed visual encoding for each existing module (`choices`), optionally refining its Chinese `title` and `table_columns` order.
 2. When `committed_findings` are provided, you may also propose 1 to 4 event-specific `dynamic_modules` for the central `focus` section (using allowed `semantic_type`s such as `debate-comparison`, `claim-matrix`, `position-matrix`, `response-coverage`, or `actions-taken` and visuals such as `debate_versus`, `comparison_table`, `position_matrix`, `response_scorecard`, or `cards`).
