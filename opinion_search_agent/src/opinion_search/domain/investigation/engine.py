@@ -455,6 +455,14 @@ def required_next_action(state: State) -> dict | None:
                     "review them before more acquisition or synthesis"
                 ),
             }
+        stale = _stale_negative_findings(state)
+        if stale:
+            return {
+                "required_action": "reflect",
+                "allow_assessment_only": True,
+                "finding_ids": [finding.finding_id for finding, _ in stale],
+                "reason": _stale_findings_guidance(stale),
+            }
         undisposed = _undisposed_evidence(state)
         if len(undisposed) >= ONGOING_REFLECTION_UNDISPOSED_LIMIT:
             return {

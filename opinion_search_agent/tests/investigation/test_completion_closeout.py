@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from opinion_search.domain.investigation.engine import completion, partial_finish_allowed
+from opinion_search.domain.investigation.engine import (
+    completion,
+    partial_finish_allowed,
+    required_next_action,
+)
 from opinion_search.domain.investigation.models import (
     Evidence,
     Finding,
@@ -140,9 +144,13 @@ def test_stale_negative_finding_prevents_a_bounded_partial_finish():
 
     assert partial_finish_allowed(state) is False
     verdict = completion(state)
+    next_action = required_next_action(state)
 
     assert verdict.disposition is CompletionDisposition.REJECT_AND_CONTINUE
     assert stale.finding_id in verdict.reason
+    assert next_action is not None
+    assert next_action["required_action"] == "reflect"
+    assert next_action["finding_ids"] == [stale.finding_id]
 
 
 def test_consolidation_requires_finish_once_partial_closeout_is_allowed(tmp_path):
