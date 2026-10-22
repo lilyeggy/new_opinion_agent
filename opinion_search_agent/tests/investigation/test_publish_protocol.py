@@ -52,6 +52,25 @@ def test_interrupted_publish_is_recovered_on_resume(manager, run_offline):
     assert recovered["report"]["run_id"] == run_id
 
 
+def test_failure_always_publishes_a_complete_artifact_bundle(manager, wait_for_terminal):
+    async def fail_before_any_checkpoint(identifier, worker):
+        raise RuntimeError("simulated runtime failure")
+
+    manager._investigate = fail_before_any_checkpoint
+    created = manager.create({"mode": "offline", "question": "某市公交夜班车调整的争议与回应"})
+    run_id = created["run_id"]
+    snapshot = wait_for_terminal(manager, run_id)
+
+    assert snapshot["status"] == "failed"
+    assert snapshot["report"]["status"] == "failed"
+    run_root = manager.path(run_id)
+    for name in ("report.json", "report.md", "workbench.json",
+                 "presentation_plan.json", "dossier.html"):
+        path = run_root / name
+        assert path.exists(), f"failed run missing {name}"
+        assert path.stat().st_size > 0, f"failed run wrote empty {name}"
+
+
 def test_cancel_is_never_terminal_without_a_report(manager, wait_for_terminal):
     created = manager.create({"mode": "offline", "question": "某市公交夜班车调整的争议与回应"})
     run_id = created["run_id"]

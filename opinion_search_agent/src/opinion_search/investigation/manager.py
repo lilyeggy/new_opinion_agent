@@ -796,10 +796,45 @@ class Manager:
             worker.signal = None
             lock.close()
 
+    def _minimal_report(self, identifier, data, status, note, budget):
+        plan = data.get("plan") or {}
+        return {
+            "schema_version": 2, "case_id": data["case_id"], "run_id": identifier,
+            "parent_id": data.get("parent_id"), "mode": data.get("mode", "live"),
+            "subject": plan.get("subject") or data["request"]["question"],
+            "question": data["request"]["question"], "status": status, "stop_reason": note,
+            "cutoff": utcnow().isoformat(), "lookup_cutoff": utcnow().isoformat(),
+            "generated_at": utcnow().isoformat(), "started_at": data.get("created_at"),
+            "required_questions": [], "issues": [], "findings": [], "retired": [],
+            "conclusions": [], "interim_findings": [], "sources": [], "evidence": [],
+            "searches": [], "read_errors": [], "checks": [], "changes": [],
+            "no_material_change": False, "budget": budget or {},
+            "diagnostics": empty_chain_diagnostics(status, note, budget or {}),
+            "unresolved": {"issues": [], "searches": 0, "reads": 0, "read_failures": 0},
+            "completion_gate": None, "numeric_blocked_conclusions": 0,
+            "scope_limitation": "调查未能形成完整领域投影；已保留运行元数据、检查点和失败原因。",
+        }
+
+    def _write_report_bundle(self, run_root, report, *, data=None, budget=None):
+        atomic_json(run_root / "report.json", report)
+        atomic_text(run_root / "report.md", markdown(report))
+        try:
+            projection = build_workbench(report)
+            projection["projection_source"] = "saved"
+            atomic_json(run_root / "workbench.json", projection)
+        except Exception:
+            projection = {"format": "opinion-workbench/1", "run_id": report.get("run_id"),
+                          "publication_state": report.get("status", "failed"),
+                          "views": {}, "citations": {}}
+        self._publish_dossier_artifacts(run_root, report, projection, data=data, budget=budget)
+        (run_root / "workbench-provisional.json").unlink(missing_ok=True)
+
     def _publish_failure(self, identifier, data):
         """Expose the material already committed to the checkpoint for a failed run."""
 
         run_root = self.path(identifier)
+        budget = read_json(run_root / "budget.json") or {}
+        note = "调查中断，已保存的材料与判断仍然保留，报告不完整。"
         report = None
         try:
             raw = read_json(run_root / "run.json")
@@ -807,17 +842,19 @@ class Manager:
                 run_state = InvestigationRun.model_validate(raw["state"])
                 parent_id = data.get("parent_id")
                 parent = read_json(self.path(parent_id) / "report.json") if parent_id else None
-                budget = read_json(run_root / "budget.json")
-                report = build_report(run_state.domain_state, "failed", "调查中断，已保存的材料与判断仍然保留，报告不完整。",
-                    case_id=data["case_id"], run_id=identifier, parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
+                report = build_report(run_state.domain_state, "failed", note,
+                    case_id=data["case_id"], run_id=identifier, parent_id=parent_id,
+                    parent=parent, mode=data["mode"], budget=budget,
                     scope_notes=_assumption_note(data), runtime=run_state,
                     numeric_conflicts=_numeric_rows(run_state.domain_state))
-                atomic_json(run_root / "report.json", report)
-                atomic_text(run_root / "report.md", markdown(report))
-        except (OSError, ValueError):
+        except (OSError, ValueError, KeyError, TypeError):
             report = None
+        if report is None:
+            report = self._minimal_report(identifier, data, "failed", note, budget)
+        self._write_report_bundle(run_root, report, data=data, budget=None)
         message = "调查未能完成，已保存的材料仍然保留。请检查服务配置或开发者日志。"
-        self.save(self.load(identifier), status="failed", phase="调查失败", error=message, published=report is not None)
+        self.save(self.load(identifier), status="failed", phase="调查失败",
+                  error=message, published=True)
 
     def _cancel_publish(self, identifier, data):
         """Publish a cancelled report so a cancelled run is never terminal without one."""
@@ -825,29 +862,24 @@ class Manager:
         run_root = self.path(identifier)
         parent_id = data.get("parent_id")
         parent = read_json(self.path(parent_id) / "report.json") if parent_id else None
-        budget = read_json(run_root / "budget.json")
+        budget = read_json(run_root / "budget.json") or {}
         note = "调查在产生可核查材料前已被取消，未完成问题不视为已解决或已撤回。"
-        raw = read_json(run_root / "run.json")
-        if raw and "state" in raw:
-            state = InvestigationRun.model_validate(raw["state"]).domain_state
-            report = build_report(state, "cancelled", note, case_id=data["case_id"], run_id=identifier,
-                                  parent_id=parent_id, parent=parent, mode=data["mode"], budget=budget,
-                                  scope_notes=_assumption_note(data), runtime=InvestigationRun.model_validate(raw["state"]),
-                                  numeric_conflicts=_numeric_rows(state))
-        else:
-            plan = data.get("plan") or {}
-            report = {
-                "schema_version": 2, "case_id": data["case_id"], "run_id": identifier, "parent_id": parent_id,
-                "mode": data["mode"], "subject": plan.get("subject") or data["request"]["question"],
-                "question": data["request"]["question"], "status": "cancelled", "stop_reason": note,
-                "cutoff": utcnow().isoformat(), "required_questions": [], "issues": [], "findings": [],
-                "retired": [], "conclusions": [], "sources": [], "evidence": [], "searches": [], "read_errors": [],
-                "changes": [], "no_material_change": False, "budget": budget,
-                "diagnostics": empty_chain_diagnostics("cancelled", note, budget),
-                "scope_limitation": "调查已取消，没有可展示的材料或结论。",
-            }
-        atomic_json(run_root / "report.json", report)
-        atomic_text(run_root / "report.md", markdown(report))
+        report = None
+        try:
+            raw = read_json(run_root / "run.json")
+            if raw and "state" in raw:
+                runtime = InvestigationRun.model_validate(raw["state"])
+                state = runtime.domain_state
+                report = build_report(state, "cancelled", note, case_id=data["case_id"],
+                                      run_id=identifier, parent_id=parent_id, parent=parent,
+                                      mode=data["mode"], budget=budget,
+                                      scope_notes=_assumption_note(data), runtime=runtime,
+                                      numeric_conflicts=_numeric_rows(state))
+        except (OSError, ValueError, KeyError, TypeError):
+            report = None
+        if report is None:
+            report = self._minimal_report(identifier, data, "cancelled", note, budget)
+        self._write_report_bundle(run_root, report, data=data, budget=None)
         self.save(self.load(identifier), status="cancelled", phase="已取消", published=True)
 
     async def _propose_plan(self, config, budget, instructions, payload):
@@ -1030,13 +1062,7 @@ class Manager:
         report["generated_at"] = utcnow().isoformat()
         report["started_at"] = data.get("created_at")
         report["lookup_cutoff"] = report["cutoff"]
-        atomic_json(run_root / "report.json", report)
-        projection = build_workbench(report)
-        projection["projection_source"] = "saved"
-        atomic_json(run_root / "workbench.json", projection)
-        atomic_text(run_root / "report.md", markdown(report))
-        self._publish_dossier_artifacts(run_root, report, projection, data=data, budget=budget)
-        (run_root / "workbench-provisional.json").unlink(missing_ok=True)
+        self._write_report_bundle(run_root, report, data=data, budget=budget)
         if status in {"completed", "partial"}:
             atomic_json(case_root / "latest.json", {"run_id": identifier})
         # A complete result keeps its own pointer so a later partial update can
@@ -1108,4 +1134,5 @@ class Manager:
             atomic_json(run_root / "presentation_plan.json", plan.model_dump(mode="json"))
             atomic_text(run_root / "dossier.html", render_html(plan))
         except Exception:
-            return
+            from opinion_search.investigation.fallback import write_minimal_dossier
+            write_minimal_dossier(run_root, report)
