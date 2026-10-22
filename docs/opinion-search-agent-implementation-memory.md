@@ -3,7 +3,7 @@
 > 文档性质：持续追加的工程事实记录  
 > Canonical Design：[`public-opinion-search-agent-design.md`](./public-opinion-search-agent-design.md)  
 > 执行计划：[`opinion-search-agent-5-day-plan.md`](./opinion-search-agent-5-day-plan.md)  
-> 当前记录截至：2026-10-22（审查配比纠正 + 叙述层 JSON 响应契约修复；真实直播链路已复验，完成门禁仍未通过）
+> 当前记录截至：2026-10-22（审查配比纠正 + 叙述层 JSON 响应契约修复 + 有界 partial 收口；真实直播链路已复验，completed 仍取决于必答项能否被事实性处置）
 > 当前已完成节点：Day 1–4、Web 演示控制台、工作台与研判流程（§18/§19 各批次）、秋招收尾（D1–D5）、深度化改造 M1–M6、质量审计 P0/P1 收口、finding burst 与 review backlog 控制、叙述层 JSON 契约修复
 
 ## 0. 最新节点：审查配比纠正与叙述层 JSON 契约（2026-10-22）
@@ -29,10 +29,27 @@
 | `ea29de8bc1c1440499aed5c6784fe3f7` | cap 前 | partial / max committed steps | 112 | 0 / 0 | 0 / 0 | 12 | 0 |
 | `5596e8218a7f4e16b3df37e01576ce81` | cap 后、prompt 修复前 | partial / max committed steps | 18 | 18 / 18 | 0 / 0 | 0（`narrative_error`：HTTP 400） | 0 |
 | `08c8927310484535806ba5013716c17b` | prompt 修复后 | partial / decision recovery exhausted | 13 | 9 / 3 | 3 / 5 | 1（`no_reviewed_finding`） | 1 |
+| `ef6c4acdcd9f46e3a6bd9fc0c2778cb0` | bounded closeout 后 | partial / accept_partial | 14 | 14 / 14 | 2 / 5 | 0 | 1 |
 
 - `5596e821…` 的 40 步运行证明 backlog 控制生效：18 条 active finding 全部有当前 review，18 条 verdict 为 supported；此前 `ea29de8b…` 的 112 条 active finding 为 0 条 review。该运行的叙述层仍为 0，但 `presentation_plan.json.profile.narrative_error` 明确记录 provider HTTP 400，`narrative_dropped` 为空，说明缺口发生在 gate 之前。
 - 定位 HTTP 400 后，用同一份已落盘报告重放 Presentation Agent：修复后 provider 返回 200，计划通过 `validate_presentation_plan`，得到 3 个 narrative paragraph、0 条 dropped。
 - `08c89273…` 是修复后的完整直播链路（`--max-steps 40`）：第 17 步因模型连续给出缺少 `coverage_reason` 的无效 decision 触发 recovery 耗尽而终止；但发布阶段已成功生成 3 段 / 5 个 clause 的 narrative，唯一丢弃项绑定的是未被 review 的 finding，`dossier.html` 含 1 个 `narrative-block`。
+
+### 完成门禁：有界 partial 收口
+
+`completion()` 过去只要存在 `open` 必答问题就返回 `REJECT_AND_CONTINUE`。模型在 40 步内没有足够材料把每个问题都处置为 `answered/disputed/not_found` 时，`finish` 会被反复拒绝，最终以步数耗尽而不是一个明确的发布决策结束。这不是“应当把未答完的问题伪造成 completed”的问题，而是门禁缺少一个**诚实停止**的出口。
+
+本次实现把出口限定在以下条件全部满足时：
+
+- 至少有 3 次搜索、3 次读取、2 个已保存 source；
+- 至少 1 条 active finding 已通过 review；
+- 所有 active finding 都有当前 review；
+- 没有 `required_next_action` 阻塞（无 review 积压、无未处置证据积压、无 stale negative finding）；
+- 达到发布保留段（模型调用预算的 50% 或 `consolidate_seconds`）。
+
+此时 `completion()` 返回 `ACCEPT_PARTIAL`，报告保留所有 open 必答问题和调查限制；`ConsolidationValidator` 会把后续 acquisition/synthesis 统一改成 `FinishDecision`，避免最后的无效决策把 run 打断。`completed` 仍只在必答问题获得事实性处置、所有 active finding 通过 review、且没有模块缺口时产生，不因为“已经有 finding”而放宽。
+
+`ef6c4acd…` 的落盘结果为：14 条 active finding 全部通过 review 且全部 supported；5 个必答问题中 2 个 answered、3 个 open；`completion_gate=accept_partial`；最终动作中包含 1 次 `finish`，stop_reason 明确说明 partial 原因。该 run 的 narrative 为 2 段 / 5 clause、dropped 0，`dossier.html` 含 1 个 `narrative-block`。
 
 ### 验证命令
 
@@ -50,7 +67,7 @@ ruff check src
 
 ### 已知限制与下一节点
 
-- 完成门禁仍未通过：`08c89273…` 的 6 个必答问题中 2 个仍为 open，`report.json.completion_gate` 明确拒绝 `finish`；该 run 还在第 17 步提前终止，尚未走到 40 步上限。
+- `completed` 仍不是常态：`ef6c4acd…` 的 5 个必答问题中 3 个仍 open，因此系统发布的是明确标注限制的 partial，而不是伪造 completed。要让真实链路产出 `completed`，仍需让模型在可完成的调查中把必答项处置为 `answered/disputed/not_found`；本次修复只保证“不能完成时不会无限拒绝 finish”。
 - 新的运行时失败点是模型决策稳定性：缺少 `coverage_reason` 的 reflect 被正确拒绝，但现有 repair hook 不能在不虚构理由的前提下补出该字段，连续无效后 run 以 partial 结束。下一节点应先确认这是 prompt 可观察性问题还是 repair 的保守边界，不应放松“响应判断必须有具体依据”的校验。
 - `review` 已能跟上 finding 产出，但 supported 率仍受“日期/出处/推断是否逐字出现在 cited excerpt”的严格程序核验影响；未过审 finding 仍会按设计被叙述层排除。
 
