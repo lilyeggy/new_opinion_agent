@@ -6,8 +6,8 @@ import pytest
 
 from opinion_search.domain.investigation.engine import Validator, response_search_complete
 from opinion_search.domain.investigation.models import (
-    Evidence, FindingProposal, InvestigationRequest, Issue, ReflectDecision, SearchAttempt,
-    SourceVersion, State, uid, utcnow,
+    ComponentAssessment, Evidence, FindingProposal, InvestigationRequest, Issue, IssueAssessment,
+    QuestionComponent, ReflectDecision, SearchAttempt, SourceVersion, State, uid, utcnow,
 )
 from opinion_search.investigation.report import build_report
 
@@ -86,6 +86,43 @@ def test_duplicate_reprints_are_not_independent_sources():
     report = build_report(state, "partial", "no findings", case_id="c", run_id="r")
     assert report["independent_source_count"] == 1
     assert [s["independent"] for s in report["sources"]] == [True, False, False]
+
+
+def test_repair_downgrades_an_incomplete_compound_assessment_to_open():
+    from opinion_search.investigation.service import repair_investigation_decision
+
+    issue = Issue(
+        issue_id="compound",
+        question="范围与时限",
+        components=(
+            QuestionComponent(text="范围"),
+            QuestionComponent(text="时限"),
+        ),
+    )
+    assessment = IssueAssessment(
+        issue_id="compound",
+        status="answered",
+        reason="只覆盖了范围",
+        evidence_ids=("e1",),
+        components=(ComponentAssessment(text="范围", status="answered", evidence_ids=("e1",)),),
+    )
+    decision = ReflectDecision(assessments=(assessment,), reason="整理问题")
+    repaired = repair_investigation_decision(_base_state().model_copy(update={"issues": (issue,)}), decision)
+
+    assert repaired is not None
+    assert repaired.assessments[0].status == "open"
+
+
+def test_repair_turns_an_unfinished_not_found_into_unavailable():
+    from opinion_search.investigation.service import repair_investigation_decision
+
+    issue = Issue(issue_id="response", question="回应如何")
+    assessment = IssueAssessment(issue_id="response", status="not_found", reason="未检索完")
+    decision = ReflectDecision(assessments=(assessment,), reason="收口")
+    repaired = repair_investigation_decision(_base_state().model_copy(update={"issues": (issue,)}), decision)
+
+    assert repaired is not None
+    assert repaired.assessments[0].status == "unavailable"
 
 
 def test_repair_drops_an_ungrounded_response_judgement_without_losing_the_finding():

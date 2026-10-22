@@ -8,7 +8,7 @@ from pathlib import Path
 
 from opinion_search.domain.investigation.engine import (
     MAX_NEW_FINDINGS_PER_REFLECT, CompletionEvaluator, Processor, Resolver, Validator, allowed_url,
-    consolidation_model_call_limit, partial_finish_allowed,
+    consolidation_model_call_limit, partial_finish_allowed, response_search_complete,
     reduce_state,
 )
 from opinion_search.domain.investigation.models import (
@@ -206,20 +206,75 @@ def repair_investigation_decision(state, decision):
     conservative direction - claim less - so the run can continue.
     """
 
+    if partial_finish_allowed(state):
+        supported = tuple(
+            finding.finding_id for finding in state.findings
+            if finding.active
+            and (review := accepted_review(state, finding)) is not None
+            and review.verdict == "supported"
+        )[:8]
+        return FinishDecision(conclusion_ids=supported)
+
     if isinstance(decision, ReflectDecision):
         changed = False
         evidence_ids = {item.evidence_id for item in state.evidence}
+        issues = {item.issue_id: item for item in state.issues}
         assessments = []
         for item in decision.assessments:
-            status = item.status
-            open_components = [
-                component for component in item.components
-                if component.status not in {"answered", "not_found", "unavailable"}
-            ]
-            if status in {"answered", "not_found"} and open_components:
-                status = "open"
+            issue = issues.get(item.issue_id)
+            if issue is None:
                 changed = True
-            assessments.append(item.model_copy(update={"status": status}) if status != item.status else item)
+                continue
+            status = item.status
+            assessment_evidence = tuple(
+                identifier for identifier in item.evidence_ids if identifier in evidence_ids
+            )
+            if assessment_evidence != tuple(item.evidence_ids):
+                changed = True
+            components = []
+            for component in item.components:
+                component_evidence = tuple(
+                    identifier for identifier in component.evidence_ids if identifier in evidence_ids
+                )
+                component_status = component.status
+                if component_evidence != tuple(component.evidence_ids):
+                    changed = True
+                if component_status in {"answered", "disputed"} and not component_evidence:
+                    component_status = "open"
+                    changed = True
+                if component_status in {"not_found", "unavailable"} and not component.note.strip():
+                    component_status = "open"
+                    changed = True
+                components.append(component.model_copy(update={
+                    "evidence_ids": component_evidence,
+                    "status": component_status,
+                }) if (component_status != component.status or component_evidence != tuple(component.evidence_ids))
+                    else component)
+
+            declared = {component.text for component in issue.components}
+            provided = {component.text for component in components}
+            if status in {"answered", "disputed"}:
+                if not assessment_evidence or (declared and not declared <= provided):
+                    status = "open"
+                    changed = True
+                elif status == "answered" and any(component.status != "answered" for component in components):
+                    status = "open"
+                    changed = True
+            if status == "not_found" and not response_search_complete(state, item.issue_id):
+                # Incomplete scoped searching cannot support a negative
+                # existence claim, but it can still be an honest access limit.
+                status = "unavailable"
+                changed = True
+            updated = item.model_copy(update={
+                "status": status,
+                "evidence_ids": assessment_evidence,
+                "components": tuple(components),
+            }) if (
+                status != item.status
+                or assessment_evidence != tuple(item.evidence_ids)
+                or tuple(components) != item.components
+            ) else item
+            assessments.append(updated)
 
         findings = []
         if len(decision.findings) > MAX_NEW_FINDINGS_PER_REFLECT:
@@ -241,6 +296,9 @@ def repair_investigation_decision(state, decision):
                 proposal.response == "partial" and not proposal.uncovered
             ) or (
                 proposal.response == "direct" and bool(proposal.uncovered)
+            ) or (
+                proposal.response == "not_found"
+                and not response_search_complete(state, proposal.issue_id)
             )
             if response_invalid:
                 changed = True

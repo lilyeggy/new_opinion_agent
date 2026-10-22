@@ -109,6 +109,20 @@ def test_unreviewed_findings_keep_the_bounded_partial_gate_closed():
     assert verdict.disposition is CompletionDisposition.REJECT_AND_CONTINUE
 
 
+def test_invalid_decision_at_bounded_closeout_repairs_to_finish():
+    from opinion_search.domain.investigation.models import ReflectDecision
+    from opinion_search.investigation.service import repair_investigation_decision
+
+    state = _progressive_state()
+    repaired = repair_investigation_decision(
+        state,
+        ReflectDecision(findings=(), reason="模型准备继续补查但字段无效"),
+    )
+
+    assert isinstance(repaired, FinishDecision)
+    assert repaired.conclusion_ids == (state.findings[0].finding_id,)
+
+
 def test_stale_negative_finding_prevents_a_bounded_partial_finish():
     state = _progressive_state()
     issue_id = state.issues[0].issue_id
