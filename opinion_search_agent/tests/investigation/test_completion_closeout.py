@@ -95,6 +95,56 @@ def _progressive_state(*, closeout_attempted_value: bool = False) -> State:
     )
 
 
+def _fully_disposed_state(*, unsupported: bool = False) -> State:
+    state = _progressive_state(closeout_attempted_value=True)
+    findings = list(state.findings)
+    reviews = list(state.reviews)
+    for issue in state.issues:
+        if any(finding.issue_id == issue.issue_id for finding in findings):
+            continue
+        proposal = FindingProposal(
+            issue_id=issue.issue_id,
+            text=f"{issue.question}的材料结论。",
+            kind="fact",
+            evidence_ids=("e1",),
+        )
+        finding = Finding(**proposal.model_dump(), finding_id=uid("finding", issue.issue_id))
+        review = ReviewRecord(
+            finding_id=finding.finding_id,
+            verdict="partial" if unsupported and len(findings) == 1 else "supported",
+            reason="构造验证",
+            finding_hash=finding_hash(finding),
+            model="test",
+            reviewed_at=utcnow(),
+        )
+        findings.append(finding)
+        reviews.append(review)
+    issues = tuple(issue.model_copy(update={"status": "answered"}) for issue in state.issues)
+    return state.model_copy(update={"issues": issues, "findings": tuple(findings), "reviews": tuple(reviews)})
+
+
+def test_all_required_disposed_with_supported_reviews_requires_finish():
+    state = _fully_disposed_state()
+    action = required_next_action(state)
+
+    assert action is not None
+    assert action["required_action"] == "finish"
+    assert completion(state).disposition is CompletionDisposition.ACCEPT_COMPLETE
+    Validator().validate(
+        state,
+        FinishDecision(conclusion_ids=tuple(finding.finding_id for finding in state.findings)),
+    )
+
+
+def test_all_required_disposed_with_an_unsupported_finding_requires_repair():
+    state = _fully_disposed_state(unsupported=True)
+    action = required_next_action(state)
+
+    assert action is not None
+    assert action["required_action"] == "reflect"
+    assert "retire or reword" in action["reason"]
+
+
 def test_completion_accepts_a_bounded_partial_with_open_required_questions():
     state = _progressive_state(closeout_attempted_value=True)
 

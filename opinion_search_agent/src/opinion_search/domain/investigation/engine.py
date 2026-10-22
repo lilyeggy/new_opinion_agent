@@ -447,6 +447,65 @@ def required_next_action(state: State) -> dict | None:
             finding.finding_id for finding in state.findings
             if finding.active and accepted_review(state, finding) is None
         ]
+        required_issues = [issue for issue in state.issues if issue.required]
+        required_disposed = bool(required_issues) and all(
+            issue.status != "open" for issue in required_issues
+        )
+        if required_disposed:
+            if unreviewed:
+                return {
+                    "required_action": "review",
+                    "finding_ids": unreviewed,
+                    "reason": (
+                        "all required questions are disposed; review every active finding "
+                        "before publication"
+                    ),
+                }
+            stale = _stale_negative_findings(state)
+            if stale:
+                return {
+                    "required_action": "reflect",
+                    "allow_assessment_only": True,
+                    "finding_ids": [finding.finding_id for finding, _ in stale],
+                    "reason": _stale_findings_guidance(stale),
+                }
+            unsupported = [
+                finding.finding_id for finding in state.findings
+                if finding.active
+                and (review := accepted_review(state, finding)) is not None
+                and review.verdict != "supported"
+            ]
+            if unsupported:
+                return {
+                    "required_action": "reflect",
+                    "allow_assessment_only": True,
+                    "finding_ids": unsupported,
+                    "reason": (
+                        "all required questions are disposed; retire or reword findings "
+                        "that did not pass review before publication"
+                    ),
+                }
+            answered_without_findings = [
+                issue.issue_id for issue in required_issues
+                if issue.status in {"answered", "disputed"}
+                and not any(finding.active and finding.issue_id == issue.issue_id for finding in state.findings)
+            ]
+            if answered_without_findings:
+                return {
+                    "required_action": "reflect",
+                    "allow_assessment_only": True,
+                    "reason": (
+                        "answered required questions need at least one active finding: "
+                        + ", ".join(answered_without_findings)
+                    ),
+                }
+            return {
+                "required_action": "finish",
+                "reason": (
+                    "all required questions are disposed and every active finding has "
+                    "a current supported review"
+                ),
+            }
         if len(unreviewed) >= REVIEW_BACKLOG_LIMIT:
             return {
                 "required_action": "review",
@@ -537,6 +596,11 @@ class Validator:
         next_action = required_next_action(state)
         if next_action is not None:
             required_action = next_action["required_action"]
+            if required_action == "finish" and not isinstance(decision, FinishDecision):
+                raise ValueError(
+                    "finish is required before more acquisition or synthesis: "
+                    + next_action["reason"]
+                )
             if required_action == "read" and not isinstance(decision, ReadDecision):
                 raise ValueError(
                     "read is required before another search: " + next_action["reason"]
