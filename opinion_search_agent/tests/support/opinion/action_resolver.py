@@ -1,17 +1,17 @@
-from opinion_search.domain.opinion.actions import (
+from tests.support.opinion.actions import (
     FinishAction,
     OpinionAction,
     ReflectAction,
     ToolAction,
 )
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.decisions import (
     AgentDecision,
     FinishDecision,
     ReadDecision,
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.state import OpinionSearchState
+from tests.support.opinion.state import OpinionSearchState
 from opinion_search.runtime.completion import CompletionPolicy
 from opinion_search.tools.capabilities.web import (
     ReaderArguments,

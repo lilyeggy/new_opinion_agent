@@ -7,7 +7,7 @@ from opinion_search.context.models import (
     ContextSection,
     TrustBoundary,
 )
-from opinion_search.context.selector import (
+from tests.support.context.selector import (
     ContextSelectionError,
     select_context_sections,
 )

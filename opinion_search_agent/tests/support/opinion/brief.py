@@ -8,8 +8,8 @@ from urllib.parse import quote
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from opinion_search.domain.opinion.provenance import build_provenance_index
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.provenance import build_provenance_index
+from tests.support.opinion.state import (
     ClaimKind,
     ClaimStatus,
     GapStatus,

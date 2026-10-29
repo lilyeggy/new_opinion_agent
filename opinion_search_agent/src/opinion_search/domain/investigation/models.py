@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.app.contracts import SearchRequest
+from opinion_search.contracts import SearchRequest
 from opinion_search.runtime.completion import CompletionVerdict
 from opinion_search.tools.contracts import ToolOutcome
 

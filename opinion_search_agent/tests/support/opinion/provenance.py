@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from opinion_search.domain.opinion.state import OpinionSearchState
+from tests.support.opinion.state import OpinionSearchState
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]

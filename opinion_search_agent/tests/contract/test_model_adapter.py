@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 
 import pytest
 
+from tests.support.opinion.decisions import AgentDecision
+
 from opinion_search.context.models import (
     CompactionMode,
     CompiledContext,
@@ -15,7 +17,7 @@ from opinion_search.context.models import (
     TrustBoundary,
     render_sections,
 )
-from opinion_search.domain.opinion.decisions import SearchDecision
+from tests.support.opinion.decisions import SearchDecision
 from opinion_search.models.contracts import ModelClientError, ModelErrorKind
 from opinion_search.models.openai_compatible import (
     ModelHttpResponse,
@@ -107,7 +109,7 @@ def test_adapter_sends_compiled_context_and_returns_typed_decision() -> None:
             )
         ]
     )
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=transport,
     )
@@ -158,7 +160,7 @@ def test_adapter_normalizes_provider_and_payload_failures(
     response: ModelHttpResponse,
     expected_kind: ModelErrorKind,
 ) -> None:
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=FakeModelTransport(responses=[response]),
     )
@@ -171,7 +173,7 @@ def test_adapter_normalizes_provider_and_payload_failures(
 
 
 def test_adapter_timeout_is_typed_and_configuration_is_strict() -> None:
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=FakeModelTransport(
             responses=[_success("{}")],
@@ -185,22 +187,22 @@ def test_adapter_timeout_is_typed_and_configuration_is_strict() -> None:
 
     assert captured.value.error.kind is ModelErrorKind.TIMEOUT
     with pytest.raises(ValueError, match="api_key"):
-        OpenAICompatibleModelClient(api_key="   ")
+        OpenAICompatibleModelClient(decision_type=AgentDecision, api_key="   ")
 
 
 def test_adapter_requires_https_except_explicit_loopback_development() -> None:
     with pytest.raises(ValueError, match="HTTPS"):
-        OpenAICompatibleModelClient(
+        OpenAICompatibleModelClient(decision_type=AgentDecision,
             api_key="secret-key",
             base_url="http://models.example.com/v1",
         )
     with pytest.raises(ValueError, match="development opt-in"):
-        OpenAICompatibleModelClient(
+        OpenAICompatibleModelClient(decision_type=AgentDecision,
             api_key="secret-key",
             base_url="http://127.0.0.1:8080/v1",
         )
 
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         base_url="http://127.0.0.1:8080/v1",
         allow_insecure_loopback=True,
@@ -210,7 +212,7 @@ def test_adapter_requires_https_except_explicit_loopback_development() -> None:
 
 
 def test_empty_response_preserves_only_safe_provider_diagnostics() -> None:
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=FakeModelTransport(
             responses=[
@@ -258,7 +260,7 @@ def test_adapter_sends_configured_extra_headers_without_overriding_auth() -> Non
             )
         ]
     )
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=transport,
         extra_headers={"x-opencode-session": "session-123"},
@@ -273,12 +275,12 @@ def test_adapter_sends_configured_extra_headers_without_overriding_auth() -> Non
 
 def test_adapter_rejects_extra_headers_that_shadow_auth() -> None:
     with pytest.raises(ValueError, match="must not override Authorization"):
-        OpenAICompatibleModelClient(
+        OpenAICompatibleModelClient(decision_type=AgentDecision,
             api_key="secret-key",
             extra_headers={"Authorization": "Bearer attacker"},
         )
     with pytest.raises(ValueError, match="must not be empty"):
-        OpenAICompatibleModelClient(
+        OpenAICompatibleModelClient(decision_type=AgentDecision,
             api_key="secret-key",
             extra_headers={"x-opencode-session": "   "},
         )
@@ -301,7 +303,7 @@ def _search_decision_json() -> str:
     ],
 )
 def test_adapter_reads_the_first_json_object_despite_trailing_model_output(content: str) -> None:
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=FakeModelTransport(responses=[_success(content)]),
     )
@@ -313,7 +315,7 @@ def test_adapter_reads_the_first_json_object_despite_trailing_model_output(conte
 
 
 def test_adapter_still_rejects_content_without_a_json_object() -> None:
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=FakeModelTransport(responses=[_success("I could not decide.")]),
     )
@@ -334,7 +336,7 @@ def _empty_choice() -> ModelHttpResponse:
 
 def test_adapter_retries_a_transient_provider_fault_then_succeeds() -> None:
     transport = FakeModelTransport(responses=[_server_error(), _success(_search_decision_json())])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
     )
 
@@ -346,7 +348,7 @@ def test_adapter_retries_a_transient_provider_fault_then_succeeds() -> None:
 
 def test_adapter_retries_an_empty_provider_response_then_succeeds() -> None:
     transport = FakeModelTransport(responses=[_empty_choice(), _success(_search_decision_json())])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
     )
 
@@ -356,7 +358,7 @@ def test_adapter_retries_an_empty_provider_response_then_succeeds() -> None:
 
 def test_adapter_does_not_retry_a_semantic_schema_mismatch() -> None:
     transport = FakeModelTransport(responses=[_success("not a decision")])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=3
     )
 
@@ -369,7 +371,7 @@ def test_adapter_does_not_retry_a_semantic_schema_mismatch() -> None:
 
 def test_adapter_gives_up_after_the_transport_attempt_budget() -> None:
     transport = FakeModelTransport(responses=[_server_error(), _server_error(), _server_error()])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
     )
 
@@ -395,7 +397,7 @@ def test_output_cap_truncation_retries_with_a_doubled_cap_in_transport_budget() 
     transport = FakeModelTransport(
         responses=[_truncated(), _success(_search_decision_json())]
     )
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key",
         transport=transport,
         retry_backoff_seconds=0,
@@ -414,7 +416,7 @@ def test_reasoning_drained_empty_body_with_length_flag_is_a_truncation() -> None
     # deepseek-style models can return content="" with finish_reason="length":
     # reasoning consumed the cap. This must retry, not burn a decision attempt.
     transport = FakeModelTransport(responses=[_truncated(), _success(_search_decision_json())])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
     )
 
@@ -424,7 +426,7 @@ def test_reasoning_drained_empty_body_with_length_flag_is_a_truncation() -> None
 
 def test_output_cap_truncation_exhausting_transport_budget_is_malformed() -> None:
     transport = FakeModelTransport(responses=[_truncated(), _truncated()])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0, max_transport_attempts=2
     )
 
@@ -439,7 +441,7 @@ def test_output_cap_truncation_exhausting_transport_budget_is_malformed() -> Non
 
 def test_schema_failure_message_names_the_field_and_the_content_sample() -> None:
     transport = FakeModelTransport(responses=[_success('{"action":"search","query":123,"purpose":"x"}')])
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="secret-key", transport=transport, retry_backoff_seconds=0
     )
 

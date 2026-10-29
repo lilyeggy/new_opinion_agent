@@ -1,7 +1,7 @@
 from datetime import date
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.framing import (
+from opinion_search.contracts import SearchRequest
+from opinion_search.domain.investigation.framing import (
     TemporalScopeProvenance,
     build_task_frame,
 )

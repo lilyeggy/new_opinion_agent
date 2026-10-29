@@ -12,6 +12,8 @@
 
 ## 1. 执行摘要
 
+> **2026-10-28 领域收敛**：生产包唯一领域为 `domain/investigation`，使用六种动作；旧 opinion 领域、专用 Context 和 WorkingMemory 仅在 `tests/support/` 作为历史测试夹具，以下旧 opinion 设计仅供历史参考。调查 Context 从 investigation State 直接编译，并不具备旧 WorkingMemory 对象。
+
 > 实现状态以 [`opinion-search-agent-implementation-memory.md`](./opinion-search-agent-implementation-memory.md) 和当前代码为准；深化总纲及其子计划表达待实现工作，不代表功能已经完成。深化实施顺序固定为：先加固 Runtime 恢复语义，再完成 Tool/MCP 可靠执行，最后验证 Context/Memory 长轨迹正确性。
 
 ### 1.1 一句话定义
@@ -425,7 +427,7 @@ MCP result/error -> ToolResult/ToolError
 
 ### 7.2 Context Engine
 
-> **适用范围（2026-09-25 按代码补注）**：本节描述的流水线与四层结构由 `context/models.py` + `context/compactor.py`（两域共享）与 `context/compiler.py` 的 `OpinionContextCompiler`（opinion 域专用）实现。`domain/investigation` 使用 `investigation/context.py` 的独立 `Compiler`：它复用同一套 `ContextSection` 模型与压缩算法，但 section 集合不同（额外携带 `issues` / `findings` / `page_plan` / `next_action_constraint` / `consolidate` 指令）。两个 compiler 并存是当前事实，见 §10。
+> **当前范围**：生产环境由 `investigation/context.py` 的 `Compiler` 使用 `context/models.py` 和 `context/compactor.py` 编译调查上下文；旧 opinion compiler 仅留在测试夹具中。
 
 #### 7.2.1 Context Compiler，而不是 prompt 拼接
 
@@ -481,7 +483,7 @@ Reader adapter 对 HTTP response、artifact 和 checkpoint inline content 分别
 
 ### 7.3 Run-scoped Working Memory
 
-> **适用范围（2026-09-25 按代码补注）**：`WorkingMemory` 是 opinion 域的实现——`memory/projector.py` 的 `project_working_memory` 输入类型是 `OpinionSearchState`，并依赖 `domain/opinion/provenance.py`。`domain/investigation` **没有**等价对象，其上下文由 `investigation/context.py` 的 `Compiler` 直接从 `State` 组装 section。因此不要把它描述为服务两条路径的通用层。
+> **当前范围**：旧 `WorkingMemory` 仅保留在测试夹具中。investigation 没有等价对象，`investigation/context.py` 的 Compiler 直接从 State 组装 section。
 
 #### 7.3.1 对象边界
 
@@ -550,7 +552,9 @@ Memory 在 committed State 之后刷新，不在 pending action 中提前写入�
 
 此小节引用已验证事实，不改变 checkpoint schema 或公共枚举。
 
-## 8. OpinionSearch Domain Pack
+## 8. 历史 OpinionSearch Domain Pack
+
+> 本节记录旧 opinion 四动作领域，现已移至测试夹具；唯一生产领域的现行契约见 §18。
 
 ### 8.1 行动空间
 
@@ -659,13 +663,8 @@ opinion_search_agent/
 ├── archive/harness-pipeline/          已归档的多角色流水线实验（不属当前实现）
 └── src/opinion_search/
     ├── __init__.py
-    ├── __main__.py                    CLI 入口（offline / live / resume）
-    ├── app/                           组合根与运行产物
-    │   ├── contracts.py               SearchRequest
-    │   ├── config.py                  LiveConfig（含 max_steps / 预算 / provider 凭据）
-    │   ├── service.py                 build_offline_service / build_live_service / _build_loop
-    │   ├── action_executor.py         OpinionActionExecutor（Decision → ToolCall 落点）
-    │   └── run_bundle.py              RunBundleWriter（report.md + outcome.json 原子写）
+    ├── contracts.py                   SearchRequest（调查任务范围）
+    ├── config.py                      LiveConfig（预算 / provider 配置）
     ├── runtime/                       Runtime 骨架（领域无关）
     │   ├── lifecycle.py               RunStatus / StepPhase / 合法转移集合
     │   ├── protocols.py               DecisionEnvelope / ActionRequest / ObservationEnvelope / StateDelta / StepRecord
@@ -687,24 +686,12 @@ opinion_search_agent/
     ├── context/                       上下文
     │   ├── models.py                  【共享】ContextSection / ContextBudget / CompiledContext / render_sections
     │   ├── compactor.py               【共享】compact_context_sections（TRUNCATE / DROP 降级）
-    │   ├── compiler.py                【opinion 域】OpinionContextCompiler（硬类型检查 OpinionSearchState）
-    │   ├── selector.py                【opinion 域】去重与排序
-    │   └── catalog.py                 【opinion 域】Evidence ID catalog 的必需窗口 / 历史分区
-    ├── memory/                        【opinion 域】Working Memory
-    │   ├── models.py                  WorkingMemory / WorkingEvidence 等
-    │   └── projector.py               project_working_memory（依赖 domain/opinion/provenance）
     ├── models/                        模型客户端
     │   ├── contracts.py               ModelClient / ModelErrorKind
     │   ├── fake.py                    ScriptedModelClient / DeterministicIdFactory
     │   └── openai_compatible.py       OpenAICompatibleModelClient / HttpxModelTransport
     ├── domain/
-    │   ├── opinion/                   【域】4 动作（search / read / reflect / finish），10 个模块
-    │   │   ├── decisions.py           Decision 联合类型 + OpinionSearchDecisionValidator
-    │   │   ├── actions.py  action_resolver.py
-    │   │   ├── state.py  reducer.py  processor.py
-    │   │   ├── completion.py  provenance.py
-    │   │   └── framing.py  brief.py
-    │   └── investigation/             【域】6 动作（+ retrieve / review），只有 2 个模块
+    │   └── investigation/             【唯一生产域】六种调查动作
     │       ├── models.py              State / Decision 联合类型 / Issue / Finding / Review / ModuleField
     │       └── engine.py              Validator / Resolver / Processor / completion / reduce_state
     ├── investigation/                 Web 生产路径的应用层
@@ -720,14 +707,12 @@ opinion_search_agent/
     └── web/                           stdlib HTTP + SSE
         ├── server.py
         ├── investigation.html         主页面（服务在 `/`）
-        ├── index.html                 旧 opinion console（服务在 `/legacy`）
-        ├── dev.html                   开发者控制台（服务在 `/dev`）
         └── assets/
 ```
 
-两条路径的分工：CLI（`python -m opinion_search`）走 `app/service.py` → `domain/opinion`；Web（`python -m opinion_search.web`）的主页面与 `/api/investigations/*` 走 `investigation/manager.py` → `investigation/service.build_loop` → `domain/investigation`，同时保留 `/legacy` 与 `/api/runs/*` 服务旧的 opinion console。
+当前产品入口：Web（`python -m opinion_search.web`）通过 `investigation/manager.py` → `investigation/service.build_loop` → `domain/investigation`。旧 opinion 应用层、CLI、`/legacy`、`/dev` 和 `/api/runs/*` 已移除；旧 opinion 领域模型仅保留在测试夹具；共享的时间范围解析已迁至 investigation。
 
-`runtime/` 下**没有** `reducer.py`：Reducer 是领域层职责（`domain/opinion/reducer.py` 与 `domain/investigation/engine.reduce_state`），因为状态不变量属于领域语义。
+`runtime/` 下**没有** `reducer.py`：Reducer 是领域层职责（`domain/investigation/engine.reduce_state`），因为状态不变量属于领域语义。
 
 ## 11. 技术选型
 
@@ -739,7 +724,7 @@ opinion_search_agent/
 | HTTP | httpx |
 | 测试 | pytest + pytest-asyncio |
 | Checkpoint | 版本化 JSON 原子替换 |
-| CLI | `python -m opinion_search` |
+| Web | `python -m opinion_search.web` |
 | Model | Fake + OpenAI-compatible adapter；live 默认 `deepseek-v4-flash` |
 | Search | Fake + Brave Search adapter |
 | Reader | Fake + Jina Reader adapter |
@@ -876,13 +861,13 @@ opinion_search_agent/
 
 > 状态：领域与后端已实现并有离线/机制测试；Web 主链已接通并通过实际浏览器操作验证；真实联网质量与人工验收仍未执行。权威进度见 `superpowers/plans/2026-09-10-web-event-investigation.md` 与 `opinion-search-agent-implementation-memory.md`。
 
-本节定义一套面向“公共服务与社会争议公开事件调查”的新流程，与 §8 的旧 opinion 流程并存。旧流程不删除、不改造；新流程置于独立的执行 profile `public-event-investigation-v2` 与独立的 `investigations/` 存储命名空间，避免与旧 `opinion-.../run.json` 混淆。
+本节定义面向“公共服务与社会争议公开事件调查”的产品流程，使用执行 profile `public-event-investigation-v2` 与独立的 `investigations/` 存储命名空间。旧 opinion 应用和生产领域已移除；历史模型仅作为 Runtime 测试夹具。
 
 ### 18.1 适用范围与格式边界
 
 - 新领域 State 与 report 使用 `schema_version = 2`；通用 checkpoint envelope 的 `CHECKPOINT_SCHEMA_VERSION` 是另一层概念，两者不得统一成同一数字。
 - 旧 checkpoint 可能带相同的 envelope 版本号但缺少新 profile，`Manager.resume` 以 execution profile 拒绝其由新流程续跑；旧未完成 run 只能只读或以旧流程查看。
-- 旧报告继续只读浏览与 Markdown 下载（`/legacy` 与既有 `/api/runs`）；新主页只进入新调查流程。
+- 旧 opinion 页面和 API 已移除，旧运行文件保留在磁盘上，但不再通过该服务浏览或恢复。
 
 ### 18.2 领域契约（不变量）
 

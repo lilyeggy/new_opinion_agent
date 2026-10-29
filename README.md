@@ -12,12 +12,10 @@
 - **Pure-Function State Reducer**: Authoritative state transitions are strictly deterministic and idempotent; untrusted LLM outputs or observation payloads cannot mutate state directly without validation and delta reduction.
 - **Bounded Context & Untrusted Origin Tracking**: Multi-layer context model (L0–L3) with strict `TrustBoundary` validation, heuristic token estimation, prioritized degradation compaction, and 14-way adversarial injection defenses.
 - **Tool Runtime & Reliability Layer**: Unified `ToolRegistry` and `ToolExecutor` featuring circuit breaker (`ProviderCircuitBreaker`), bounded retries, cross-process persistent caching, and multi-provider fallback.
-- **Dual Domain Compositions**:
-  - `domain/opinion`: 4-action baseline (`search`, `read`, `reflect`, `finish`) with working memory projection for CLI/scripted evaluation.
-  - `domain/investigation`: 6-action full investigation workbench (`+ retrieve`, `review`) with dynamic page planning, issue tracking, and automated source cross-verification.
-- **Deterministic Replay, Verified Against a Live Provider**: every committed step is journaled with a `context_hash` and a state fingerprint; replaying that journal drives the real runtime loop and reproduces the run step for step (`matched`) without calling a model or a provider. A tampered hash names the first divergent step and field instead of failing silently.
+- **Investigation Workbench**: `domain/investigation` supplies the six-action investigation workflow, page planning, issue tracking, and source cross-verification. The production package has one investigation domain; historical opinion models are test fixtures for runtime verification.
+- **Deterministic Replay**: runtime replay tests exercise committed step journals, context hashes and state fingerprints without calling a live provider. The former opinion CLI live-recording driver was removed with the opinion application layer.
 - **Reproducible Quality Numbers**: an offline gate recomputes the published quality metrics (retrieval recall, faithfulness, adversarial probes, excerpt grounding) from four frozen runs in one command — zero model calls, zero network requests, and a non-zero exit on any drift.
-- **Battle-Tested Quality**: 889 automated tests across unit, contract, integration, recovery matrices, and live event investigations.
+- **Automated coverage**: unit, contract, integration, recovery, and investigation tests.
 
 ---
 
@@ -55,16 +53,13 @@ make verify
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
 │ 入口层 / Entry Layer                                                   │
-│   CLI: python -m opinion_search (offline / live / resume)              │
-│   Web: python -m opinion_search.web (Investigation Workbench / Dev)    │
+│   Web: python -m opinion_search.web (Investigation Workbench)    │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 组合根层 / Composition Roots                                           │
-│   app/service.py           → opinion 域装配 (CLI, /legacy, /dev)        │
 │   investigation/service.py → investigation 域装配 (Web 工作台)          │
 │   investigation/manager.py → 调查全周期编排、澄清、快照、投影管理      │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 领域层 / Domain Layer                                                  │
-│   domain/opinion/          → 状态、纯函数 Reducer、4-action 动作空间    │
 │   domain/investigation/    → 事件多面体、证据网、6-action 扩展动作空间  │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 核心 Runtime / Core Runtime (Domain-Agnostic)                          │
@@ -78,7 +73,7 @@ make verify
 ├────────────────────────────────────────────────────────────────────────┤
 │ 支撑层 / Supporting Capabilities                                       │
 │   context/                 → 分层上下文、有界压缩、目录索引、信任边界  │
-│   memory/                  → Working Memory 派生视图与投影             │
+│   investigation/context.py → 从调查状态编译模型上下文                │
 │   tools/                   → 注册表、执行器、熔断器、原子缓存、Adapters │
 │   models/                  → ModelClient 契约、OpenAI 兼容协议、Fakes   │
 └────────────────────────────────────────────────────────────────────────┘
@@ -137,25 +132,6 @@ make test-fast  # 运行轻量级核心单测 (秒级)
 make test       # 运行全量自动化测试套件
 ```
 
-### 4. Deterministic Offline Demo
-
-无需任何外部 API Key，运行确定性全链路验证：
-
-```bash
-make demo
-```
-
-或者手动执行：
-
-```bash
-python -m opinion_search offline \
-  --question "What happened in the example event?" \
-  --topic "Example event" \
-  --focus "Compare event facts and causal accounts" \
-  --run-id offline-demo \
-  --checkpoint .opinion_search/offline-demo.json
-```
-
 ### 5. Reproduce the Quality Numbers (Offline)
 
 不需要任何 API Key，也不发网络请求；四个冻结运行已经在仓库里：
@@ -179,14 +155,12 @@ make web
 
 在浏览器打开 `http://localhost:8900`：
 - `/`：舆情事件调查工作台（完整 6-action 编排、澄清交互、多面体模块、实时证据抽屉、静态报告导出）。
-- `/dev`：开发者控制台（步进时间线回放、Checkpoint JSON 查看、取消测试）。
-- `/legacy`：基础单问题控制台。
 
 ---
 
 ## Core Engineering Invariants
 
-1. **State Is the Single Source of Truth**: Memory is a derived view; compiled context is a one-shot input to the model. State updates can only occur via the pure `reduce(state, delta)` function.
+1. **State Is the Single Source of Truth**: Compiled context is a one-shot view of investigation state. State updates can only occur via the pure `reduce(state, delta)` function.
 2. **Crash Recovery Is First-Class**: At every checkpoint boundary, persistent state is saved before proceeding. Crash recovery executes the exact same code path as normal step execution (`classify_resume(state)`).
 3. **External Calls Are At-Most-Once Within Cached Windows**: Tool execution caches successful responses atomically before observation recording, preventing duplicate live API consumption across process restarts.
 4. **Context Untrusted Origin Invariant**: Model/tool/web content can never be marked trusted (`Origin.UNTRUSTED`), preventing prompt injection attacks from hijacking runtime control flow.

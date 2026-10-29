@@ -4,7 +4,7 @@ from typing import TypeAlias
 import pytest
 from pydantic import TypeAdapter, ValidationError
 
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.decisions import (
     AgentDecision,
     FinishDecision,
     GapAssessmentProposal,
@@ -14,9 +14,9 @@ from opinion_search.domain.opinion.decisions import (
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.framing import build_task_frame
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from opinion_search.domain.investigation.framing import build_task_frame
+from tests.support.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     CandidateSource,
     Evidence,

@@ -13,7 +13,7 @@ import json
 from pathlib import Path
 import time
 
-from opinion_search.app.config import LiveConfig
+from opinion_search.config import LiveConfig
 from opinion_search.investigation.manager import Manager
 from opinion_search.investigation.service import build_loop
 from opinion_search.tools.contracts import ToolAdapterResponse

@@ -7,8 +7,8 @@ from typing import Annotated, Self
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.framing import TaskFrame, build_task_frame
+from opinion_search.contracts import SearchRequest
+from opinion_search.domain.investigation.framing import TaskFrame, build_task_frame
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]

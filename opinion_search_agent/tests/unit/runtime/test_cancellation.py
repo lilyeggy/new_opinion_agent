@@ -1,25 +1,25 @@
 import asyncio
 
-from opinion_search.app.action_executor import OpinionActionExecutor
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.action_resolver import (
+from tests.support.opinion.action_executor import OpinionActionExecutor
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.action_resolver import (
     OpinionSearchActionResolver,
 )
-from opinion_search.domain.opinion.actions import OpinionAction
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.actions import OpinionAction
+from tests.support.opinion.decisions import (
     AgentDecision,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     OpinionObservation,
     OpinionSearchCompletionEvaluator,
     OpinionSearchObservationProcessor,
 )
-from opinion_search.domain.opinion.reducer import reduce_opinion_state
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.reducer import reduce_opinion_state
+from tests.support.opinion.state import (
     InvestigationGap,
     OpinionSearchState,
 )
-from opinion_search.models.fake import (
+from tests.support.fake import (
     DeterministicIdFactory,
     FakeAction,
     FakeActionExecutor,

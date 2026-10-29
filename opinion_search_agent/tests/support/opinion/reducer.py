@@ -4,7 +4,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     GapAssessment,

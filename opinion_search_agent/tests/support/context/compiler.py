@@ -7,7 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, JsonValue
 
-from opinion_search.context.catalog import (
+from tests.support.context.catalog import (
     EvidenceCatalogPolicy,
     partition_evidence_catalog,
 )
@@ -26,13 +26,13 @@ from opinion_search.context.models import (
     TrustBoundary,
     render_sections,
 )
-from opinion_search.context.selector import select_context_sections
-from opinion_search.domain.opinion.processor import (
+from tests.support.context.selector import select_context_sections
+from tests.support.opinion.processor import (
     ToolObservation,
 )
-from opinion_search.domain.opinion.state import OpinionSearchState
-from opinion_search.memory.models import WorkingMemory
-from opinion_search.memory.projector import project_working_memory
+from tests.support.opinion.state import OpinionSearchState
+from tests.support.memory.models import WorkingMemory
+from tests.support.memory.projector import project_working_memory
 from opinion_search.runtime.completion import CompletionDisposition
 from opinion_search.runtime.loop import RuntimeState
 from opinion_search.tools.contracts import ToolError, ToolResult
@@ -807,7 +807,7 @@ def _semantic_gap_map(memory) -> dict[str, tuple[str, ...]]:
 
 
 def _contested_evidence_ids(memory) -> set[str]:
-    from opinion_search.domain.opinion.state import (
+    from tests.support.opinion.state import (
         ClaimStatus,
         NarrativeKind,
     )

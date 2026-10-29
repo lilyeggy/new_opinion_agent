@@ -1,24 +1,24 @@
 import json
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.context.catalog import EvidenceCatalogPolicy
-from opinion_search.context.compiler import OpinionContextCompiler
+from opinion_search.contracts import SearchRequest
+from tests.support.context.catalog import EvidenceCatalogPolicy
+from tests.support.context.compiler import OpinionContextCompiler
 from opinion_search.context.models import (
     ContextBudget,
     ContextLayer,
     ContextSection,
     TrustBoundary,
 )
-from opinion_search.domain.opinion.actions import ToolAction
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.actions import ToolAction
+from tests.support.opinion.decisions import (
     AgentDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     OpinionObservation,
     ToolObservation,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     ClaimKind,
@@ -361,8 +361,8 @@ def test_resume_produces_identical_bytes_plan_and_hash() -> None:
 
 
 def test_working_memory_can_be_discarded_and_rebuilt_with_equality() -> None:
-    from opinion_search.memory.projector import project_working_memory
-    from opinion_search.memory.models import WorkingMemory
+    from tests.support.memory.projector import project_working_memory
+    from tests.support.memory.models import WorkingMemory
 
     state = _build_run_state(100)
     first = project_working_memory(state.domain_state)

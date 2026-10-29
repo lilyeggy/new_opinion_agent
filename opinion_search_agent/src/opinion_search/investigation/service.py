@@ -22,7 +22,7 @@ from opinion_search.investigation.quotes import (
     best_supporting_span, locate, missing_from_excerpts, unbacked_quotes,
 )
 from opinion_search.investigation.storage import Budget, BudgetExceeded, Corpus, atomic_json, read_json, verify_evidence
-from opinion_search.models.fake import DeterministicIdFactory
+from opinion_search.runtime.ids import DeterministicIdFactory
 from opinion_search.models.openai_compatible import OpenAICompatibleModelClient, HttpxModelTransport
 from opinion_search.runtime.checkpoint import JsonCheckpointStore
 from opinion_search.runtime.timing import TimingRecorder

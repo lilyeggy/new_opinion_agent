@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from opinion_search.app.contracts import SearchRequest
+from opinion_search.contracts import SearchRequest
 
 
 def test_minimal_request_uses_expected_defaults() -> None:

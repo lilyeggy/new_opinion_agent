@@ -5,7 +5,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     ClaimKind,
     ClaimStatus,
     GapStatus,
@@ -13,7 +13,7 @@ from opinion_search.domain.opinion.state import (
     SourceKind,
     SourcePublicationStatus,
 )
-from opinion_search.domain.opinion.framing import TaskFrame
+from opinion_search.domain.investigation.framing import TaskFrame
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]

@@ -232,7 +232,7 @@ def test_build_loop_can_run_on_frozen_adapters_with_a_scripted_model(tmp_path):
 
 
 def test_live_config_controls_loop_limits_and_model_output_cap(tmp_path):
-    from opinion_search.app.config import LiveConfig
+    from opinion_search.config import LiveConfig
     from opinion_search.investigation.service import live_model
 
     config = LiveConfig(

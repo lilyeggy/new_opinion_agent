@@ -1,9 +1,9 @@
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.context.catalog import (
+from opinion_search.contracts import SearchRequest
+from tests.support.context.catalog import (
     EvidenceCatalogPolicy,
     partition_evidence_catalog,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     ClaimKind,
@@ -13,7 +13,7 @@ from opinion_search.domain.opinion.state import (
     OpinionSearchState,
     Source,
 )
-from opinion_search.memory.projector import project_working_memory
+from tests.support.memory.projector import project_working_memory
 
 
 def _state_with_unlinked_evidence(count: int) -> OpinionSearchState:

@@ -1,11 +1,21 @@
 from __future__ import annotations
 
 import re
+import html
+from urllib.parse import quote
 
 from opinion_search.domain.investigation.models import State, accepted_review
-from opinion_search.domain.opinion.brief import _escape_markdown, _safe_markdown_destination
 from opinion_search.domain.investigation.engine import completion as completion_verdict
 from opinion_search.investigation.diagnostics import build_chain_diagnostics
+
+
+def _escape_markdown(value: str) -> str:
+    escaped_html = html.escape(value, quote=False)
+    return re.sub(r"([\\`*_{}\[\]()#!])", r"\\\1", escaped_html)
+
+
+def _safe_markdown_destination(url: str) -> str:
+    return quote(url, safe=":/?&=#%@+;,$-_.~*'")
 
 LABELS = {
     "open": "待调查", "answered": "已有材料回答", "disputed": "证据存在分歧", "not_found": "范围内未发现", "unavailable": "无法判断",

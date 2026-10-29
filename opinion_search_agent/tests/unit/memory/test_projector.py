@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     GapStatus,
@@ -12,8 +12,8 @@ from opinion_search.domain.opinion.state import (
     OpinionSearchState,
     Source,
 )
-from opinion_search.memory.models import WorkingMemory
-from opinion_search.memory.projector import project_working_memory
+from tests.support.memory.models import WorkingMemory
+from tests.support.memory.projector import project_working_memory
 
 
 OFFICIAL = "https://example.org/official"

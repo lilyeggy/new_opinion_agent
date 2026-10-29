@@ -11,13 +11,13 @@ import re
 import threading
 from uuid import uuid4
 
-from opinion_search.app.config import LiveConfig
+from opinion_search.config import LiveConfig
 from opinion_search.domain.investigation.models import (
     InvestigationRequest, Issue, PlanProposal, QuestionComponent, QuestionProposal, State,
     UpdateIntent, UpdateTarget, uid, utcnow,
 )
 from opinion_search.domain.investigation.engine import allowed_url
-from opinion_search.domain.opinion.framing import build_task_frame
+from opinion_search.domain.investigation.framing import build_task_frame
 from opinion_search.investigation.context import structured_context
 from opinion_search.investigation.diagnostics import build_chain_diagnostics, empty_chain_diagnostics
 from opinion_search.investigation.export import render_page

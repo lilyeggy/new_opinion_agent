@@ -4,7 +4,7 @@ from typing import Annotated, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     DOMINANT_NARRATIVES_GAP_ID,
     FACTUAL_BASELINE_GAP_ID,

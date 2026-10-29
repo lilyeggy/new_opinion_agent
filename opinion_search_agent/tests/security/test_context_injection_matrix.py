@@ -1,25 +1,25 @@
 import json
 from pathlib import Path
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.context.compiler import OpinionContextCompiler
+from opinion_search.contracts import SearchRequest
+from tests.support.context.compiler import OpinionContextCompiler
 from opinion_search.context.models import (
     ContextBudget,
     ContextContentOrigin,
     ContextLayer,
     TrustBoundary,
 )
-from opinion_search.domain.opinion.actions import ToolAction
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.actions import ToolAction
+from tests.support.opinion.decisions import (
     AgentDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     FinishObservation,
     OpinionObservation,
     ToolObservation,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     InvestigationGap,
@@ -367,7 +367,7 @@ def test_model_reflection_injection_stays_untrusted_model() -> None:
 
 # 8. gap resolution rationale / resolution note
 def test_gap_resolution_note_injection_stays_untrusted_model() -> None:
-    from opinion_search.domain.opinion.state import GapStatus
+    from tests.support.opinion.state import GapStatus
 
     resolved_gap = InvestigationGap(
         gap_id="gap-primary",

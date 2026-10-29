@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.decisions import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.decisions import (
     ClaimProposal,
     FinishDecision,
     GapAssessmentProposal,
@@ -11,7 +11,7 @@ from opinion_search.domain.opinion.decisions import (
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     FinishObservation,
     OpinionSearchCompletionEvaluator,
     OpinionSearchObservationProcessor,
@@ -19,7 +19,7 @@ from opinion_search.domain.opinion.processor import (
     ReflectObservation,
     ToolObservation,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     ClaimKind,
     GapStatus,

@@ -1,10 +1,10 @@
-from opinion_search.domain.opinion.provenance import ProvenanceIndex, build_provenance_index
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.provenance import ProvenanceIndex, build_provenance_index
+from tests.support.opinion.state import (
     GapStatus,
     InvestigationGap,
     OpinionSearchState,
 )
-from opinion_search.memory.models import (
+from tests.support.memory.models import (
     OpinionCoverageCell,
     WorkingCandidate,
     WorkingClaim,

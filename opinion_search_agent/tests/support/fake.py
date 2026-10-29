@@ -3,7 +3,7 @@ from typing import Literal, Protocol, TypeAlias
 
 from pydantic import BaseModel, ConfigDict
 
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.decisions import (
     AgentDecision,
     FinishDecision,
     GapAssessmentProposal,
@@ -12,11 +12,11 @@ from opinion_search.domain.opinion.decisions import (
     SearchDecision,
     OpinionSearchDecisionValidator,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     FinishObservation,
     ToolObservation,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     GapAssessment,

@@ -7,7 +7,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.app.contracts import SearchRequest
+from opinion_search.contracts import SearchRequest
 
 
 NonEmptyText = Annotated[str, Field(min_length=1)]

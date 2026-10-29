@@ -1,10 +1,10 @@
 from datetime import date, datetime, timezone
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.completion import OpinionSearchCompletionPolicy
-from opinion_search.domain.opinion.decisions import FinishDecision
-from opinion_search.domain.opinion.framing import build_task_frame
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.completion import OpinionSearchCompletionPolicy
+from tests.support.opinion.decisions import FinishDecision
+from opinion_search.domain.investigation.framing import build_task_frame
+from tests.support.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     DOMINANT_NARRATIVES_GAP_ID,
     FACTUAL_BASELINE_GAP_ID,

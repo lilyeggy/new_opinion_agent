@@ -1,8 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     ClaimKind,

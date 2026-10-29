@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from opinion_search.context.catalog import EvidenceCatalogPolicy
-from opinion_search.context.compiler import OpinionContextCompiler
+from tests.support.context.catalog import EvidenceCatalogPolicy
+from tests.support.context.compiler import OpinionContextCompiler
 from hashlib import sha256
 
 from opinion_search.context.models import (
@@ -13,11 +13,11 @@ from opinion_search.context.models import (
     HeuristicTokenEstimator,
     TrustBoundary,
 )
-from opinion_search.domain.opinion.actions import ToolAction
-from opinion_search.domain.opinion.decisions import SearchDecision
-from opinion_search.domain.opinion.processor import ToolObservation
-from opinion_search.domain.opinion.reducer import reduce_opinion_state
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.actions import ToolAction
+from tests.support.opinion.decisions import SearchDecision
+from tests.support.opinion.processor import ToolObservation
+from tests.support.opinion.reducer import reduce_opinion_state
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     GapStatus,
@@ -26,8 +26,10 @@ from opinion_search.domain.opinion.state import (
     OpinionSearchState,
     Source,
 )
-from opinion_search.app.service import OpinionRunState
-from opinion_search.app.contracts import SearchRequest
+from tests.support.opinion.actions import OpinionAction
+from tests.support.opinion.decisions import AgentDecision
+from tests.support.opinion.processor import OpinionObservation
+from opinion_search.contracts import SearchRequest
 from opinion_search.runtime.lifecycle import RunStatus, StepPhase
 from opinion_search.runtime.errors import RuntimeFailure, RuntimeFailureKind
 from opinion_search.runtime.protocols import (
@@ -44,6 +46,8 @@ from opinion_search.tools.contracts import (
     ToolResult,
 )
 
+
+OpinionRunState = RunState[OpinionSearchState, AgentDecision, OpinionAction, OpinionObservation]
 
 _FIXTURE = Path(__file__).parents[2] / "fixtures/context/prompt_injection_page.json"
 MALICIOUS = json.loads(_FIXTURE.read_text(encoding="utf-8"))["content"]
@@ -574,7 +578,7 @@ def test_semantic_evidence_ranks_before_acquisition_only_evidence() -> None:
 
 
 def test_claim_section_provenance_includes_semantic_gap_ids() -> None:
-    from opinion_search.domain.opinion.state import Claim, ClaimKind, ClaimStatus
+    from tests.support.opinion.state import Claim, ClaimKind, ClaimStatus
 
     state = _runtime_state()
     domain = state.domain_state

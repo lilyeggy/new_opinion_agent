@@ -9,7 +9,7 @@ from opinion_search.domain.investigation.models import (
     QuestionComponent, ReadDecision, ReflectDecision, RetiredFinding, RetrieveDecision, ReviewDecision,
     SearchAttempt, SearchDecision, SourceRelation, State, accepted_review, uid, utcnow,
 )
-from opinion_search.domain.opinion.framing import build_task_frame
+from opinion_search.domain.investigation.framing import build_task_frame
 from opinion_search.investigation.page_plan import required_module_gaps
 from opinion_search.runtime.completion import CompletionDisposition as Disposition, CompletionVerdict
 from opinion_search.tools.contracts import ToolError

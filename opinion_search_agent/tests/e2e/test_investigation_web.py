@@ -189,7 +189,7 @@ def test_materials_endpoint_filters_inside_one_snapshot(base_url: str) -> None:
         assert bad_page.status_code == 400
 
 
-def test_static_assets_and_legacy_route(base_url: str) -> None:
+def test_static_assets_and_removed_legacy_routes(base_url: str) -> None:
     with httpx.Client(base_url=base_url, timeout=10) as client:
         page = client.get("/")
         assert page.status_code == 200 and "/assets/app.js" in page.text
@@ -199,5 +199,7 @@ def test_static_assets_and_legacy_route(base_url: str) -> None:
         style = client.get("/assets/style.css")
         assert style.status_code == 200
         assert client.get("/assets/../server.py").status_code == 404
-        legacy = client.get("/legacy")
-        assert legacy.status_code == 200 and "<html" in legacy.text
+        assert client.get("/legacy").status_code == 404
+        assert client.get("/dev").status_code == 404
+        assert client.get("/api/runs").status_code == 404
+        assert client.post("/api/runs", json={}).status_code == 404

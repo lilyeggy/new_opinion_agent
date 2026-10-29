@@ -4207,3 +4207,19 @@ D4 的忠实性数字（人工 10/14、系统 6/14）指向的失败模式是"�
 - **忠实性到 n=2**：新增第二事件（罗永浩吐槽野人先生，run `166742aa`）的 12 条人工标注：9 条完全支持、3 条部分支持、0 无中生有 = 75%，与三九胃泰的 10/14 = 71% 同量级。门禁新增「忠实性·第二事件」一行。
 - 全量 `856 passed, 2 skipped`；ruff 干净；`quality_gate.py --check` 可复现。
 
+
+### 移除 opinion 应用层（2026-10-28）
+
+- **范围**：删除 opinion 应用组合根、旧 CLI、旧 Web 页面及 `/api/runs` 路由；产品入口统一为调查工作台和 `/api/investigations`。旧 opinion 领域代码和相关 Runtime 机制测试继续保留，并未宣称两个领域已合并。
+- **共享契约**：调查所需的 `LiveConfig` 和 `SearchRequest` 分别移至 `opinion_search.config` 与 `opinion_search.contracts`；`OpinionActionExecutor` 移至 opinion 领域目录，继续服务现有机制测试。调查仍引用 opinion 的部分领域函数。
+- **兼容与恢复**：旧 opinion 运行文件未删除，但服务不再提供旧运行记录的浏览、下载或恢复；investigation 的 checkpoint、profile 和存储协议未改变。旧 live record/replay 驱动及其专用测试已删除，原有冻结数据仍可供离线质量门禁使用。
+- **验证**：`PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=src .venv/bin/python -m pytest tests -q -p no:cacheprovider`：864 passed；`PYTHONPATH=src .venv/bin/python scripts/quality_gate.py --check`：baseline reproduced exactly；调查 Web 与 Context 针对性复测 28 passed。
+- **限制**：本次未运行真实模型完整调查，也未提交代码；上述结果为离线测试，不证明真实模型端到端产出。面试资料中部分旧路径仅作历史参考，详见文件开头的更新提示。
+
+### 收敛为 investigation 唯一生产领域（2026-10-28）
+
+- **范围与边界**：从生产包移除 `domain/opinion`、opinion 专用 Context Compiler / catalog / selector、WorkingMemory 和旧 fake 模型。保留历史 opinion 模型在 `tests/support/`，作为不随生产包发布的 Runtime 恢复和上下文机制测试夹具；它不连接产品入口。旧摘录 benchmark 随旧领域移除。
+- **生产链路**：`investigation` 是唯一领域；时间范围解析迁入 `domain/investigation/framing.py`，报告转义迁入调查报告模块，确定性 ID 工厂迁入 Runtime。模型客户端要求调用方显式提供决策 schema，避免通用客户端依赖具体领域。
+- **兼容与限制**：investigation 的 State、profile、checkpoint 与发布协议不因合并改变；旧 opinion checkpoint 不提供迁移或恢复。旧 opinion 的完成规则和 WorkingMemory 不因目录收敛而自动并入调查域，investigation 仍直接从 State 编译上下文。
+- **离线验证**：全量测试 864 passed；调查 Web、模型适配与历史组件专项测试 160 passed；迁入时间范围与选择器相关复测 13 passed；Ruff 通过；`quality_gate.py --check` 重现冻结基线；`git diff --check` 通过。
+- **真实模型链路**：使用 `scripts/run_live_investigation.py --max-steps 40`，run `308587b3108a410a90fef627f9e24041` 终态为 `partial`；stop_reason 为 `Decision recovery was exhausted: an answered issue cannot keep a non-answered component`。`timing.jsonl` 中 model 39 次 p50 7.777 秒、max 19.797 秒，tool 32 次 p50 0.007 秒、max 17.879 秒；`presentation_plan.json` 有 3 段 narrative、0 个 narrative_dropped，`dossier.html` 存在且包含 `narrative-block`。这是一次成功发布 partial 产物的链路证据，不是调查完成或结论质量通过的证明。

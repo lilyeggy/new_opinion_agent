@@ -1,6 +1,6 @@
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.brief import build_search_outcome
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.brief import build_search_outcome
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     ClaimKind,

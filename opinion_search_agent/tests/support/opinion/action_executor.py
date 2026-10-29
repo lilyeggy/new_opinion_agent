@@ -1,10 +1,10 @@
-from opinion_search.domain.opinion.actions import (
+from tests.support.opinion.actions import (
     FinishAction,
     OpinionAction,
     ReflectAction,
     ToolAction,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     FinishObservation,
     OpinionObservation,
     ReflectObservation,

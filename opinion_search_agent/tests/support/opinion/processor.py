@@ -7,14 +7,14 @@ from typing import Annotated, Literal, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.decisions import (
     AgentDecision,
     FinishDecision,
     ReadDecision,
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Claim,
     Evidence,

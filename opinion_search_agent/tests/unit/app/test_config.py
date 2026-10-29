@@ -1,6 +1,6 @@
 import pytest
 
-from opinion_search.app.config import LiveConfig
+from opinion_search.config import LiveConfig
 
 
 def test_live_config_uses_deepseek_flash_and_keeps_keys_secret() -> None:

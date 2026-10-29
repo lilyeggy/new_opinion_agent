@@ -3,13 +3,13 @@ from typing import TypeAlias
 
 import pytest
 
-from opinion_search.app.action_executor import OpinionActionExecutor
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.action_resolver import (
+from tests.support.opinion.action_executor import OpinionActionExecutor
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.action_resolver import (
     OpinionSearchActionResolver,
 )
-from opinion_search.domain.opinion.actions import OpinionAction, ToolAction
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.actions import OpinionAction, ToolAction
+from tests.support.opinion.decisions import (
     AgentDecision,
     FinishDecision,
     GapAssessmentProposal,
@@ -17,21 +17,21 @@ from opinion_search.domain.opinion.decisions import (
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.processor import (
+from tests.support.opinion.processor import (
     OpinionObservation,
     OpinionSearchCompletionEvaluator,
     OpinionSearchObservationProcessor,
     ToolObservation,
 )
-from opinion_search.domain.opinion.reducer import reduce_opinion_state
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.reducer import reduce_opinion_state
+from tests.support.opinion.state import (
     CandidateSource,
     GapStatus,
     InvestigationGap,
     OpinionSearchState,
     stable_domain_id,
 )
-from opinion_search.models.fake import (
+from tests.support.fake import (
     DeterministicIdFactory,
     FakeDecisionValidator,
     MinimalContextCompiler,

@@ -5,8 +5,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from opinion_search.domain.opinion.state import ClaimStatus, NarrativeKind
-from opinion_search.memory.models import WorkingEvidence, WorkingMemory
+from tests.support.opinion.state import ClaimStatus, NarrativeKind
+from tests.support.memory.models import WorkingEvidence, WorkingMemory
 
 
 class EvidenceCatalogPolicy(BaseModel):

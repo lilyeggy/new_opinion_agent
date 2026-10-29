@@ -1,20 +1,20 @@
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.action_resolver import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.action_resolver import (
     OpinionSearchActionResolver,
 )
-from opinion_search.domain.opinion.actions import (
+from tests.support.opinion.actions import (
     FinishAction,
     ReflectAction,
     ToolAction,
 )
-from opinion_search.domain.opinion.decisions import (
+from tests.support.opinion.decisions import (
     FinishDecision,
     GapAssessmentProposal,
     ReadDecision,
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     GapStatus,
@@ -22,7 +22,7 @@ from opinion_search.domain.opinion.state import (
     OpinionSearchState,
     Source,
 )
-from opinion_search.models.fake import MinimalOpinionCompletionPolicy
+from tests.support.fake import MinimalOpinionCompletionPolicy
 from opinion_search.runtime.completion import CompletionDisposition
 
 
@@ -166,7 +166,7 @@ def test_resolver_accepts_finish_after_gap_and_source_are_complete() -> None:
 def test_resolver_projects_bounded_task_frame_onto_search_options() -> None:
     from datetime import date
 
-    from opinion_search.domain.opinion.framing import build_task_frame
+    from opinion_search.domain.investigation.framing import build_task_frame
 
     request = SearchRequest(
         question="What happened?",
@@ -201,7 +201,7 @@ def test_resolver_projects_bounded_task_frame_onto_search_options() -> None:
 def test_resolver_omits_freshness_when_task_frame_is_unbounded() -> None:
     from datetime import date
 
-    from opinion_search.domain.opinion.framing import build_task_frame
+    from opinion_search.domain.investigation.framing import build_task_frame
 
     request = SearchRequest(question="What happened?", language="zh")
     state = _state().model_copy(

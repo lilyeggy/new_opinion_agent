@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 
+from tests.support.opinion.decisions import AgentDecision
+
 from opinion_search.context.models import CompiledContext
 from opinion_search.models.openai_compatible import (
     HttpxModelTransport, ModelHttpResponse, OpenAICompatibleModelClient,
@@ -32,7 +34,7 @@ def _context() -> CompiledContext:
 
 def test_effort_is_sent_when_configured():
     capture = _Capture()
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="k", transport=capture, base_url="https://example.com/v1",
         model="m", reasoning_effort="low",
     )
@@ -42,7 +44,7 @@ def test_effort_is_sent_when_configured():
 
 def test_no_effort_key_when_unset():
     capture = _Capture()
-    client = OpenAICompatibleModelClient(
+    client = OpenAICompatibleModelClient(decision_type=AgentDecision,
         api_key="k", transport=capture, base_url="https://example.com/v1", model="m",
     )
     asyncio.run(client.decide(_context()))

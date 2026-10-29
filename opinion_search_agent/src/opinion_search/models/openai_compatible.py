@@ -13,7 +13,6 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter, ValidationError
 
 from opinion_search.context.models import CompiledContext
-from opinion_search.domain.opinion.decisions import AgentDecision
 from opinion_search.models.contracts import (
     ModelClientError,
     ModelError,
@@ -85,7 +84,7 @@ class OpenAICompatibleModelClient:
         model: str = "deepseek-v4-flash",
         timeout_seconds: float = 60,
         allow_insecure_loopback: bool = False,
-        decision_type: object = AgentDecision,
+        decision_type: object,
         extra_headers: Mapping[str, str] | None = None,
         max_transport_attempts: int = 1,
         retry_backoff_seconds: float = 0.5,
@@ -122,7 +121,7 @@ class OpenAICompatibleModelClient:
         # measured on the Go gateway: default 87s vs effort=low 3.5s.
         self._reasoning_effort = (reasoning_effort or "").strip().lower() or None
 
-    async def decide(self, context: CompiledContext) -> AgentDecision:
+    async def decide(self, context: CompiledContext) -> object:
         current_tokens = self._max_output_tokens
         request: dict[str, JsonValue] = {
             "model": self._model,

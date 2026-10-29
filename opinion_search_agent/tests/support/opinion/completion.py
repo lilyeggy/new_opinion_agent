@@ -1,6 +1,6 @@
-from opinion_search.domain.opinion.decisions import FinishDecision
-from opinion_search.domain.opinion.provenance import build_provenance_index
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.decisions import FinishDecision
+from tests.support.opinion.provenance import build_provenance_index
+from tests.support.opinion.state import (
     COUNTER_NARRATIVES_GAP_ID,
     DOMINANT_NARRATIVES_GAP_ID,
     FACTUAL_BASELINE_GAP_ID,

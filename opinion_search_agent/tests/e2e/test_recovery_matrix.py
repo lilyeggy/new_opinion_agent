@@ -2,8 +2,8 @@ import asyncio
 
 import pytest
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.decisions import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.decisions import (
     AgentDecision,
     GapAssessmentProposal,
     NarrativeProposal,
@@ -11,8 +11,8 @@ from opinion_search.domain.opinion.decisions import (
     ReflectDecision,
     SearchDecision,
 )
-from opinion_search.domain.opinion.reducer import reduce_opinion_state
-from opinion_search.domain.opinion.state import (
+from tests.support.opinion.reducer import reduce_opinion_state
+from tests.support.opinion.state import (
     CandidateSource,
     Evidence,
     GapStatus,
@@ -28,7 +28,7 @@ from opinion_search.models.contracts import (
     ModelError,
     ModelErrorKind,
 )
-from opinion_search.models.fake import (
+from tests.support.fake import (
     DeterministicIdFactory,
     FakeActionExecutor,
     FakeActionResolver,

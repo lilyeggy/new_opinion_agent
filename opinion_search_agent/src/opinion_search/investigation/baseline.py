@@ -15,7 +15,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from opinion_search.app.config import LiveConfig
+from opinion_search.config import LiveConfig
 from opinion_search.investigation.context import structured_context
 from opinion_search.investigation.replay import ReplayCase, load_replay_case
 from opinion_search.investigation.service import live_model

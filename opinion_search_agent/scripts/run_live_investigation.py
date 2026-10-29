@@ -23,7 +23,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from opinion_search.app.config import LiveConfig  # noqa: E402
+from opinion_search.config import LiveConfig  # noqa: E402
 from opinion_search.investigation.manager import Manager, TERMINAL  # noqa: E402
 from opinion_search.web.server import load_env_file  # noqa: E402
 

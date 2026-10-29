@@ -1,12 +1,12 @@
 import asyncio
 
-from opinion_search.app.contracts import SearchRequest
-from opinion_search.domain.opinion.reducer import reduce_opinion_state
-from opinion_search.domain.opinion.state import (
+from opinion_search.contracts import SearchRequest
+from tests.support.opinion.reducer import reduce_opinion_state
+from tests.support.opinion.state import (
     InvestigationGap,
     OpinionSearchState,
 )
-from opinion_search.models.fake import (
+from tests.support.fake import (
     DeterministicIdFactory,
     FakeActionExecutor,
     FakeActionResolver,
